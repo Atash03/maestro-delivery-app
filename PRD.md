@@ -36,13 +36,19 @@
    - Write a descriptive commit message following conventional commits
    - Format: `type(scope): description` (e.g., `feat(auth): add phone number sign-up screen`)
 
-6. **Code Quality Standards**:
+6. **Progress Tracking**: After completing each task:
+   - Update the `progress.txt` file in the project root
+   - Write an overview of the current work completed
+   - Include: task number, brief description of what was done, any notable decisions or challenges
+   - This helps maintain continuity across sessions and provides visibility into project progress
+
+7. **Code Quality Standards**:
    - Run `bun run lint:fix` and `bun run format` before each commit
    - Use TypeScript strictly - no `any` types unless absolutely necessary
    - Follow the existing project structure and naming conventions
    - Use the `@/` path alias for imports
 
-7. **Component Architecture**:
+8. **Component Architecture**:
    - Create reusable components in `/src/components/`
    - Screen-specific components go in `/src/app/` with the screen
    - Use composition over inheritance
