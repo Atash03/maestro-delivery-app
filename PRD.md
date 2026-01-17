@@ -220,7 +220,7 @@ src/
   - Add animated logo reveal on app launch
   - Commit: `feat(splash): configure animated splash screen`
 
-- [ ] **1.2 Build onboarding carousel screen**
+- [x] **1.2 Build onboarding carousel screen**
   - Create `/src/app/(auth)/onboarding.tsx`
   - 4 slides with parallax image effect:
     1. "Discover Local Favorites" - Browse restaurants near you
