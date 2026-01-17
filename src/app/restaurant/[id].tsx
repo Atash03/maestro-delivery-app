@@ -37,6 +37,7 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { RestaurantMenuItemCard } from '@/components/cards';
 import { INDICATOR_HEIGHT, MenuCategoryTabs, TAB_HEIGHT } from '@/components/menu-category-tabs';
+import { EmptyMenu, MenuSectionHeader, MenuSkeleton } from '@/components/menu-section-list';
 import { ThemedText } from '@/components/themed-text';
 import { Badge } from '@/components/ui';
 import {
@@ -274,6 +275,7 @@ export default function RestaurantDetailScreen() {
   const [restaurant, setRestaurant] = useState<Restaurant | null>(null);
   const [menuItems, setMenuItems] = useState<MenuItem[]>([]);
   const [isLoading, setIsLoading] = useState(true);
+  const [isMenuLoading, setIsMenuLoading] = useState(true);
   const [isFavorite, setIsFavorite] = useState(false);
   const [activeCategory, setActiveCategory] = useState<string>('');
   const [isTabsSticky, setIsTabsSticky] = useState(false);
@@ -291,12 +293,19 @@ export default function RestaurantDetailScreen() {
   useEffect(() => {
     const fetchData = async () => {
       setIsLoading(true);
-      // Simulate network delay
-      await new Promise((resolve) => setTimeout(resolve, 300));
+      setIsMenuLoading(true);
+
+      // Fetch restaurant data first (faster)
+      await new Promise((resolve) => setTimeout(resolve, 200));
       const restaurantData = getRestaurantById(id);
-      const menuData = getMenuItemsByRestaurant(id);
       setRestaurant(restaurantData ?? null);
+      setIsLoading(false);
+
+      // Then fetch menu data (slightly longer delay to simulate heavier data)
+      await new Promise((resolve) => setTimeout(resolve, 300));
+      const menuData = getMenuItemsByRestaurant(id);
       setMenuItems(menuData);
+
       // Set initial active category
       if (menuData.length > 0) {
         const categories = getCategoriesFromMenuItems(menuData);
@@ -304,7 +313,7 @@ export default function RestaurantDetailScreen() {
           setActiveCategory(categories[0]);
         }
       }
-      setIsLoading(false);
+      setIsMenuLoading(false);
     };
     fetchData();
   }, [id]);
@@ -833,8 +842,8 @@ export default function RestaurantDetailScreen() {
           >
             <ThemedText style={[styles.menuTitle, { color: colors.text }]}>Menu</ThemedText>
 
-            {/* Menu Category Tabs */}
-            {menuCategories.length > 0 && (
+            {/* Menu Category Tabs - Show only when not loading and has categories */}
+            {!isMenuLoading && menuCategories.length > 0 && (
               <View style={styles.menuTabsContainer}>
                 <MenuCategoryTabs
                   categories={menuCategories}
@@ -845,64 +854,56 @@ export default function RestaurantDetailScreen() {
               </View>
             )}
 
-            {/* Menu Items by Category */}
-            {menuCategories.map((category, categoryIndex) => (
-              <View
-                key={category.id}
-                onLayout={(event) => handleCategoryLayout(category.id, event)}
-                style={styles.categorySection}
-              >
-                {/* Category Header */}
-                <View style={styles.categoryHeader}>
-                  <ThemedText style={[styles.categoryTitle, { color: colors.text }]}>
-                    {category.name}
-                  </ThemedText>
-                  <ThemedText style={[styles.categoryCount, { color: colors.textTertiary }]}>
-                    {category.itemCount} {category.itemCount === 1 ? 'item' : 'items'}
-                  </ThemedText>
-                </View>
+            {/* Menu Loading Skeleton */}
+            {isMenuLoading && <MenuSkeleton />}
 
-                {/* Menu Items */}
-                {menuByCategory[category.id]?.map((item, itemIndex) => (
-                  <Animated.View
-                    key={item.id}
-                    entering={FadeInUp.delay(400 + categoryIndex * 50 + itemIndex * 30).duration(
-                      AnimationDurations.normal
-                    )}
-                    style={styles.menuItemWrapper}
-                  >
-                    <RestaurantMenuItemCard
-                      item={item}
-                      restaurant={restaurant}
-                      quantity={getItemQuantity(item.id)}
-                      onPress={handleMenuItemPress}
-                      onAdd={handleMenuItemAdd}
-                      onIncrement={handleMenuItemIncrement}
-                      onDecrement={handleMenuItemDecrement}
-                      testID={`menu-item-${item.id}`}
-                    />
-                  </Animated.View>
-                ))}
-              </View>
-            ))}
+            {/* Menu Items by Category */}
+            {!isMenuLoading &&
+              menuCategories.map((category, categoryIndex) => (
+                <View
+                  key={category.id}
+                  onLayout={(event) => handleCategoryLayout(category.id, event)}
+                  style={styles.categorySection}
+                >
+                  {/* Category Header with unavailable notice */}
+                  <MenuSectionHeader
+                    category={category.name}
+                    items={menuByCategory[category.id] ?? []}
+                    testID={`menu-section-header-${category.id}`}
+                  />
+
+                  {/* Menu Items */}
+                  {menuByCategory[category.id]?.map((item, itemIndex) => (
+                    <Animated.View
+                      key={item.id}
+                      entering={FadeInUp.delay(100 + categoryIndex * 50 + itemIndex * 30).duration(
+                        AnimationDurations.normal
+                      )}
+                      style={styles.menuItemWrapper}
+                    >
+                      <RestaurantMenuItemCard
+                        item={item}
+                        restaurant={restaurant}
+                        quantity={getItemQuantity(item.id)}
+                        onPress={handleMenuItemPress}
+                        onAdd={handleMenuItemAdd}
+                        onIncrement={handleMenuItemIncrement}
+                        onDecrement={handleMenuItemDecrement}
+                        testID={`menu-item-${item.id}`}
+                      />
+                    </Animated.View>
+                  ))}
+                </View>
+              ))}
 
             {/* Empty Menu State */}
-            {menuCategories.length === 0 && (
-              <View
-                style={[styles.menuPlaceholder, { backgroundColor: colors.backgroundSecondary }]}
-              >
-                <Ionicons name="restaurant-outline" size={48} color={colors.textTertiary} />
-                <ThemedText style={[styles.menuPlaceholderText, { color: colors.textSecondary }]}>
-                  Menu not available
-                </ThemedText>
-              </View>
-            )}
+            {!isMenuLoading && menuCategories.length === 0 && <EmptyMenu testID="empty-menu" />}
           </Animated.View>
         </View>
       </Animated.ScrollView>
 
       {/* Sticky Menu Category Tabs (shown when scrolled past menu section) */}
-      {isTabsSticky && menuCategories.length > 0 && (
+      {!isMenuLoading && isTabsSticky && menuCategories.length > 0 && (
         <Animated.View
           entering={FadeIn.duration(AnimationDurations.fast)}
           style={[
@@ -1172,34 +1173,7 @@ const styles = StyleSheet.create({
   categorySection: {
     marginBottom: Spacing[6],
   },
-  categoryHeader: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    marginBottom: Spacing[3],
-    paddingTop: Spacing[2],
-  },
-  categoryTitle: {
-    fontSize: Typography.lg.fontSize,
-    lineHeight: Typography.lg.lineHeight,
-    fontWeight: '600',
-  },
-  categoryCount: {
-    fontSize: Typography.sm.fontSize,
-    lineHeight: Typography.sm.lineHeight,
-  },
   menuItemWrapper: {
     marginBottom: Spacing[3],
-  },
-  menuPlaceholder: {
-    padding: Spacing[8],
-    borderRadius: BorderRadius.lg,
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  menuPlaceholderText: {
-    fontSize: Typography.base.fontSize,
-    lineHeight: Typography.base.lineHeight,
-    marginTop: Spacing[3],
   },
 });

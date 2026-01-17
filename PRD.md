@@ -409,7 +409,7 @@ src/
   - Add button that transforms to quantity selector
   - Commit: `feat(menu): create menu item card with add-to-cart button`
 
-- [ ] **3.4 Build menu list with sections**
+- [x] **3.4 Build menu list with sections**
   - SectionList with category headers
   - Sticky category headers on scroll
   - Empty category message if all items unavailable

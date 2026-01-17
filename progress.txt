@@ -1,7 +1,7 @@
 # Maestro Food Delivery App - Progress Tracking
 
 ## Current Status
-Phase: Phase 3 - Restaurant & Menu Selection (Task 3.3 Complete)
+Phase: Phase 3 - Restaurant & Menu Selection (Task 3.4 Complete)
 Last Updated: 2026-01-18
 
 ---
@@ -284,9 +284,9 @@ Phase 3: Restaurant & Menu Selection - In Progress
 - [x] **3.1 Build restaurant detail header**
 - [x] **3.2 Create sticky menu category tabs**
 - [x] **3.3 Build menu item card**
+- [x] **3.4 Build menu list with sections**
 
 ### Next Up in Phase 3
-- [ ] **3.4 Build menu list with sections**
 - [ ] **3.5 Create dish customization modal**
 - [ ] **3.6 Implement cart functionality**
 - [ ] **3.7 Build floating cart preview**
@@ -1129,6 +1129,56 @@ Phase 3: Restaurant & Menu Selection - In Progress
     - Cart integration tests
     - Edge case tests
   - All 2294 tests passing, linting clean (only pre-existing warnings)
+
+### Session 27
+- Date: 2026-01-18
+- Tasks Completed:
+  - [x] 3.4 Build menu list with sections
+- Summary:
+  - Created `/src/components/menu-section-list.tsx` with comprehensive menu list components:
+    - MenuSection type for category grouping
+    - MenuSectionHeader component for standalone category headers
+    - MenuSkeleton component with shimmer animation (3 sections × 3 items)
+    - EmptyMenu component with customizable title/description
+    - MenuSectionList SectionList wrapper with sticky headers
+  - MenuSectionHeader features:
+    - Displays category name and item count
+    - Shows "All items in this category are currently unavailable" notice
+    - Alert-circle-outline icon for unavailable notice
+    - FadeIn/FadeInUp animations
+    - Supports onLayout callback and testID
+  - MenuSkeleton features:
+    - 3 skeleton sections with 3 items each
+    - Shimmer animation using Skeleton component
+    - Staggered FadeIn delays (sectionIndex * 50 + itemIndex * 30)
+    - Badge, name, description, price row placeholders
+  - EmptyMenu features:
+    - Restaurant-outline icon (48px)
+    - Customizable title and description
+    - FadeIn entering animation
+    - backgroundSecondary container styling
+  - Updated `/src/app/restaurant/[id].tsx`:
+    - Added isMenuLoading state for separate menu loading tracking
+    - Uses MenuSectionHeader for category headers (with unavailable notice)
+    - Uses MenuSkeleton during menu loading
+    - Uses EmptyMenu when no categories available
+    - Sequential data fetching: restaurant (200ms) then menu (300ms)
+    - Hides menu tabs and sticky tabs during loading
+  - Created comprehensive test suite (121 tests) in `/src/__tests__/menu-section-list.test.ts`:
+    - File structure and export tests
+    - Import tests
+    - Type tests for MenuSection, MenuSectionHeaderProps, MenuSectionListProps, EmptyMenuProps
+    - MenuSectionHeader component tests
+    - MenuSkeleton component tests
+    - EmptyMenu component tests
+    - MenuSectionList component tests
+    - Restaurant detail integration tests
+    - Styling tests
+    - Animation tests
+    - Accessibility tests
+    - Edge case tests
+    - Constant value tests
+  - All 2415 tests passing, linting clean (only pre-existing warnings)
 
 ---
 
