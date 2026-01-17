@@ -122,7 +122,7 @@ src/
 
 ### Tasks
 
-- [ ] **0.1 Install required dependencies**
+- [x] **0.1 Install required dependencies**
   ```bash
   bun add zustand react-hook-form @hookform/resolvers zod
   bun add react-native-maps expo-location expo-image-picker
