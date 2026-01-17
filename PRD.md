@@ -312,7 +312,7 @@ src/
   - Navigate to search screen on focus
   - Commit: `feat(search): create animated search bar component`
 
-- [ ] **2.3 Build cuisine category horizontal scroll**
+- [x] **2.3 Build cuisine category horizontal scroll**
   - Create `/src/components/cards/category-chip.tsx`
   - Horizontal FlatList of cuisine categories with icons
   - Categories: All, Pizza, Burgers, Sushi, Chinese, Indian, Mexican, Thai, Italian, Healthy, Desserts
