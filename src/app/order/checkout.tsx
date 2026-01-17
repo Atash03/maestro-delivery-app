@@ -63,8 +63,15 @@ import {
   Typography,
 } from '@/constants/theme';
 import { useColorScheme } from '@/hooks/use-color-scheme';
-import { useAuthStore, useCartStore } from '@/stores';
-import type { Address, AddressLabel } from '@/types';
+import {
+  formatCardExpiry,
+  formatCardNumber,
+  getCardBrandDisplayName,
+  useAuthStore,
+  useCartStore,
+  usePaymentStore,
+} from '@/stores';
+import type { Address, AddressLabel, CardBrand, PaymentMethod } from '@/types';
 
 // ============================================================================
 // Constants
@@ -646,28 +653,182 @@ export function OrderSummarySection({
   );
 }
 
-interface PaymentOptionProps {
-  type: 'card' | 'cash';
-  label: string;
-  description: string;
+// ============================================================================
+// Payment Method Components
+// ============================================================================
+
+/**
+ * Card brand color mapping for visual differentiation
+ */
+export const CARD_BRAND_COLORS: Record<CardBrand, string> = {
+  visa: '#1A1F71',
+  mastercard: '#EB001B',
+  amex: '#006FCF',
+  discover: '#FF6000',
+};
+
+interface SavedCardOptionProps {
+  card: PaymentMethod;
   isSelected: boolean;
   onSelect: () => void;
   colors: (typeof Colors)['light'];
-  icon: keyof typeof Ionicons.glyphMap;
+  index?: number;
 }
 
 /**
- * Payment method option
+ * Saved card payment option with card brand icon and details
  */
-function PaymentOption({
-  type,
-  label,
-  description,
+export function SavedCardOption({
+  card,
   isSelected,
   onSelect,
   colors,
-  icon,
-}: PaymentOptionProps) {
+  index = 0,
+}: SavedCardOptionProps) {
+  const scale = useSharedValue(1);
+
+  const handlePressIn = useCallback(() => {
+    scale.value = withSpring(0.98, SPRING_CONFIG);
+  }, [scale]);
+
+  const handlePressOut = useCallback(() => {
+    scale.value = withSpring(1, SPRING_CONFIG);
+  }, [scale]);
+
+  const animatedStyle = useAnimatedStyle(() => ({
+    transform: [{ scale: scale.value }],
+  }));
+
+  const brandColor = card.brand ? CARD_BRAND_COLORS[card.brand] : colors.textSecondary;
+  const brandName = getCardBrandDisplayName(card.brand);
+  const cardNumber = formatCardNumber(card.last4);
+  const expiry = formatCardExpiry(card.expiryMonth, card.expiryYear);
+
+  return (
+    <Animated.View entering={FadeInDown.duration(AnimationDurations.normal).delay(index * 50)}>
+      <AnimatedPressable
+        onPress={onSelect}
+        onPressIn={handlePressIn}
+        onPressOut={handlePressOut}
+        style={[
+          styles.paymentOption,
+          {
+            backgroundColor: isSelected ? PrimaryColors[50] : colors.backgroundSecondary,
+            borderColor: isSelected ? PrimaryColors[500] : colors.border,
+          },
+          animatedStyle,
+        ]}
+        accessibilityLabel={`${brandName} ending in ${card.last4 ?? 'unknown'}. Expires ${expiry}. ${card.isDefault ? 'Default card.' : ''} ${isSelected ? 'Selected' : 'Tap to select'}`}
+        accessibilityRole="radio"
+        accessibilityState={{ selected: isSelected }}
+        testID={`saved-card-${card.id}`}
+      >
+        <View style={styles.paymentOptionLeft}>
+          {/* Card Brand Icon */}
+          <View
+            style={[
+              styles.cardBrandIconContainer,
+              { backgroundColor: isSelected ? PrimaryColors[100] : colors.backgroundTertiary },
+            ]}
+          >
+            <CardBrandIcon brand={card.brand} size={24} color={brandColor} />
+          </View>
+          <View style={styles.paymentDetails}>
+            <View style={styles.cardHeaderRow}>
+              <Text style={[styles.paymentLabel, { color: colors.text }]}>{brandName}</Text>
+              {card.isDefault && (
+                <View style={[styles.defaultCardBadge, { backgroundColor: SuccessColors[100] }]}>
+                  <Text style={[styles.defaultCardBadgeText, { color: SuccessColors[700] }]}>
+                    Default
+                  </Text>
+                </View>
+              )}
+            </View>
+            <View style={styles.cardDetailsRow}>
+              <Text style={[styles.cardNumber, { color: colors.textSecondary }]}>{cardNumber}</Text>
+              <Text style={[styles.cardExpiry, { color: colors.textTertiary }]}>
+                Expires {expiry}
+              </Text>
+            </View>
+          </View>
+        </View>
+        <View
+          style={[
+            styles.radioButton,
+            {
+              borderColor: isSelected ? PrimaryColors[500] : colors.border,
+              backgroundColor: isSelected ? PrimaryColors[500] : 'transparent',
+            },
+          ]}
+        >
+          {isSelected && <Ionicons name="checkmark" size={14} color={NeutralColors[0]} />}
+        </View>
+      </AnimatedPressable>
+    </Animated.View>
+  );
+}
+
+interface CardBrandIconProps {
+  brand?: CardBrand;
+  size?: number;
+  color?: string;
+}
+
+/**
+ * Card brand icon component displaying brand-specific icons
+ */
+export function CardBrandIcon({ brand, size = 24, color }: CardBrandIconProps) {
+  // Use text-based brand display for now since Ionicons doesn't have specific card brand icons
+  // In production, you'd use actual brand logos/images
+  switch (brand) {
+    case 'visa':
+      return (
+        <View style={[styles.cardBrandTextContainer, { width: size, height: size }]}>
+          <Text style={[styles.cardBrandText, { fontSize: size * 0.4, color }]}>VISA</Text>
+        </View>
+      );
+    case 'mastercard':
+      return (
+        <View style={[styles.cardBrandTextContainer, { width: size, height: size }]}>
+          <View style={styles.mastercardCircles}>
+            <View style={[styles.mastercardCircle, { backgroundColor: '#EB001B' }]} />
+            <View style={[styles.mastercardCircle, { backgroundColor: '#F79E1B' }]} />
+          </View>
+        </View>
+      );
+    case 'amex':
+      return (
+        <View style={[styles.cardBrandTextContainer, { width: size, height: size }]}>
+          <Text style={[styles.cardBrandText, { fontSize: size * 0.35, color }]}>AMEX</Text>
+        </View>
+      );
+    case 'discover':
+      return (
+        <View style={[styles.cardBrandTextContainer, { width: size, height: size }]}>
+          <Text style={[styles.cardBrandText, { fontSize: size * 0.3, color }]}>DISC</Text>
+        </View>
+      );
+    default:
+      return <Ionicons name="card-outline" size={size} color={color} />;
+  }
+}
+
+interface CashOnDeliveryOptionProps {
+  isSelected: boolean;
+  onSelect: () => void;
+  colors: (typeof Colors)['light'];
+  index?: number;
+}
+
+/**
+ * Cash on delivery payment option
+ */
+export function CashOnDeliveryOption({
+  isSelected,
+  onSelect,
+  colors,
+  index = 0,
+}: CashOnDeliveryOptionProps) {
   const scale = useSharedValue(1);
 
   const handlePressIn = useCallback(() => {
@@ -683,51 +844,172 @@ function PaymentOption({
   }));
 
   return (
-    <AnimatedPressable
-      onPress={onSelect}
-      onPressIn={handlePressIn}
-      onPressOut={handlePressOut}
-      style={[
-        styles.paymentOption,
-        {
-          backgroundColor: isSelected ? PrimaryColors[50] : colors.backgroundSecondary,
-          borderColor: isSelected ? PrimaryColors[500] : colors.border,
-        },
-        animatedStyle,
-      ]}
-      accessibilityLabel={`${label}. ${description}. ${isSelected ? 'Selected' : 'Tap to select'}`}
-      accessibilityRole="radio"
-      accessibilityState={{ selected: isSelected }}
-      testID={`payment-option-${type}`}
-    >
-      <View style={styles.paymentOptionLeft}>
+    <Animated.View entering={FadeInDown.duration(AnimationDurations.normal).delay(index * 50)}>
+      <AnimatedPressable
+        onPress={onSelect}
+        onPressIn={handlePressIn}
+        onPressOut={handlePressOut}
+        style={[
+          styles.paymentOption,
+          {
+            backgroundColor: isSelected ? PrimaryColors[50] : colors.backgroundSecondary,
+            borderColor: isSelected ? PrimaryColors[500] : colors.border,
+          },
+          animatedStyle,
+        ]}
+        accessibilityLabel={`Cash on Delivery. Pay when your order arrives. ${isSelected ? 'Selected' : 'Tap to select'}`}
+        accessibilityRole="radio"
+        accessibilityState={{ selected: isSelected }}
+        testID="payment-option-cash"
+      >
+        <View style={styles.paymentOptionLeft}>
+          <View
+            style={[
+              styles.paymentIconContainer,
+              { backgroundColor: isSelected ? PrimaryColors[100] : colors.backgroundTertiary },
+            ]}
+          >
+            <Ionicons
+              name="cash-outline"
+              size={20}
+              color={isSelected ? PrimaryColors[500] : colors.icon}
+            />
+          </View>
+          <View style={styles.paymentDetails}>
+            <Text style={[styles.paymentLabel, { color: colors.text }]}>Cash on Delivery</Text>
+            <Text style={[styles.paymentDescription, { color: colors.textSecondary }]}>
+              Pay when your order arrives
+            </Text>
+          </View>
+        </View>
         <View
           style={[
-            styles.paymentIconContainer,
-            { backgroundColor: isSelected ? PrimaryColors[100] : colors.backgroundTertiary },
+            styles.radioButton,
+            {
+              borderColor: isSelected ? PrimaryColors[500] : colors.border,
+              backgroundColor: isSelected ? PrimaryColors[500] : 'transparent',
+            },
           ]}
         >
-          <Ionicons name={icon} size={20} color={isSelected ? PrimaryColors[500] : colors.icon} />
+          {isSelected && <Ionicons name="checkmark" size={14} color={NeutralColors[0]} />}
         </View>
-        <View style={styles.paymentDetails}>
-          <Text style={[styles.paymentLabel, { color: colors.text }]}>{label}</Text>
-          <Text style={[styles.paymentDescription, { color: colors.textSecondary }]}>
-            {description}
+      </AnimatedPressable>
+    </Animated.View>
+  );
+}
+
+interface AddNewCardButtonProps {
+  onPress: () => void;
+  colors: (typeof Colors)['light'];
+  index?: number;
+}
+
+/**
+ * Add new card button that navigates to add card screen
+ */
+export function AddNewCardButton({ onPress, index = 0 }: AddNewCardButtonProps) {
+  const scale = useSharedValue(1);
+
+  const handlePressIn = useCallback(() => {
+    scale.value = withSpring(0.98, SPRING_CONFIG);
+  }, [scale]);
+
+  const handlePressOut = useCallback(() => {
+    scale.value = withSpring(1, SPRING_CONFIG);
+  }, [scale]);
+
+  const animatedStyle = useAnimatedStyle(() => ({
+    transform: [{ scale: scale.value }],
+  }));
+
+  return (
+    <Animated.View entering={FadeInDown.duration(AnimationDurations.normal).delay(index * 50)}>
+      <AnimatedPressable
+        onPress={onPress}
+        onPressIn={handlePressIn}
+        onPressOut={handlePressOut}
+        style={[styles.addNewCardButton, { borderColor: PrimaryColors[500] }, animatedStyle]}
+        accessibilityLabel="Add a new card"
+        accessibilityRole="button"
+        testID="add-new-card-button"
+      >
+        <Ionicons name="add-circle-outline" size={20} color={PrimaryColors[500]} />
+        <Text style={[styles.addNewCardText, { color: PrimaryColors[500] }]}>Add New Card</Text>
+      </AnimatedPressable>
+    </Animated.View>
+  );
+}
+
+interface PaymentMethodSectionContentProps {
+  savedCards: PaymentMethod[];
+  selectedPaymentId: string | null;
+  onSelectPayment: (id: string | null) => void;
+  onAddNewCard: () => void;
+  colors: (typeof Colors)['light'];
+}
+
+/**
+ * Complete payment method section content with saved cards, cash option, and add card
+ */
+export function PaymentMethodSectionContent({
+  savedCards,
+  selectedPaymentId,
+  onSelectPayment,
+  onAddNewCard,
+  colors,
+}: PaymentMethodSectionContentProps) {
+  const isCashSelected = selectedPaymentId === 'cash';
+
+  return (
+    <View style={styles.paymentOptions} testID="payment-method-section">
+      {/* Saved Cards Header */}
+      {savedCards.length > 0 && (
+        <Animated.View entering={FadeIn.duration(AnimationDurations.normal)}>
+          <View style={styles.paymentSubsectionHeader}>
+            <Ionicons name="card" size={16} color={colors.textSecondary} />
+            <Text style={[styles.paymentSubsectionTitle, { color: colors.textSecondary }]}>
+              Saved Cards
+            </Text>
+          </View>
+        </Animated.View>
+      )}
+
+      {/* Saved Cards List */}
+      {savedCards.map((card, index) => (
+        <SavedCardOption
+          key={card.id}
+          card={card}
+          isSelected={selectedPaymentId === card.id}
+          onSelect={() => onSelectPayment(card.id)}
+          colors={colors}
+          index={index}
+        />
+      ))}
+
+      {/* Add New Card Button */}
+      <AddNewCardButton onPress={onAddNewCard} colors={colors} index={savedCards.length} />
+
+      {/* Divider */}
+      <View style={[styles.paymentDivider, { backgroundColor: colors.divider }]} />
+
+      {/* Other Payment Methods Header */}
+      <Animated.View entering={FadeIn.duration(AnimationDurations.normal).delay(100)}>
+        <View style={styles.paymentSubsectionHeader}>
+          <Ionicons name="wallet-outline" size={16} color={colors.textSecondary} />
+          <Text style={[styles.paymentSubsectionTitle, { color: colors.textSecondary }]}>
+            Other Payment Methods
           </Text>
         </View>
-      </View>
-      <View
-        style={[
-          styles.radioButton,
-          {
-            borderColor: isSelected ? PrimaryColors[500] : colors.border,
-            backgroundColor: isSelected ? PrimaryColors[500] : 'transparent',
-          },
-        ]}
-      >
-        {isSelected && <Ionicons name="checkmark" size={14} color={NeutralColors[0]} />}
-      </View>
-    </AnimatedPressable>
+      </Animated.View>
+
+      {/* Cash on Delivery */}
+      <CashOnDeliveryOption
+        isSelected={isCashSelected}
+        onSelect={() => onSelectPayment('cash')}
+        colors={colors}
+        index={savedCards.length + 2}
+      />
+    </View>
   );
 }
 
@@ -1394,6 +1676,13 @@ export default function CheckoutScreen() {
   const getSubtotal = useCartStore((state) => state.getSubtotal);
   const clearCart = useCartStore((state) => state.clearCart);
 
+  // Payment store state
+  const paymentMethods = usePaymentStore((state) => state.paymentMethods);
+  const selectedPaymentMethodId = usePaymentStore((state) => state.selectedPaymentMethodId);
+  const selectPaymentMethod = usePaymentStore((state) => state.selectPaymentMethod);
+  const getSavedCards = usePaymentStore((state) => state.getSavedCards);
+  const getSelectedPaymentMethod = usePaymentStore((state) => state.getSelectedPaymentMethod);
+
   // Local state
   const [expandedSections, setExpandedSections] = useState({
     address: true,
@@ -1404,7 +1693,6 @@ export default function CheckoutScreen() {
   const [selectedAddressId, setSelectedAddressId] = useState<string | null>(
     user?.addresses.find((a) => a.isDefault)?.id ?? user?.addresses[0]?.id ?? null
   );
-  const [selectedPaymentMethod, setSelectedPaymentMethod] = useState<'card' | 'cash'>('card');
   const [isPlacingOrder, setIsPlacingOrder] = useState(false);
   const [deliveryInstructions, setDeliveryInstructions] = useState(
     user?.addresses.find((a) => a.id === selectedAddressId)?.instructions ?? ''
@@ -1432,8 +1720,25 @@ export default function CheckoutScreen() {
     return formatEstimatedDelivery(restaurant.deliveryTime.min, restaurant.deliveryTime.max);
   }, [restaurant?.deliveryTime]);
 
+  // Payment method computed values
+  const savedCards = useMemo(() => getSavedCards(), [getSavedCards, paymentMethods]);
+  const selectedPayment = useMemo(
+    () => getSelectedPaymentMethod(),
+    [getSelectedPaymentMethod, selectedPaymentMethodId, paymentMethods]
+  );
+  const paymentMethodDisplay = useMemo(() => {
+    if (selectedPaymentMethodId === 'cash') return 'Cash';
+    if (selectedPayment?.type === 'card' && selectedPayment.brand) {
+      return `${getCardBrandDisplayName(selectedPayment.brand)} ••••${selectedPayment.last4}`;
+    }
+    if (savedCards.length > 0) return 'Card';
+    return 'Select payment';
+  }, [selectedPaymentMethodId, selectedPayment, savedCards.length]);
+
   // Validation
-  const canPlaceOrder = selectedAddress !== undefined && items.length > 0;
+  const hasPaymentMethod =
+    selectedPaymentMethodId === 'cash' || (selectedPaymentMethodId && selectedPayment);
+  const canPlaceOrder = selectedAddress !== undefined && items.length > 0 && hasPaymentMethod;
 
   // Handlers
   const handleBack = useCallback(() => {
@@ -1451,9 +1756,17 @@ export default function CheckoutScreen() {
     setSelectedAddressId(addressId);
   }, []);
 
-  const handleSelectPayment = useCallback((method: 'card' | 'cash') => {
-    setSelectedPaymentMethod(method);
-  }, []);
+  const handleSelectPaymentMethod = useCallback(
+    (methodId: string | null) => {
+      selectPaymentMethod(methodId);
+    },
+    [selectPaymentMethod]
+  );
+
+  const handleAddNewCard = useCallback(() => {
+    // Navigate to add card screen (to be implemented in Task 4.5)
+    router.push('/order/add-card' as never);
+  }, [router]);
 
   const handleDeliveryInstructionsChange = useCallback((text: string) => {
     setDeliveryInstructions(text);
@@ -1787,30 +2100,17 @@ export default function CheckoutScreen() {
             delay={300}
             rightContent={
               <Text style={[styles.sectionSummary, { color: colors.textSecondary }]}>
-                {selectedPaymentMethod === 'card' ? 'Card' : 'Cash'}
+                {paymentMethodDisplay}
               </Text>
             }
           >
-            <View style={styles.paymentOptions}>
-              <PaymentOption
-                type="card"
-                label="Credit/Debit Card"
-                description="Pay securely with your card"
-                icon="card-outline"
-                isSelected={selectedPaymentMethod === 'card'}
-                onSelect={() => handleSelectPayment('card')}
-                colors={colors}
-              />
-              <PaymentOption
-                type="cash"
-                label="Cash on Delivery"
-                description="Pay when your order arrives"
-                icon="cash-outline"
-                isSelected={selectedPaymentMethod === 'cash'}
-                onSelect={() => handleSelectPayment('cash')}
-                colors={colors}
-              />
-            </View>
+            <PaymentMethodSectionContent
+              savedCards={savedCards}
+              selectedPaymentId={selectedPaymentMethodId}
+              onSelectPayment={handleSelectPaymentMethod}
+              onAddNewCard={handleAddNewCard}
+              colors={colors}
+            />
           </CollapsibleSection>
 
           {/* Promo Code Section */}
@@ -2615,5 +2915,95 @@ const styles = StyleSheet.create({
   defaultToggleDescription: {
     fontSize: Typography.sm.fontSize,
     lineHeight: Typography.sm.lineHeight,
+  },
+
+  // Payment Method Section Styles
+  cardBrandIconContainer: {
+    width: 44,
+    height: 44,
+    borderRadius: BorderRadius.md,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  cardBrandTextContainer: {
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  cardBrandText: {
+    fontWeight: FontWeights.bold as TextStyle['fontWeight'],
+    letterSpacing: -0.5,
+  },
+  mastercardCircles: {
+    flexDirection: 'row',
+    alignItems: 'center',
+  },
+  mastercardCircle: {
+    width: 10,
+    height: 10,
+    borderRadius: BorderRadius.full,
+    marginHorizontal: -2,
+  },
+  cardHeaderRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: Spacing[2],
+  },
+  cardDetailsRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: Spacing[2],
+    marginTop: Spacing[0.5],
+  },
+  cardNumber: {
+    fontSize: Typography.sm.fontSize,
+    lineHeight: Typography.sm.lineHeight,
+    fontFamily: Platform.OS === 'ios' ? 'Menlo' : 'monospace',
+  },
+  cardExpiry: {
+    fontSize: Typography.xs.fontSize,
+    lineHeight: Typography.xs.lineHeight,
+  },
+  defaultCardBadge: {
+    paddingHorizontal: Spacing[2],
+    paddingVertical: Spacing[0.5],
+    borderRadius: BorderRadius.sm,
+  },
+  defaultCardBadgeText: {
+    fontSize: Typography.xs.fontSize,
+    lineHeight: Typography.xs.lineHeight,
+    fontWeight: FontWeights.medium as TextStyle['fontWeight'],
+  },
+  addNewCardButton: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    padding: Spacing[3],
+    borderRadius: BorderRadius.md,
+    borderWidth: 1.5,
+    borderStyle: 'dashed',
+    gap: Spacing[2],
+    marginTop: Spacing[1],
+  },
+  addNewCardText: {
+    fontSize: Typography.sm.fontSize,
+    lineHeight: Typography.sm.lineHeight,
+    fontWeight: FontWeights.semibold as TextStyle['fontWeight'],
+  },
+  paymentDivider: {
+    height: 1,
+    marginVertical: Spacing[3],
+  },
+  paymentSubsectionHeader: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: Spacing[2],
+    marginBottom: Spacing[2],
+  },
+  paymentSubsectionTitle: {
+    fontSize: Typography.xs.fontSize,
+    lineHeight: Typography.xs.lineHeight,
+    fontWeight: FontWeights.semibold as TextStyle['fontWeight'],
+    textTransform: 'uppercase',
+    letterSpacing: 0.5,
   },
 });

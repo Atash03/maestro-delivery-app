@@ -423,27 +423,27 @@ describe('Checkout Screen - Order Summary Section', () => {
 // ============================================================================
 
 describe('Checkout Screen - Payment Method Section', () => {
-  test('has PaymentOption component', () => {
-    expect(checkoutScreenContent).toContain('function PaymentOption');
+  test('has SavedCardOption component', () => {
+    expect(checkoutScreenContent).toContain('function SavedCardOption');
   });
 
-  test('has Credit/Debit Card option', () => {
-    expect(checkoutScreenContent).toContain('Credit/Debit Card');
-    expect(checkoutScreenContent).toContain('Pay securely with your card');
+  test('has saved cards section', () => {
+    expect(checkoutScreenContent).toContain('Saved Cards');
+    expect(checkoutScreenContent).toContain('savedCards');
   });
 
   test('has Cash on Delivery option', () => {
-    expect(checkoutScreenContent).toContain('Cash on Delivery');
+    expect(checkoutScreenContent).toContain('CashOnDeliveryOption');
     expect(checkoutScreenContent).toContain('Pay when your order arrives');
   });
 
   test('tracks selected payment method', () => {
-    expect(checkoutScreenContent).toContain('selectedPaymentMethod');
-    expect(checkoutScreenContent).toContain('setSelectedPaymentMethod');
+    expect(checkoutScreenContent).toContain('selectedPaymentMethodId');
+    expect(checkoutScreenContent).toContain('selectPaymentMethod');
   });
 
-  test('has handleSelectPayment handler', () => {
-    expect(checkoutScreenContent).toContain('handleSelectPayment');
+  test('has handleSelectPaymentMethod handler', () => {
+    expect(checkoutScreenContent).toContain('handleSelectPaymentMethod');
   });
 
   test('payment options have icons', () => {
@@ -1000,8 +1000,8 @@ describe('Checkout Screen - Callback Memoization', () => {
     expect(checkoutScreenContent).toContain('const handleSelectAddress = useCallback');
   });
 
-  test('memoizes handleSelectPayment', () => {
-    expect(checkoutScreenContent).toContain('const handleSelectPayment = useCallback');
+  test('memoizes handleSelectPaymentMethod', () => {
+    expect(checkoutScreenContent).toContain('const handleSelectPaymentMethod = useCallback');
   });
 
   test('memoizes handlePlaceOrder', () => {

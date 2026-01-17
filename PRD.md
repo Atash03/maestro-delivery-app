@@ -496,7 +496,7 @@ src/
   - Animated expand/collapse
   - Commit: `feat(checkout): build order summary with cost breakdown`
 
-- [ ] **4.4 Build payment method section**
+- [x] **4.4 Build payment method section**
   - Payment options:
     - Saved cards (show last 4 digits)
     - Add new card (navigate to add card screen)

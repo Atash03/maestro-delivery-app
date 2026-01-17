@@ -284,9 +284,9 @@ Phase 4: Checkout & Payment - IN PROGRESS
 - [x] **4.1 Build checkout screen layout**
 - [x] **4.2 Build delivery address section**
 - [x] **4.3 Build order summary section**
+- [x] **4.4 Build payment method section**
 
 ### Next Up
-- **4.4 Build payment method section**
 - **4.5 Build add card screen**
 - **4.6 Build promo code section**
 - **4.7 Implement place order flow**
@@ -1619,6 +1619,56 @@ Phase 4: Checkout & Payment - IN PROGRESS
     - Edge case tests (empty state, free delivery, no discount, single item)
   - Updated existing checkout-screen.test.ts to match new format
   - All 3494 tests passing, linting clean (only pre-existing warnings)
+
+### Session 35
+- Date: 2026-01-18
+- Tasks Completed:
+  - [x] 4.4 Build payment method section
+- Summary:
+  - Created `/src/stores/payment-store.ts` Zustand store for payment methods:
+    - State: paymentMethods, selectedPaymentMethodId
+    - Actions: addPaymentMethod, removePaymentMethod, setDefaultPaymentMethod, selectPaymentMethod
+    - Getters: getDefaultPaymentMethod, getSelectedPaymentMethod, getPaymentMethodById, getSavedCards
+    - clearPaymentMethods for resetting state
+    - Persists to AsyncStorage via zustand persist middleware
+  - Created helper functions for card display:
+    - getCardBrandIcon: Returns icon name based on card brand
+    - getCardBrandDisplayName: Returns display name (Visa, Mastercard, etc.)
+    - formatCardNumber: Formats with masked prefix (•••• 1234)
+    - formatCardExpiry: Formats MM/YY
+    - isCardExpired: Checks if card is past expiration
+    - generatePaymentMethodId: Creates unique IDs
+    - detectCardBrand: Detects brand from card number prefix
+  - Updated `/src/app/order/checkout.tsx` with payment section components:
+    - SavedCardOption: Displays saved card with brand icon, last 4 digits, expiry
+    - CardBrandIcon: Custom SVG-like icons for Visa, Mastercard, Amex, Discover
+    - CashOnDeliveryOption: Cash payment option with cash icon
+    - AddNewCardButton: Dashed border button to add new payment method
+    - PaymentMethodSectionContent: Main section orchestrating all payment options
+  - Payment section features:
+    - "Saved Cards" section header when cards exist
+    - Radio button selection for payment methods
+    - Card brand colors for visual distinction
+    - "Expired" badge for expired cards (disabled selection)
+    - "Default" badge for default payment method
+    - "Other Payment Methods" section for Cash on Delivery
+    - Selection stored in payment store
+  - Integrated with checkout screen:
+    - Section badge shows selected payment method summary
+    - Cash on Delivery shows "Pay when your order arrives"
+    - Card shows brand and last 4 digits
+    - No payment shows "Select payment method"
+  - Updated `/src/stores/index.ts` to export payment store and helpers
+  - Created comprehensive test suite (181 tests) in `/src/__tests__/payment-method.test.ts`:
+    - Payment store tests
+    - Helper function tests
+    - Component tests
+    - Styling tests
+    - Accessibility tests
+    - Integration tests
+    - Edge cases
+  - Updated `/src/__tests__/checkout-screen.test.ts` to match new payment section structure
+  - All 3675 tests passing, linting clean (only pre-existing warnings)
 
 ---
 
