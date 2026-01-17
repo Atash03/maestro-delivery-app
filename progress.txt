@@ -50,11 +50,25 @@ Last Updated: 2026-01-17
   - Type exports for all design tokens
   - Created 36 new tests verifying all design system constants
 
+- [x] **0.5 Create comprehensive mock data**
+  - Created `/src/data/mock/restaurants.ts` with 16 restaurants (various cuisines, price levels, ratings)
+  - Created `/src/data/mock/menu-items.ts` with 70+ menu items (5-7 items per restaurant)
+  - Created `/src/data/mock/users.ts` with sample users, addresses, payment methods, and drivers
+  - Created `/src/data/mock/orders.ts` with 8 orders in various statuses (active, delivered, cancelled)
+  - Created `/src/data/mock/categories.ts` with 18 cuisine categories, 5 featured collections, dietary filters, sort options
+  - Created `/src/data/mock/index.ts` to export all mock data and utility functions
+  - All mock data uses realistic data with picsum.photos for placeholder images
+  - Added helper functions for data access (getById, search, filter, etc.)
+  - Added async functions with configurable delays for simulating network requests
+  - Created network delay utilities (NETWORK_DELAYS, simulateNetworkDelay, withNetworkDelay)
+  - Created comprehensive test suite (86 tests) for all mock data and utilities
+  - All 207 tests passing, linting clean
+
 ---
 
 ## Current Work
 
-Ready to begin task 0.5: Create comprehensive mock data
+Ready to begin task 0.6: Create base UI components
 
 ---
 
@@ -126,6 +140,23 @@ Ready to begin task 0.5: Create comprehensive mock data
   - Created 36 tests verifying all design system constants
   - Updated Jest config to handle react-native transforms for theme tests
   - All 121 tests passing, linting clean
+
+### Session 5
+- Date: 2026-01-17
+- Tasks Completed:
+  - [x] 0.5 Create comprehensive mock data
+- Summary:
+  - Created comprehensive mock data layer in `/src/data/mock/`:
+    - `restaurants.ts`: 16 restaurants with cuisines (Italian, Japanese, American, Indian, Mexican, Chinese, Thai, Mediterranean, French, Korean, Healthy, Desserts), varied price levels (1-4), ratings (4.3-4.9), delivery times, and business hours
+    - `menu-items.ts`: 70+ menu items with customizations (size, spice level, toppings, add-ons), allergens, calories, and pricing
+    - `users.ts`: 3 sample users with addresses, 4 payment methods, 5 drivers with different vehicle types
+    - `orders.ts`: 8 orders across all statuses (active: ON_THE_WAY, PREPARING, CONFIRMED; past: DELIVERED; cancelled)
+    - `categories.ts`: 18 cuisine categories, 5 featured collections, 5 dietary filters, 6 sort options
+    - `index.ts`: Central export with helper functions and network delay utilities
+  - All data uses picsum.photos for realistic placeholder images
+  - Added async fetch functions with configurable delays for realistic UX testing
+  - Created 86 tests covering all mock data structures and helper functions
+  - All 207 tests passing, linting clean
 
 ---
 

@@ -167,7 +167,7 @@ src/
     - Shadow definitions (sm, md, lg)
   - Commit: `feat(theme): extend design system with typography, spacing, and shadows`
 
-- [ ] **0.5 Create comprehensive mock data**
+- [x] **0.5 Create comprehensive mock data**
   - Create `/src/data/mock/restaurants.ts` with 15+ restaurants
   - Create `/src/data/mock/menu-items.ts` with 5-10 items per restaurant
   - Create `/src/data/mock/users.ts` with sample user data
