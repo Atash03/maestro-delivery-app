@@ -393,7 +393,7 @@ src/
   - Share and favorite buttons (heart icon with fill animation)
   - Commit: `feat(restaurant): build restaurant header with parallax effect`
 
-- [ ] **3.2 Create sticky menu category tabs**
+- [x] **3.2 Create sticky menu category tabs**
   - Horizontal scrollable category tabs
   - Auto-scroll to active category as user scrolls menu
   - Tap to scroll to category section

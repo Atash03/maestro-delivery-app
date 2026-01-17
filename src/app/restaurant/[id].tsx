@@ -8,6 +8,7 @@
  * - Delivery time and fee
  * - "More Info" expandable section (hours, address, about)
  * - Share and favorite buttons
+ * - Sticky menu category tabs with scroll sync
  *
  * Uses react-native-reanimated for smooth parallax animations
  */
@@ -16,14 +17,15 @@ import { Ionicons } from '@expo/vector-icons';
 import { Image } from 'expo-image';
 import { LinearGradient } from 'expo-linear-gradient';
 import { useLocalSearchParams, useRouter } from 'expo-router';
-import { useCallback, useEffect, useMemo, useState } from 'react';
-import { Alert, Pressable, Share, StyleSheet, View } from 'react-native';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import { Alert, type LayoutChangeEvent, Pressable, Share, StyleSheet, View } from 'react-native';
 import Animated, {
   Extrapolation,
   FadeIn,
   FadeInDown,
   FadeInUp,
   interpolate,
+  runOnJS,
   useAnimatedRef,
   useAnimatedScrollHandler,
   useAnimatedStyle,
@@ -33,6 +35,7 @@ import Animated, {
 } from 'react-native-reanimated';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
+import { INDICATOR_HEIGHT, MenuCategoryTabs, TAB_HEIGHT } from '@/components/menu-category-tabs';
 import { ThemedText } from '@/components/themed-text';
 import { Badge } from '@/components/ui';
 import {
@@ -46,9 +49,14 @@ import {
   Typography,
   WarningColors,
 } from '@/constants/theme';
+import { getMenuItemsByRestaurant } from '@/data/mock/menu-items';
 import { getRestaurantById } from '@/data/mock/restaurants';
 import { useColorScheme } from '@/hooks/use-color-scheme';
-import type { Restaurant } from '@/types';
+import {
+  categoriesToMenuCategories,
+  getCategoriesFromMenuItems,
+} from '@/hooks/use-menu-scroll-sync';
+import type { MenuItem, Restaurant } from '@/types';
 
 // ============================================================================
 // Constants
@@ -57,6 +65,8 @@ import type { Restaurant } from '@/types';
 const HEADER_HEIGHT = 280;
 const HEADER_MIN_HEIGHT = 100;
 const PARALLAX_FACTOR = 0.5;
+const MENU_TABS_HEIGHT = TAB_HEIGHT + INDICATOR_HEIGHT;
+const CATEGORY_ACTIVATION_OFFSET = 120; // How far from top to consider a section "active"
 
 const SPRING_CONFIG = {
   damping: 15,
@@ -253,32 +263,142 @@ export default function RestaurantDetailScreen() {
 
   // State
   const [restaurant, setRestaurant] = useState<Restaurant | null>(null);
+  const [menuItems, setMenuItems] = useState<MenuItem[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [isFavorite, setIsFavorite] = useState(false);
+  const [activeCategory, setActiveCategory] = useState<string>('');
+  const [isTabsSticky, setIsTabsSticky] = useState(false);
 
   // Animation values
   const scrollY = useSharedValue(0);
   const scrollRef = useAnimatedRef<Animated.ScrollView>();
 
-  // Fetch restaurant data
+  // Refs for category section positions
+  const categoryLayoutsRef = useRef<Map<string, { y: number; height: number }>>(new Map());
+  const menuSectionYRef = useRef<number>(0);
+  const isProgrammaticScrollRef = useRef(false);
+
+  // Fetch restaurant and menu data
   useEffect(() => {
     const fetchData = async () => {
       setIsLoading(true);
       // Simulate network delay
       await new Promise((resolve) => setTimeout(resolve, 300));
-      const data = getRestaurantById(id);
-      setRestaurant(data ?? null);
+      const restaurantData = getRestaurantById(id);
+      const menuData = getMenuItemsByRestaurant(id);
+      setRestaurant(restaurantData ?? null);
+      setMenuItems(menuData);
+      // Set initial active category
+      if (menuData.length > 0) {
+        const categories = getCategoriesFromMenuItems(menuData);
+        if (categories.length > 0) {
+          setActiveCategory(categories[0]);
+        }
+      }
       setIsLoading(false);
     };
     fetchData();
   }, [id]);
 
-  // Scroll handler for parallax effect
+  // Get menu categories with item counts
+  const menuCategories = useMemo(() => {
+    const categories = getCategoriesFromMenuItems(menuItems);
+    return categoriesToMenuCategories(categories, menuItems);
+  }, [menuItems]);
+
+  // Group menu items by category
+  const menuByCategory = useMemo(() => {
+    const grouped: Record<string, MenuItem[]> = {};
+    for (const item of menuItems) {
+      if (!grouped[item.category]) {
+        grouped[item.category] = [];
+      }
+      grouped[item.category].push(item);
+    }
+    return grouped;
+  }, [menuItems]);
+
+  // Find active category based on scroll position
+  const updateActiveCategoryFromScroll = useCallback(
+    (offsetY: number) => {
+      if (isProgrammaticScrollRef.current) return;
+
+      const layouts = Array.from(categoryLayoutsRef.current.entries()).sort(
+        ([, a], [, b]) => a.y - b.y
+      );
+
+      if (layouts.length === 0) return;
+
+      // Find which category section is at the top
+      for (let i = layouts.length - 1; i >= 0; i--) {
+        const [categoryId, layout] = layouts[i];
+        // Account for the menu section offset and activation threshold
+        const categoryY = menuSectionYRef.current + layout.y;
+        if (offsetY >= categoryY - CATEGORY_ACTIVATION_OFFSET) {
+          if (categoryId !== activeCategory) {
+            setActiveCategory(categoryId);
+          }
+          return;
+        }
+      }
+
+      // Default to first category
+      if (layouts.length > 0 && layouts[0][0] !== activeCategory) {
+        setActiveCategory(layouts[0][0]);
+      }
+    },
+    [activeCategory]
+  );
+
+  // Scroll handler for parallax effect and category tracking
   const scrollHandler = useAnimatedScrollHandler({
     onScroll: (event) => {
       scrollY.value = event.contentOffset.y;
+
+      // Update sticky state based on scroll position
+      const stickyThreshold = menuSectionYRef.current - MENU_TABS_HEIGHT;
+      const shouldBeSticky = event.contentOffset.y > stickyThreshold;
+
+      // Run on JS thread for state updates
+      runOnJS(setIsTabsSticky)(shouldBeSticky);
+      runOnJS(updateActiveCategoryFromScroll)(event.contentOffset.y);
     },
   });
+
+  // Handle category tab press - scroll to that section
+  const handleCategoryPress = useCallback(
+    (categoryId: string) => {
+      const layout = categoryLayoutsRef.current.get(categoryId);
+      if (!layout || !scrollRef.current) return;
+
+      // Set flag to prevent scroll handler from overriding
+      isProgrammaticScrollRef.current = true;
+      setActiveCategory(categoryId);
+
+      // Calculate target scroll position
+      const targetY = menuSectionYRef.current + layout.y - CATEGORY_ACTIVATION_OFFSET + 10;
+
+      // Scroll to the category section
+      scrollRef.current.scrollTo({ y: targetY, animated: true });
+
+      // Reset flag after animation
+      setTimeout(() => {
+        isProgrammaticScrollRef.current = false;
+      }, 500);
+    },
+    [scrollRef]
+  );
+
+  // Handle category section layout measurement
+  const handleCategoryLayout = useCallback((categoryId: string, event: LayoutChangeEvent) => {
+    const { y, height } = event.nativeEvent.layout;
+    categoryLayoutsRef.current.set(categoryId, { y, height });
+  }, []);
+
+  // Handle menu section layout measurement
+  const handleMenuSectionLayout = useCallback((event: LayoutChangeEvent) => {
+    menuSectionYRef.current = event.nativeEvent.layout.y;
+  }, []);
 
   // Parallax header animation
   const headerAnimatedStyle = useAnimatedStyle(() => {
@@ -589,18 +709,139 @@ export default function RestaurantDetailScreen() {
           {/* Divider */}
           <View style={[styles.divider, { backgroundColor: colors.border }]} />
 
-          {/* Menu Section Placeholder */}
-          <Animated.View entering={FadeInUp.delay(400).duration(AnimationDurations.normal)}>
+          {/* Menu Section */}
+          <Animated.View
+            entering={FadeInUp.delay(400).duration(AnimationDurations.normal)}
+            onLayout={handleMenuSectionLayout}
+          >
             <ThemedText style={[styles.menuTitle, { color: colors.text }]}>Menu</ThemedText>
-            <View style={[styles.menuPlaceholder, { backgroundColor: colors.backgroundSecondary }]}>
-              <Ionicons name="restaurant-outline" size={48} color={colors.textTertiary} />
-              <ThemedText style={[styles.menuPlaceholderText, { color: colors.textSecondary }]}>
-                Menu items coming soon...
-              </ThemedText>
-            </View>
+
+            {/* Menu Category Tabs */}
+            {menuCategories.length > 0 && (
+              <View style={styles.menuTabsContainer}>
+                <MenuCategoryTabs
+                  categories={menuCategories}
+                  activeCategory={activeCategory}
+                  onCategoryPress={handleCategoryPress}
+                  isSticky={false}
+                />
+              </View>
+            )}
+
+            {/* Menu Items by Category */}
+            {menuCategories.map((category, categoryIndex) => (
+              <View
+                key={category.id}
+                onLayout={(event) => handleCategoryLayout(category.id, event)}
+                style={styles.categorySection}
+              >
+                {/* Category Header */}
+                <View style={styles.categoryHeader}>
+                  <ThemedText style={[styles.categoryTitle, { color: colors.text }]}>
+                    {category.name}
+                  </ThemedText>
+                  <ThemedText style={[styles.categoryCount, { color: colors.textTertiary }]}>
+                    {category.itemCount} {category.itemCount === 1 ? 'item' : 'items'}
+                  </ThemedText>
+                </View>
+
+                {/* Menu Items Placeholder - Will be replaced by MenuItemCard in Task 3.3 */}
+                {menuByCategory[category.id]?.map((item, itemIndex) => (
+                  <Animated.View
+                    key={item.id}
+                    entering={FadeInUp.delay(400 + categoryIndex * 50 + itemIndex * 30).duration(
+                      AnimationDurations.normal
+                    )}
+                    style={[
+                      styles.menuItemPlaceholder,
+                      { backgroundColor: colors.backgroundSecondary },
+                    ]}
+                  >
+                    <View style={styles.menuItemInfo}>
+                      <ThemedText style={[styles.menuItemName, { color: colors.text }]}>
+                        {item.name}
+                      </ThemedText>
+                      <ThemedText
+                        style={[styles.menuItemDescription, { color: colors.textSecondary }]}
+                        numberOfLines={2}
+                      >
+                        {item.description}
+                      </ThemedText>
+                      <View style={styles.menuItemMeta}>
+                        <ThemedText style={[styles.menuItemPrice, { color: colors.text }]}>
+                          ${item.price.toFixed(2)}
+                        </ThemedText>
+                        {item.isPopular && (
+                          <View
+                            style={[styles.popularBadge, { backgroundColor: PrimaryColors[100] }]}
+                          >
+                            <Ionicons name="star" size={12} color={PrimaryColors[500]} />
+                            <ThemedText style={[styles.popularText, { color: PrimaryColors[600] }]}>
+                              Popular
+                            </ThemedText>
+                          </View>
+                        )}
+                        {item.isSpicy && (
+                          <View
+                            style={[
+                              styles.spicyBadge,
+                              { backgroundColor: colors.backgroundSecondary },
+                            ]}
+                          >
+                            <Ionicons name="flame" size={12} color={WarningColors[500]} />
+                          </View>
+                        )}
+                      </View>
+                    </View>
+                    {item.image && (
+                      <Image
+                        source={{ uri: item.image }}
+                        style={styles.menuItemImage}
+                        contentFit="cover"
+                        transition={200}
+                      />
+                    )}
+                  </Animated.View>
+                ))}
+              </View>
+            ))}
+
+            {/* Empty Menu State */}
+            {menuCategories.length === 0 && (
+              <View
+                style={[styles.menuPlaceholder, { backgroundColor: colors.backgroundSecondary }]}
+              >
+                <Ionicons name="restaurant-outline" size={48} color={colors.textTertiary} />
+                <ThemedText style={[styles.menuPlaceholderText, { color: colors.textSecondary }]}>
+                  Menu not available
+                </ThemedText>
+              </View>
+            )}
           </Animated.View>
         </View>
       </Animated.ScrollView>
+
+      {/* Sticky Menu Category Tabs (shown when scrolled past menu section) */}
+      {isTabsSticky && menuCategories.length > 0 && (
+        <Animated.View
+          entering={FadeIn.duration(AnimationDurations.fast)}
+          style={[
+            styles.stickyTabsContainer,
+            {
+              top: insets.top,
+              backgroundColor: colors.background,
+              borderBottomColor: colors.border,
+            },
+          ]}
+        >
+          <MenuCategoryTabs
+            categories={menuCategories}
+            activeCategory={activeCategory}
+            onCategoryPress={handleCategoryPress}
+            isSticky={true}
+          />
+        </Animated.View>
+      )}
     </View>
   );
 }
@@ -834,7 +1075,92 @@ const styles = StyleSheet.create({
     fontSize: Typography.xl.fontSize,
     lineHeight: Typography.xl.lineHeight,
     fontWeight: '700',
+    marginBottom: Spacing[3],
+  },
+  menuTabsContainer: {
+    marginHorizontal: -Spacing[4],
     marginBottom: Spacing[4],
+  },
+  stickyTabsContainer: {
+    position: 'absolute',
+    left: 0,
+    right: 0,
+    zIndex: 200,
+    borderBottomWidth: 1,
+    ...Shadows.sm,
+  },
+  categorySection: {
+    marginBottom: Spacing[6],
+  },
+  categoryHeader: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginBottom: Spacing[3],
+    paddingTop: Spacing[2],
+  },
+  categoryTitle: {
+    fontSize: Typography.lg.fontSize,
+    lineHeight: Typography.lg.lineHeight,
+    fontWeight: '600',
+  },
+  categoryCount: {
+    fontSize: Typography.sm.fontSize,
+    lineHeight: Typography.sm.lineHeight,
+  },
+  menuItemPlaceholder: {
+    flexDirection: 'row',
+    padding: Spacing[3],
+    borderRadius: BorderRadius.lg,
+    marginBottom: Spacing[3],
+  },
+  menuItemInfo: {
+    flex: 1,
+    marginRight: Spacing[3],
+  },
+  menuItemName: {
+    fontSize: Typography.base.fontSize,
+    lineHeight: Typography.base.lineHeight,
+    fontWeight: '600',
+    marginBottom: Spacing[1],
+  },
+  menuItemDescription: {
+    fontSize: Typography.sm.fontSize,
+    lineHeight: Typography.sm.lineHeight * 1.4,
+    marginBottom: Spacing[2],
+  },
+  menuItemMeta: {
+    flexDirection: 'row',
+    alignItems: 'center',
+  },
+  menuItemPrice: {
+    fontSize: Typography.base.fontSize,
+    lineHeight: Typography.base.lineHeight,
+    fontWeight: '600',
+  },
+  popularBadge: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginLeft: Spacing[2],
+    paddingHorizontal: Spacing[2],
+    paddingVertical: 2,
+    borderRadius: BorderRadius.full,
+  },
+  popularText: {
+    fontSize: Typography.xs.fontSize,
+    lineHeight: Typography.xs.lineHeight,
+    fontWeight: '500',
+    marginLeft: 2,
+  },
+  spicyBadge: {
+    marginLeft: Spacing[2],
+    padding: 4,
+    borderRadius: BorderRadius.full,
+  },
+  menuItemImage: {
+    width: 80,
+    height: 80,
+    borderRadius: BorderRadius.md,
   },
   menuPlaceholder: {
     padding: Spacing[8],
