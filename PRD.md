@@ -271,7 +271,7 @@ src/
   - Guest-to-user conversion flow
   - Commit: `feat(auth): implement guest mode with conversion prompts`
 
-- [ ] **1.7 Build profile creation/edit screen**
+- [x] **1.7 Build profile creation/edit screen**
   - Create `/src/app/(tabs)/profile.tsx` with edit mode
   - Profile photo picker (camera/gallery)
   - Name, email, phone fields
