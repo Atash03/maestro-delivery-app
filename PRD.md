@@ -488,7 +488,7 @@ src/
   - Estimated delivery time display
   - Commit: `feat(checkout): add delivery address section with instructions`
 
-- [ ] **4.3 Build order summary section**
+- [x] **4.3 Build order summary section**
   - Itemized list with quantities and prices
   - Item customizations in smaller text
   - Subtotal, delivery fee, taxes breakdown

@@ -380,27 +380,268 @@ interface OrderItemRowProps {
   name: string;
   quantity: number;
   price: number;
+  unitPrice: number;
   customizations?: string;
+  specialInstructions?: string;
   colors: (typeof Colors)['light'];
+  index?: number;
+  image?: string;
 }
 
 /**
- * Order item row in summary
+ * Order item row in summary with image, customizations, and special instructions
  */
-function OrderItemRow({ name, quantity, price, customizations, colors }: OrderItemRowProps) {
+export function OrderItemRow({
+  name,
+  quantity,
+  price,
+  unitPrice,
+  customizations,
+  specialInstructions,
+  colors,
+  index = 0,
+  image,
+}: OrderItemRowProps) {
   return (
-    <View style={styles.orderItemRow}>
+    <Animated.View
+      entering={FadeInDown.duration(AnimationDurations.normal).delay(index * 50)}
+      style={styles.orderItemRow}
+      testID={`order-item-row-${index}`}
+    >
+      {/* Item Image */}
+      {image && (
+        <Image
+          source={{ uri: image }}
+          style={styles.orderItemImage}
+          contentFit="cover"
+          transition={200}
+          testID={`order-item-image-${index}`}
+        />
+      )}
+
+      {/* Item Details */}
       <View style={styles.orderItemDetails}>
-        <Text style={[styles.orderItemName, { color: colors.text }]}>
-          {quantity}x {name}
-        </Text>
+        <View style={styles.orderItemHeader}>
+          <View style={[styles.orderItemQuantityBadge, { backgroundColor: PrimaryColors[500] }]}>
+            <Text style={[styles.orderItemQuantityText, { color: NeutralColors[0] }]}>
+              {quantity}x
+            </Text>
+          </View>
+          <Text style={[styles.orderItemName, { color: colors.text }]} numberOfLines={1}>
+            {name}
+          </Text>
+        </View>
+
+        {/* Customizations */}
         {customizations && (
-          <Text style={[styles.orderItemCustomizations, { color: colors.textTertiary }]}>
-            {customizations}
+          <View style={styles.orderItemCustomizationsContainer}>
+            <Ionicons name="options-outline" size={12} color={colors.textTertiary} />
+            <Text
+              style={[styles.orderItemCustomizations, { color: colors.textTertiary }]}
+              numberOfLines={2}
+            >
+              {customizations}
+            </Text>
+          </View>
+        )}
+
+        {/* Special Instructions */}
+        {specialInstructions && (
+          <View style={styles.orderItemInstructionsContainer}>
+            <Ionicons name="chatbubble-outline" size={12} color={colors.textTertiary} />
+            <Text
+              style={[styles.orderItemInstructions, { color: colors.textTertiary }]}
+              numberOfLines={1}
+            >
+              {specialInstructions}
+            </Text>
+          </View>
+        )}
+
+        {/* Unit Price (shown if quantity > 1) */}
+        {quantity > 1 && (
+          <Text style={[styles.orderItemUnitPrice, { color: colors.textTertiary }]}>
+            {formatPrice(unitPrice)} each
           </Text>
         )}
       </View>
+
+      {/* Total Price */}
       <Text style={[styles.orderItemPrice, { color: colors.text }]}>{formatPrice(price)}</Text>
+    </Animated.View>
+  );
+}
+
+/**
+ * Cost breakdown row in order summary
+ */
+interface CostRowProps {
+  label: string;
+  value: string;
+  colors: (typeof Colors)['light'];
+  isHighlighted?: boolean;
+  icon?: keyof typeof Ionicons.glyphMap;
+  isFree?: boolean;
+}
+
+export function CostRow({ label, value, colors, isHighlighted, icon, isFree }: CostRowProps) {
+  return (
+    <View style={styles.costRow} testID={`cost-row-${label.toLowerCase().replace(/\s+/g, '-')}`}>
+      <View style={styles.costLabelContainer}>
+        {icon && (
+          <Ionicons
+            name={icon}
+            size={14}
+            color={isHighlighted ? PrimaryColors[500] : colors.textSecondary}
+            style={styles.costIcon}
+          />
+        )}
+        <Text
+          style={[
+            styles.costLabel,
+            { color: isHighlighted ? colors.text : colors.textSecondary },
+            isHighlighted && styles.costLabelHighlighted,
+          ]}
+        >
+          {label}
+        </Text>
+      </View>
+      <Text
+        style={[
+          styles.costValue,
+          { color: isFree ? SuccessColors[600] : colors.text },
+          isHighlighted && styles.costValueHighlighted,
+        ]}
+      >
+        {value}
+      </Text>
+    </View>
+  );
+}
+
+/**
+ * Total row with prominent styling
+ */
+interface TotalRowProps {
+  total: number;
+  colors: (typeof Colors)['light'];
+  savings?: number;
+}
+
+export function TotalRow({ total, colors, savings }: TotalRowProps) {
+  return (
+    <Animated.View
+      entering={FadeIn.duration(AnimationDurations.normal).delay(100)}
+      style={styles.totalRowContainer}
+    >
+      {savings && savings > 0 && (
+        <View style={[styles.savingsBadge, { backgroundColor: SuccessColors[50] }]}>
+          <Ionicons name="pricetag" size={14} color={SuccessColors[600]} />
+          <Text style={[styles.savingsText, { color: SuccessColors[700] }]}>
+            You save {formatPrice(savings)}
+          </Text>
+        </View>
+      )}
+      <View style={styles.totalRow} testID="order-summary-total-row">
+        <Text style={[styles.totalLabel, { color: colors.text }]}>Total</Text>
+        <Text style={[styles.totalValue, { color: PrimaryColors[500] }]}>{formatPrice(total)}</Text>
+      </View>
+    </Animated.View>
+  );
+}
+
+/**
+ * Order Summary Section Content with full breakdown
+ */
+interface OrderSummarySectionProps {
+  items: ReturnType<typeof useCartStore.getState>['items'];
+  subtotal: number;
+  deliveryFee: number;
+  tax: number;
+  total: number;
+  discount?: number;
+  colors: (typeof Colors)['light'];
+  formatCustomizations: (
+    item: ReturnType<typeof useCartStore.getState>['items'][0]
+  ) => string | undefined;
+}
+
+export function OrderSummarySection({
+  items,
+  subtotal,
+  deliveryFee,
+  tax,
+  total,
+  discount,
+  colors,
+  formatCustomizations,
+}: OrderSummarySectionProps) {
+  return (
+    <View style={styles.orderSummaryContent} testID="order-summary-content">
+      {/* Items Header */}
+      <View style={styles.orderSummaryItemsHeader}>
+        <Ionicons name="fast-food-outline" size={16} color={colors.textSecondary} />
+        <Text style={[styles.orderSummaryItemsTitle, { color: colors.textSecondary }]}>
+          {items.length} {items.length === 1 ? 'Item' : 'Items'}
+        </Text>
+      </View>
+
+      {/* Items */}
+      <View style={styles.orderItemsList}>
+        {items.map((item, index) => (
+          <OrderItemRow
+            key={item.id}
+            name={item.menuItem.name}
+            quantity={item.quantity}
+            price={item.totalPrice}
+            unitPrice={item.menuItem.price}
+            customizations={formatCustomizations(item)}
+            specialInstructions={item.specialInstructions}
+            colors={colors}
+            index={index}
+            image={item.menuItem.image}
+          />
+        ))}
+      </View>
+
+      {/* Divider */}
+      <View style={[styles.summaryDivider, { backgroundColor: colors.divider }]} />
+
+      {/* Cost breakdown */}
+      <View style={styles.costBreakdown}>
+        <CostRow
+          label="Subtotal"
+          value={formatPrice(subtotal)}
+          colors={colors}
+          icon="cart-outline"
+        />
+        <CostRow
+          label="Delivery Fee"
+          value={deliveryFee === 0 ? 'Free' : formatPrice(deliveryFee)}
+          colors={colors}
+          icon="bicycle-outline"
+          isFree={deliveryFee === 0}
+        />
+        <CostRow
+          label={`Tax (${(TAX_RATE * 100).toFixed(2)}%)`}
+          value={formatPrice(tax)}
+          colors={colors}
+          icon="document-text-outline"
+        />
+        {discount && discount > 0 && (
+          <CostRow
+            label="Discount"
+            value={`-${formatPrice(discount)}`}
+            colors={colors}
+            icon="pricetag-outline"
+            isHighlighted
+          />
+        )}
+      </View>
+
+      {/* Total */}
+      <View style={[styles.summaryDivider, { backgroundColor: colors.divider }]} />
+      <TotalRow total={total} colors={colors} savings={discount} />
     </View>
   );
 }
@@ -1515,56 +1756,25 @@ export default function CheckoutScreen() {
             colors={colors}
             delay={200}
             rightContent={
-              <Text style={[styles.sectionSummary, { color: colors.textSecondary }]}>
-                {items.length} {items.length === 1 ? 'item' : 'items'}
-              </Text>
-            }
-          >
-            <View style={styles.orderSummaryContent}>
-              {/* Items */}
-              {items.map((item) => (
-                <OrderItemRow
-                  key={item.id}
-                  name={item.menuItem.name}
-                  quantity={item.quantity}
-                  price={item.totalPrice}
-                  customizations={formatCustomizations(item)}
-                  colors={colors}
-                />
-              ))}
-
-              {/* Divider */}
-              <View style={[styles.summaryDivider, { backgroundColor: colors.divider }]} />
-
-              {/* Cost breakdown */}
-              <View style={styles.costRow}>
-                <Text style={[styles.costLabel, { color: colors.textSecondary }]}>Subtotal</Text>
-                <Text style={[styles.costValue, { color: colors.text }]}>
-                  {formatPrice(subtotal)}
+              <View style={styles.orderSummaryBadge}>
+                <Text style={[styles.sectionSummary, { color: colors.textSecondary }]}>
+                  {items.length} {items.length === 1 ? 'item' : 'items'}
                 </Text>
-              </View>
-              <View style={styles.costRow}>
-                <Text style={[styles.costLabel, { color: colors.textSecondary }]}>
-                  Delivery Fee
-                </Text>
-                <Text style={[styles.costValue, { color: colors.text }]}>
-                  {deliveryFee === 0 ? 'Free' : formatPrice(deliveryFee)}
-                </Text>
-              </View>
-              <View style={styles.costRow}>
-                <Text style={[styles.costLabel, { color: colors.textSecondary }]}>Tax</Text>
-                <Text style={[styles.costValue, { color: colors.text }]}>{formatPrice(tax)}</Text>
-              </View>
-
-              {/* Total */}
-              <View style={[styles.summaryDivider, { backgroundColor: colors.divider }]} />
-              <View style={styles.totalRow}>
-                <Text style={[styles.totalLabel, { color: colors.text }]}>Total</Text>
-                <Text style={[styles.totalValue, { color: colors.text }]}>
+                <Text style={[styles.sectionSummaryTotal, { color: PrimaryColors[500] }]}>
                   {formatPrice(total)}
                 </Text>
               </View>
-            </View>
+            }
+          >
+            <OrderSummarySection
+              items={items}
+              subtotal={subtotal}
+              deliveryFee={deliveryFee}
+              tax={tax}
+              total={total}
+              colors={colors}
+              formatCustomizations={formatCustomizations}
+            />
           </CollapsibleSection>
 
           {/* Payment Method Section */}
@@ -1819,23 +2029,94 @@ const styles = StyleSheet.create({
     fontWeight: FontWeights.medium as TextStyle['fontWeight'],
   },
   orderSummaryContent: {
+    gap: Spacing[3],
+  },
+  orderSummaryBadge: {
+    flexDirection: 'row',
+    alignItems: 'center',
     gap: Spacing[2],
+  },
+  sectionSummaryTotal: {
+    fontSize: Typography.sm.fontSize,
+    lineHeight: Typography.sm.lineHeight,
+    fontWeight: FontWeights.semibold as TextStyle['fontWeight'],
+  },
+  orderSummaryItemsHeader: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: Spacing[1],
+    marginBottom: Spacing[1],
+  },
+  orderSummaryItemsTitle: {
+    fontSize: Typography.sm.fontSize,
+    lineHeight: Typography.sm.lineHeight,
+    fontWeight: FontWeights.medium as TextStyle['fontWeight'],
+  },
+  orderItemsList: {
+    gap: Spacing[3],
   },
   orderItemRow: {
     flexDirection: 'row',
-    justifyContent: 'space-between',
     alignItems: 'flex-start',
+  },
+  orderItemImage: {
+    width: 56,
+    height: 56,
+    borderRadius: BorderRadius.md,
+    marginRight: Spacing[3],
   },
   orderItemDetails: {
     flex: 1,
     marginRight: Spacing[3],
   },
+  orderItemHeader: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: Spacing[2],
+    marginBottom: Spacing[0.5],
+  },
+  orderItemQuantityBadge: {
+    paddingHorizontal: Spacing[1.5] ?? 6,
+    paddingVertical: Spacing[0.5],
+    borderRadius: BorderRadius.sm,
+    minWidth: 28,
+    alignItems: 'center',
+  },
+  orderItemQuantityText: {
+    fontSize: Typography.xs.fontSize,
+    lineHeight: Typography.xs.lineHeight,
+    fontWeight: FontWeights.bold as TextStyle['fontWeight'],
+  },
   orderItemName: {
+    flex: 1,
     fontSize: Typography.base.fontSize,
     lineHeight: Typography.base.lineHeight,
     fontWeight: FontWeights.medium as TextStyle['fontWeight'],
   },
+  orderItemCustomizationsContainer: {
+    flexDirection: 'row',
+    alignItems: 'flex-start',
+    gap: Spacing[1],
+    marginTop: Spacing[0.5],
+  },
   orderItemCustomizations: {
+    flex: 1,
+    fontSize: Typography.xs.fontSize,
+    lineHeight: Typography.xs.lineHeight,
+  },
+  orderItemInstructionsContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: Spacing[1],
+    marginTop: Spacing[0.5],
+  },
+  orderItemInstructions: {
+    flex: 1,
+    fontSize: Typography.xs.fontSize,
+    lineHeight: Typography.xs.lineHeight,
+    fontStyle: 'italic',
+  },
+  orderItemUnitPrice: {
     fontSize: Typography.xs.fontSize,
     lineHeight: Typography.xs.lineHeight,
     marginTop: Spacing[0.5],
@@ -1843,23 +2124,57 @@ const styles = StyleSheet.create({
   orderItemPrice: {
     fontSize: Typography.base.fontSize,
     lineHeight: Typography.base.lineHeight,
+    fontWeight: FontWeights.semibold as TextStyle['fontWeight'],
   },
   summaryDivider: {
     height: 1,
-    marginVertical: Spacing[2],
+    marginVertical: Spacing[3],
+  },
+  costBreakdown: {
+    gap: Spacing[2],
   },
   costRow: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
   },
+  costLabelContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+  },
+  costIcon: {
+    marginRight: Spacing[2],
+  },
   costLabel: {
     fontSize: Typography.sm.fontSize,
     lineHeight: Typography.sm.lineHeight,
   },
+  costLabelHighlighted: {
+    fontWeight: FontWeights.medium as TextStyle['fontWeight'],
+  },
   costValue: {
     fontSize: Typography.sm.fontSize,
     lineHeight: Typography.sm.lineHeight,
+    fontWeight: FontWeights.medium as TextStyle['fontWeight'],
+  },
+  costValueHighlighted: {
+    fontWeight: FontWeights.semibold as TextStyle['fontWeight'],
+  },
+  totalRowContainer: {
+    gap: Spacing[2],
+  },
+  savingsBadge: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    alignSelf: 'flex-start',
+    paddingHorizontal: Spacing[2],
+    paddingVertical: Spacing[1],
+    borderRadius: BorderRadius.md,
+    gap: Spacing[1],
+  },
+  savingsText: {
+    fontSize: Typography.xs.fontSize,
+    lineHeight: Typography.xs.lineHeight,
     fontWeight: FontWeights.medium as TextStyle['fontWeight'],
   },
   totalRow: {
@@ -1873,8 +2188,8 @@ const styles = StyleSheet.create({
     fontWeight: FontWeights.bold as TextStyle['fontWeight'],
   },
   totalValue: {
-    fontSize: Typography.xl.fontSize,
-    lineHeight: Typography.xl.lineHeight,
+    fontSize: Typography['2xl'].fontSize,
+    lineHeight: Typography['2xl'].lineHeight,
     fontWeight: FontWeights.bold as TextStyle['fontWeight'],
   },
   paymentOptions: {

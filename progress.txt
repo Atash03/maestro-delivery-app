@@ -283,9 +283,9 @@ Phase 4: Checkout & Payment - IN PROGRESS
 ### Completed in Phase 4
 - [x] **4.1 Build checkout screen layout**
 - [x] **4.2 Build delivery address section**
+- [x] **4.3 Build order summary section**
 
 ### Next Up
-- **4.3 Build order summary section**
 - **4.4 Build payment method section**
 - **4.5 Build add card screen**
 - **4.6 Build promo code section**
@@ -1551,6 +1551,74 @@ Phase 4: Checkout & Payment - IN PROGRESS
     - Edge cases
     - Form validation
   - All 3311 tests passing, linting clean (only pre-existing warnings)
+
+### Session 34
+- Date: 2026-01-18
+- Tasks Completed:
+  - [x] 4.3 Build order summary section
+- Summary:
+  - Enhanced the Order Summary section with comprehensive functionality
+  - Created OrderItemRow component with:
+    - Item image display using expo-image (56x56px)
+    - Quantity badge with PrimaryColors background
+    - Item name with truncation
+    - Customizations display with options icon
+    - Special instructions display with chatbubble icon
+    - Unit price display when quantity > 1 (shows "X each")
+    - Total price with semibold styling
+    - Staggered FadeInDown animations (50ms delay per item)
+    - Test IDs for accessibility and testing
+  - Created CostRow component with:
+    - Icon support (cart, bicycle, document, pricetag icons)
+    - Highlighted state styling for discounts
+    - "Free" styling using SuccessColors for free delivery
+    - Test IDs generated from label text
+  - Created TotalRow component with:
+    - Savings badge with pricetag icon and "You save X" text
+    - Total prominently displayed with PrimaryColors
+    - FadeIn entering animation
+    - SuccessColors styling for savings elements
+  - Created OrderSummarySection component:
+    - Items header with fast-food icon and item count
+    - Items list rendering OrderItemRow for each cart item
+    - Cost breakdown section with icons:
+      - Subtotal with cart icon
+      - Delivery Fee with bicycle icon (shows "Free" if $0)
+      - Tax with document icon (displays percentage: 8.75%)
+      - Discount with pricetag icon (conditionally shown)
+    - TotalRow with savings badge support
+    - Test ID for accessibility
+  - Updated checkout screen integration:
+    - OrderSummarySection now used within CollapsibleSection
+    - Section badge shows both item count and total price
+    - All cart item props passed including image and specialInstructions
+  - Added new styles:
+    - orderSummaryBadge, sectionSummaryTotal for header badge
+    - orderSummaryItemsHeader, orderSummaryItemsTitle for items section
+    - orderItemsList, orderItemImage, orderItemHeader for item layout
+    - orderItemQuantityBadge, orderItemQuantityText for quantity display
+    - orderItemCustomizationsContainer, orderItemInstructionsContainer for details
+    - orderItemUnitPrice for unit price display
+    - costBreakdown, costLabelContainer, costIcon for cost breakdown
+    - costLabelHighlighted, costValueHighlighted for discount styling
+    - totalRowContainer, savingsBadge, savingsText for total section
+  - Created comprehensive test suite (183 tests) in `/src/__tests__/order-summary.test.ts`:
+    - File structure tests
+    - OrderItemRow component tests (props, image, quantity, details, animations)
+    - CostRow component tests (props, icon, styling, test IDs)
+    - TotalRow component tests (props, savings badge, animations)
+    - OrderSummarySection component tests (props, items list, cost breakdown)
+    - Checkout screen integration tests
+    - Style tests for all new styles
+    - Animation tests
+    - Accessibility tests
+    - Theme integration tests
+    - Constants tests (TAX_RATE, DELIVERY_FEE_MINIMUM)
+    - Helper function tests
+    - Import tests
+    - Edge case tests (empty state, free delivery, no discount, single item)
+  - Updated existing checkout-screen.test.ts to match new format
+  - All 3494 tests passing, linting clean (only pre-existing warnings)
 
 ---
 

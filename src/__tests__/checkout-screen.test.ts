@@ -378,7 +378,9 @@ describe('Checkout Screen - Order Summary Section', () => {
   });
 
   test('displays item name and quantity', () => {
-    expect(checkoutScreenContent).toContain('{quantity}x {name}');
+    // New format: quantity badge and name are separate elements
+    expect(checkoutScreenContent).toContain('{quantity}x');
+    expect(checkoutScreenContent).toContain('{name}');
   });
 
   test('displays item price', () => {
