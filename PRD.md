@@ -246,7 +246,7 @@ src/
   - Animated form field focus states
   - Commit: `feat(auth): build sign-up screen with email and phone options`
 
-- [ ] **1.4 Build sign-in screen**
+- [x] **1.4 Build sign-in screen**
   - Create `/src/app/(auth)/sign-in.tsx`
   - Email/Phone toggle (remember last used method)
   - Password field with show/hide toggle
