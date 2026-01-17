@@ -1,7 +1,7 @@
 # Maestro Food Delivery App - Progress Tracking
 
 ## Current Status
-Phase: Phase 2 - Discovery (Task 2.3 Complete)
+Phase: Phase 2 - Discovery (Task 2.4 Complete)
 Last Updated: 2026-01-18
 
 ---
@@ -284,6 +284,7 @@ Working on Phase 2: Discovery - Finding the Perfect Meal
 - [x] **2.1 Build home screen header**
 - [x] **2.2 Create search bar component**
 - [x] **2.3 Build cuisine category horizontal scroll**
+- [x] **2.4 Create restaurant card component**
 
 ---
 
@@ -737,6 +738,59 @@ Working on Phase 2: Discovery - Finding the Perfect Meal
     - Accessibility features
     - Mock categories data validation
   - All 1276 tests passing, linting clean (only pre-existing warnings)
+
+### Session 19
+- Date: 2026-01-18
+- Tasks Completed:
+  - [x] 2.4 Create restaurant card component
+- Summary:
+  - Created `/src/components/cards/restaurant-card.tsx` with comprehensive restaurant display:
+    - Restaurant image using expo-image with gradient overlay (LinearGradient from expo-linear-gradient)
+    - Header row with restaurant name (truncated) and rating with star icon
+    - Cuisine row showing first 2 cuisine types joined with bullet separator and price level ($-$$$$)
+    - Delivery info row with time icon, delivery time range, bicycle icon, and delivery fee
+    - Promotional badge support (positioned top-left of image when provided)
+    - "Currently Closed" overlay with semi-transparent background when restaurant is not open
+    - Press disabled when restaurant is closed
+  - Implemented card variants:
+    - default: 200px height
+    - featured: 240px height (for carousel display)
+    - Image takes 60% of card height
+  - Animation features:
+    - Spring-based scale animation on press (scales to 0.97)
+    - Spring configuration: damping: 15, stiffness: 200, mass: 0.5
+    - Image transition: 200ms for smooth loading
+  - Created helper functions (exported for reuse):
+    - formatPriceLevel(priceLevel): Converts 1-4 to $-$$$$, clamps values
+    - formatDeliveryTime(min, max): Returns "X-Y min" format
+    - formatDeliveryFee(fee): Returns "$X.XX delivery" or "Free delivery" for zero
+  - Styling:
+    - Uses design system tokens: BorderRadius.lg, Typography (lg, sm, xs), Spacing, Shadows.md
+    - Theme-aware colors: colors.card, colors.text, colors.textSecondary, colors.textTertiary, colors.icon
+    - WarningColors[500] for star icon
+    - PrimaryColors[500] for promotional badge background
+  - Accessibility:
+    - Comprehensive accessibility label with name, cuisine, rating, delivery time, and closed status
+    - accessibilityRole="button"
+    - accessibilityState={{ disabled: !restaurant.isOpen }}
+  - Updated `/src/components/cards/index.ts` to export new component and helpers
+  - Installed expo-linear-gradient dependency
+  - Updated test mocks in category-chip.test.ts and delivery-address-header.test.ts to include expo-image and expo-linear-gradient
+  - Created comprehensive test suite (71 new tests) covering:
+    - Component exports and module structure
+    - Component props and types
+    - Helper functions with edge cases
+    - Visual states (open/closed, variants)
+    - Image section (expo-image, gradient overlay)
+    - Promotional badge display logic
+    - Info section (header, cuisine, delivery rows)
+    - Animation configuration
+    - Press handlers with useCallback
+    - Styling with design system integration
+    - Accessibility attributes
+    - Theme support
+    - Mock data compatibility
+  - All 1347 tests passing, linting clean (only pre-existing warnings)
 
 ---
 

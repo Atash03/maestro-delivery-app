@@ -55,6 +55,16 @@ jest.mock('@expo/vector-icons', () => ({
   MaterialIcons: 'MaterialIcons',
 }));
 
+// Mock expo-image
+jest.mock('expo-image', () => ({
+  Image: 'ExpoImage',
+}));
+
+// Mock expo-linear-gradient
+jest.mock('expo-linear-gradient', () => ({
+  LinearGradient: 'LinearGradient',
+}));
+
 // Mock hooks
 jest.mock('@/hooks/use-color-scheme', () => ({
   useColorScheme: () => 'light',

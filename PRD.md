@@ -319,7 +319,7 @@ src/
   - Selected state with scale animation
   - Commit: `feat(home): add horizontal cuisine category scroll`
 
-- [ ] **2.4 Create restaurant card component**
+- [x] **2.4 Create restaurant card component**
   - Create `/src/components/cards/restaurant-card.tsx`
   - Restaurant image with gradient overlay
   - Name, cuisine type, rating with star icon
