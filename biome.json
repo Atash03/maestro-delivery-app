@@ -84,6 +84,19 @@
           }
         }
       }
+    },
+    {
+      "includes": ["**/__tests__/**", "**/src/__tests__/**"],
+      "linter": {
+        "rules": {
+          "suspicious": {
+            "noTemplateCurlyInString": "off"
+          },
+          "style": {
+            "useNodejsImportProtocol": "off"
+          }
+        }
+      }
     }
   ]
 }

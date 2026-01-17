@@ -7,6 +7,11 @@
 
 export { CategoryChip, type CategoryChipProps } from './category-chip';
 export {
+  formatMenuItemPrice,
+  MenuItemCard,
+  type MenuItemCardProps,
+} from './menu-item-card';
+export {
   formatDeliveryFee,
   formatDeliveryTime,
   formatPriceLevel,

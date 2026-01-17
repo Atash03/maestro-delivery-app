@@ -340,7 +340,7 @@ src/
   - Skeleton loading state on initial load
   - Commit: `feat(home): build home screen with featured and category sections`
 
-- [ ] **2.6 Build search screen**
+- [x] **2.6 Build search screen**
   - Create `/src/app/(tabs)/search.tsx`
   - Large search input at top
   - Search results as user types (debounced)
