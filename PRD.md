@@ -400,7 +400,7 @@ src/
   - Animated underline indicator
   - Commit: `feat(menu): add sticky category tabs with scroll sync`
 
-- [ ] **3.3 Build menu item card**
+- [x] **3.3 Build menu item card**
   - Create `/src/components/cards/menu-item-card.tsx`
   - Item image (square, right-aligned)
   - Name and description (truncated)

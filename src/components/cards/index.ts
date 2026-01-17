@@ -18,3 +18,8 @@ export {
   RestaurantCard,
   type RestaurantCardProps,
 } from './restaurant-card';
+export {
+  formatMenuItemPrice as formatRestaurantMenuItemPrice,
+  RestaurantMenuItemCard,
+  type RestaurantMenuItemCardProps,
+} from './restaurant-menu-item-card';

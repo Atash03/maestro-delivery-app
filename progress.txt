@@ -1,7 +1,7 @@
 # Maestro Food Delivery App - Progress Tracking
 
 ## Current Status
-Phase: Phase 3 - Restaurant & Menu Selection (Task 3.2 Complete)
+Phase: Phase 3 - Restaurant & Menu Selection (Task 3.3 Complete)
 Last Updated: 2026-01-18
 
 ---
@@ -283,9 +283,9 @@ Phase 3: Restaurant & Menu Selection - In Progress
 ### Completed in Phase 3
 - [x] **3.1 Build restaurant detail header**
 - [x] **3.2 Create sticky menu category tabs**
+- [x] **3.3 Build menu item card**
 
 ### Next Up in Phase 3
-- [ ] **3.3 Build menu item card**
 - [ ] **3.4 Build menu list with sections**
 - [ ] **3.5 Create dish customization modal**
 - [ ] **3.6 Implement cart functionality**
@@ -1067,6 +1067,68 @@ Phase 3: Restaurant & Menu Selection - In Progress
     - Removed unused `index` parameter from CategoryTab
     - Removed unused NativeScrollEvent, NativeSyntheticEvent imports from restaurant page
   - All 2227 tests passing, linting clean (only pre-existing warnings)
+
+### Session 26
+- Date: 2026-01-18
+- Tasks Completed:
+  - [x] 3.3 Build menu item card
+- Summary:
+  - Created `/src/components/cards/restaurant-menu-item-card.tsx` with comprehensive menu item display:
+    - RestaurantMenuItemCard component for restaurant detail page
+    - Item image (80x80px, right-aligned) using expo-image
+    - Name and description (truncated to 1 and 2 lines respectively)
+    - Price with "from" prefix if item has customizations
+    - "Popular" badge with star icon (PrimaryColors)
+    - "Spicy" badge with flame icon (ErrorColors)
+    - Add button that transforms to quantity selector
+  - AddButton sub-component:
+    - Primary color circular button (36px)
+    - Spring-based scale animation on press
+    - Shows + icon
+    - Disabled state when item unavailable
+  - QuantitySelector sub-component:
+    - Shows when item is in cart (quantity > 0)
+    - Decrement button (- or trash icon when quantity is 1)
+    - Quantity display with bounce animation on change
+    - Increment button (+)
+    - All buttons have spring press animations
+    - PrimaryColors[500] pill-shaped background
+  - Integrated with cart store in restaurant detail page:
+    - getItemQuantity: Calculates total quantity of item in cart
+    - getCartItemByMenuItemId: Finds cart item for simple items
+    - handleMenuItemAdd: Adds item to cart, handles restaurant switching
+    - handleMenuItemPress: Opens customization modal (placeholder for Task 3.5)
+    - handleMenuItemIncrement: Increases quantity or opens modal for customizable items
+    - handleMenuItemDecrement: Decreases quantity or removes item
+  - Updated `/src/app/restaurant/[id].tsx`:
+    - Replaced placeholder menu items with RestaurantMenuItemCard
+    - Integrated with cart store (useCartStore)
+    - Added cart validation for restaurant switching (Alert confirmation)
+    - Added temporary Alert for customizable items (full modal in Task 3.5)
+  - Updated `/src/components/cards/index.ts` to export new component
+  - Features:
+    - Spring animations throughout (scale 0.98 card press, 0.9 button press, 0.85 quantity buttons)
+    - Bounce animation on quantity change (scale to 1.2 then settle)
+    - Unavailable items: grayed out text, reduced opacity image, overlay badge
+    - Full accessibility support (labels, roles, states)
+    - Theme support (light/dark mode)
+  - Created comprehensive test suite (67 tests) in `/src/__tests__/restaurant-menu-item-card.test.ts`:
+    - formatMenuItemPrice helper tests
+    - File structure and export tests
+    - Props and types tests
+    - Constants tests
+    - Mock data compatibility tests
+    - Add button behavior tests
+    - Quantity selector behavior tests
+    - Callback handler tests
+    - Badge display tests
+    - Accessibility tests
+    - Animation configuration tests
+    - Styling tests
+    - Unavailable item tests
+    - Cart integration tests
+    - Edge case tests
+  - All 2294 tests passing, linting clean (only pre-existing warnings)
 
 ---
 

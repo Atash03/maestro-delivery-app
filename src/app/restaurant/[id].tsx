@@ -35,6 +35,7 @@ import Animated, {
 } from 'react-native-reanimated';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
+import { RestaurantMenuItemCard } from '@/components/cards';
 import { INDICATOR_HEIGHT, MenuCategoryTabs, TAB_HEIGHT } from '@/components/menu-category-tabs';
 import { ThemedText } from '@/components/themed-text';
 import { Badge } from '@/components/ui';
@@ -56,6 +57,7 @@ import {
   categoriesToMenuCategories,
   getCategoriesFromMenuItems,
 } from '@/hooks/use-menu-scroll-sync';
+import { useCartStore } from '@/stores';
 import type { MenuItem, Restaurant } from '@/types';
 
 // ============================================================================
@@ -261,6 +263,13 @@ export default function RestaurantDetailScreen() {
   const colorScheme = useColorScheme();
   const colors = Colors[colorScheme ?? 'light'];
 
+  // Cart Store
+  const cartItems = useCartStore((state) => state.items);
+  const addItem = useCartStore((state) => state.addItem);
+  const updateQuantity = useCartStore((state) => state.updateQuantity);
+  const canAddFromRestaurant = useCartStore((state) => state.canAddFromRestaurant);
+  const clearCart = useCartStore((state) => state.clearCart);
+
   // State
   const [restaurant, setRestaurant] = useState<Restaurant | null>(null);
   const [menuItems, setMenuItems] = useState<MenuItem[]>([]);
@@ -399,6 +408,114 @@ export default function RestaurantDetailScreen() {
   const handleMenuSectionLayout = useCallback((event: LayoutChangeEvent) => {
     menuSectionYRef.current = event.nativeEvent.layout.y;
   }, []);
+
+  // Get quantity of a menu item in cart
+  const getItemQuantity = useCallback(
+    (menuItemId: string): number => {
+      return cartItems
+        .filter((cartItem) => cartItem.menuItem.id === menuItemId)
+        .reduce((total, cartItem) => total + cartItem.quantity, 0);
+    },
+    [cartItems]
+  );
+
+  // Get cart item by menu item id (for simple items without customizations)
+  const getCartItemByMenuItemId = useCallback(
+    (menuItemId: string) => {
+      return cartItems.find(
+        (cartItem) =>
+          cartItem.menuItem.id === menuItemId && cartItem.selectedCustomizations.length === 0
+      );
+    },
+    [cartItems]
+  );
+
+  // Handle add menu item to cart (for items without customizations)
+  const handleMenuItemAdd = useCallback(
+    (item: MenuItem) => {
+      if (!restaurant) return;
+
+      // Check if we can add from this restaurant
+      if (!canAddFromRestaurant(restaurant.id)) {
+        Alert.alert(
+          'Clear Cart?',
+          'You have items from another restaurant in your cart. Would you like to clear it and add this item?',
+          [
+            { text: 'Cancel', style: 'cancel' },
+            {
+              text: 'Clear & Add',
+              style: 'destructive',
+              onPress: () => {
+                clearCart();
+                addItem(item, 1, [], undefined, restaurant);
+              },
+            },
+          ]
+        );
+        return;
+      }
+
+      addItem(item, 1, [], undefined, restaurant);
+    },
+    [restaurant, canAddFromRestaurant, clearCart, addItem]
+  );
+
+  // Handle menu item press (opens customization modal)
+  const handleMenuItemPress = useCallback(
+    (item: MenuItem) => {
+      // TODO: Navigate to dish customization modal (Task 3.5)
+      // For now, if no customizations, we can add directly
+      if (item.customizations.length === 0) {
+        handleMenuItemAdd(item);
+      } else {
+        // Navigate to customization modal
+        Alert.alert(
+          'Customize Order',
+          'This item has customization options. Full customization modal coming in Task 3.5.',
+          [
+            { text: 'Cancel', style: 'cancel' },
+            {
+              text: 'Add Basic Item',
+              onPress: () => handleMenuItemAdd(item),
+            },
+          ]
+        );
+      }
+    },
+    [handleMenuItemAdd]
+  );
+
+  // Handle increment quantity
+  const handleMenuItemIncrement = useCallback(
+    (item: MenuItem) => {
+      // For items with customizations, we should open the modal
+      if (item.customizations.length > 0) {
+        handleMenuItemPress(item);
+        return;
+      }
+
+      // Find existing cart item and increment
+      const cartItem = getCartItemByMenuItemId(item.id);
+      if (cartItem) {
+        updateQuantity(cartItem.id, cartItem.quantity + 1);
+      } else {
+        // Shouldn't happen, but add new item just in case
+        handleMenuItemAdd(item);
+      }
+    },
+    [getCartItemByMenuItemId, updateQuantity, handleMenuItemPress, handleMenuItemAdd]
+  );
+
+  // Handle decrement quantity
+  const handleMenuItemDecrement = useCallback(
+    (item: MenuItem) => {
+      const cartItem = getCartItemByMenuItemId(item.id);
+      if (cartItem) {
+        updateQuantity(cartItem.id, cartItem.quantity - 1);
+      }
+    },
+    [getCartItemByMenuItemId, updateQuantity]
+  );
 
   // Parallax header animation
   const headerAnimatedStyle = useAnimatedStyle(() => {
@@ -745,62 +862,25 @@ export default function RestaurantDetailScreen() {
                   </ThemedText>
                 </View>
 
-                {/* Menu Items Placeholder - Will be replaced by MenuItemCard in Task 3.3 */}
+                {/* Menu Items */}
                 {menuByCategory[category.id]?.map((item, itemIndex) => (
                   <Animated.View
                     key={item.id}
                     entering={FadeInUp.delay(400 + categoryIndex * 50 + itemIndex * 30).duration(
                       AnimationDurations.normal
                     )}
-                    style={[
-                      styles.menuItemPlaceholder,
-                      { backgroundColor: colors.backgroundSecondary },
-                    ]}
+                    style={styles.menuItemWrapper}
                   >
-                    <View style={styles.menuItemInfo}>
-                      <ThemedText style={[styles.menuItemName, { color: colors.text }]}>
-                        {item.name}
-                      </ThemedText>
-                      <ThemedText
-                        style={[styles.menuItemDescription, { color: colors.textSecondary }]}
-                        numberOfLines={2}
-                      >
-                        {item.description}
-                      </ThemedText>
-                      <View style={styles.menuItemMeta}>
-                        <ThemedText style={[styles.menuItemPrice, { color: colors.text }]}>
-                          ${item.price.toFixed(2)}
-                        </ThemedText>
-                        {item.isPopular && (
-                          <View
-                            style={[styles.popularBadge, { backgroundColor: PrimaryColors[100] }]}
-                          >
-                            <Ionicons name="star" size={12} color={PrimaryColors[500]} />
-                            <ThemedText style={[styles.popularText, { color: PrimaryColors[600] }]}>
-                              Popular
-                            </ThemedText>
-                          </View>
-                        )}
-                        {item.isSpicy && (
-                          <View
-                            style={[
-                              styles.spicyBadge,
-                              { backgroundColor: colors.backgroundSecondary },
-                            ]}
-                          >
-                            <Ionicons name="flame" size={12} color={WarningColors[500]} />
-                          </View>
-                        )}
-                      </View>
-                    </View>
-                    {item.image && (
-                      <Image
-                        source={{ uri: item.image }}
-                        style={styles.menuItemImage}
-                        contentFit="cover"
-                        transition={200}
-                      />
-                    )}
+                    <RestaurantMenuItemCard
+                      item={item}
+                      restaurant={restaurant}
+                      quantity={getItemQuantity(item.id)}
+                      onPress={handleMenuItemPress}
+                      onAdd={handleMenuItemAdd}
+                      onIncrement={handleMenuItemIncrement}
+                      onDecrement={handleMenuItemDecrement}
+                      testID={`menu-item-${item.id}`}
+                    />
                   </Animated.View>
                 ))}
               </View>
@@ -1108,59 +1188,8 @@ const styles = StyleSheet.create({
     fontSize: Typography.sm.fontSize,
     lineHeight: Typography.sm.lineHeight,
   },
-  menuItemPlaceholder: {
-    flexDirection: 'row',
-    padding: Spacing[3],
-    borderRadius: BorderRadius.lg,
+  menuItemWrapper: {
     marginBottom: Spacing[3],
-  },
-  menuItemInfo: {
-    flex: 1,
-    marginRight: Spacing[3],
-  },
-  menuItemName: {
-    fontSize: Typography.base.fontSize,
-    lineHeight: Typography.base.lineHeight,
-    fontWeight: '600',
-    marginBottom: Spacing[1],
-  },
-  menuItemDescription: {
-    fontSize: Typography.sm.fontSize,
-    lineHeight: Typography.sm.lineHeight * 1.4,
-    marginBottom: Spacing[2],
-  },
-  menuItemMeta: {
-    flexDirection: 'row',
-    alignItems: 'center',
-  },
-  menuItemPrice: {
-    fontSize: Typography.base.fontSize,
-    lineHeight: Typography.base.lineHeight,
-    fontWeight: '600',
-  },
-  popularBadge: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    marginLeft: Spacing[2],
-    paddingHorizontal: Spacing[2],
-    paddingVertical: 2,
-    borderRadius: BorderRadius.full,
-  },
-  popularText: {
-    fontSize: Typography.xs.fontSize,
-    lineHeight: Typography.xs.lineHeight,
-    fontWeight: '500',
-    marginLeft: 2,
-  },
-  spicyBadge: {
-    marginLeft: Spacing[2],
-    padding: 4,
-    borderRadius: BorderRadius.full,
-  },
-  menuItemImage: {
-    width: 80,
-    height: 80,
-    borderRadius: BorderRadius.md,
   },
   menuPlaceholder: {
     padding: Spacing[8],
