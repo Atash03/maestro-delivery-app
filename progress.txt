@@ -1,7 +1,7 @@
 # Maestro Food Delivery App - Progress Tracking
 
 ## Current Status
-Phase: Phase 3 - Restaurant & Menu Selection (Task 3.5 Complete)
+Phase: Phase 3 - Restaurant & Menu Selection (Task 3.6 Complete)
 Last Updated: 2026-01-18
 
 ---
@@ -286,9 +286,9 @@ Phase 3: Restaurant & Menu Selection - In Progress
 - [x] **3.3 Build menu item card**
 - [x] **3.4 Build menu list with sections**
 - [x] **3.5 Create dish customization modal**
+- [x] **3.6 Implement cart functionality**
 
 ### Next Up in Phase 3
-- [ ] **3.6 Implement cart functionality**
 - [ ] **3.7 Build floating cart preview**
 - [ ] **3.8 Build cart modal**
 
@@ -1239,6 +1239,60 @@ Phase 3: Restaurant & Menu Selection - In Progress
     - Keyboard handling tests
     - Safe area handling tests
   - All 2518 tests passing, linting clean (only pre-existing warnings)
+
+### Session 29
+- Date: 2026-01-18
+- Tasks Completed:
+  - [x] 3.6 Implement cart functionality
+- Summary:
+  - Created `/src/components/swipeable-cart-item.tsx` with comprehensive cart item display:
+    - SwipeableCartItem component with swipe-to-delete functionality
+    - Uses react-native-gesture-handler for smooth swipe gestures
+    - Pan gesture for left swipe revealing delete button
+    - Tap gesture for closing swipe or pressing item
+    - Delete confirmation alert before removing items
+    - QuantityControls sub-component with inline +/- buttons
+    - Trash icon appears when quantity is 1 for delete
+    - Spring-based animations for button presses
+    - FadeIn/FadeOut/Layout animations for smooth list updates
+  - Created `/src/hooks/use-cart.ts` hook for cart operations:
+    - Wraps cart store with convenience methods
+    - Provides formatted values: formattedSubtotal, formattedItemCount
+    - Utility functions: getItemQuantity, getCartItemByMenuItemId, findCartItem
+    - addItemWithValidation with restaurant compatibility check and alert
+    - TAX_RATE constant (8.75%) and calculateTax helper
+    - formatPrice and formatItemCount helpers
+  - Cart store already had most functionality from Phase 0:
+    - Restaurant validation (can't mix restaurants)
+    - Confirmation alert when switching restaurants
+    - Quantity updates and item removal
+    - Subtotal and item count calculations
+    - AsyncStorage persistence
+  - SwipeableCartItem features:
+    - DELETE_BUTTON_WIDTH = 80px
+    - SWIPE_THRESHOLD = 40px for snap decision
+    - Displays item image, name, total price
+    - Shows customizations with bullet separator
+    - Shows special instructions with chat icon
+    - Shows unit price calculation
+  - Created comprehensive test suite (144 tests) in `/src/__tests__/cart-functionality.test.ts`:
+    - File structure tests
+    - SwipeableCartItem component exports and props tests
+    - Swipe gesture tests
+    - Delete functionality tests
+    - Quantity controls tests
+    - Item display tests
+    - Animation tests
+    - Accessibility tests
+    - useCart hook exports and interface tests
+    - Helper function tests
+    - Cart store integration tests
+    - Restaurant validation tests
+    - Edge case tests
+    - Type safety tests
+    - Dependencies tests
+    - Performance/memoization tests
+  - All 2662 tests passing, linting clean (only pre-existing warnings)
 
 ---
 

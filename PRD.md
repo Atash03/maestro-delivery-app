@@ -430,7 +430,7 @@ src/
   - Animated section expansions
   - Commit: `feat(menu): build dish customization modal with options`
 
-- [ ] **3.6 Implement cart functionality**
+- [x] **3.6 Implement cart functionality**
   - Cart store integration with restaurant check (can't mix restaurants)
   - Show confirmation when switching restaurants
   - Update cart item quantities
