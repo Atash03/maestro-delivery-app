@@ -14,24 +14,32 @@
  */
 
 import { Ionicons } from '@expo/vector-icons';
+import { zodResolver } from '@hookform/resolvers/zod';
 import { Image } from 'expo-image';
 import { useRouter } from 'expo-router';
 import { useCallback, useMemo, useState } from 'react';
+import { Controller, useForm } from 'react-hook-form';
 import {
   Alert,
+  Keyboard,
   KeyboardAvoidingView,
+  Modal,
   Platform,
   Pressable,
   ScrollView,
   StyleSheet,
+  Switch,
   Text,
+  TextInput,
   type TextStyle,
+  TouchableWithoutFeedback,
   View,
 } from 'react-native';
 import Animated, {
   FadeIn,
   FadeInDown,
   FadeInUp,
+  FadeOut,
   interpolate,
   useAnimatedStyle,
   useSharedValue,
@@ -39,21 +47,24 @@ import Animated, {
   withTiming,
 } from 'react-native-reanimated';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import { z } from 'zod';
 
 import {
   AnimationDurations,
   BorderRadius,
   Colors,
+  ErrorColors,
   FontWeights,
   NeutralColors,
   PrimaryColors,
   Shadows,
   Spacing,
+  SuccessColors,
   Typography,
 } from '@/constants/theme';
 import { useColorScheme } from '@/hooks/use-color-scheme';
 import { useAuthStore, useCartStore } from '@/stores';
-import type { Address } from '@/types';
+import type { Address, AddressLabel } from '@/types';
 
 // ============================================================================
 // Constants
@@ -67,6 +78,23 @@ const SPRING_CONFIG = {
   stiffness: 200,
   mass: 0.5,
 };
+
+export const MAX_DELIVERY_INSTRUCTIONS_LENGTH = 200;
+
+// ============================================================================
+// Validation Schema for Address
+// ============================================================================
+
+export const addressSchema = z.object({
+  label: z.enum(['Home', 'Work', 'Other'] as const),
+  street: z.string().min(5, 'Street address is required'),
+  city: z.string().min(2, 'City is required'),
+  zipCode: z.string().min(5, 'ZIP code must be at least 5 characters'),
+  instructions: z.string().optional(),
+  isDefault: z.boolean().default(false),
+});
+
+export type AddressFormData = z.infer<typeof addressSchema>;
 
 // ============================================================================
 // Helper Functions
@@ -462,6 +490,571 @@ function PaymentOption({
   );
 }
 
+// ============================================================================
+// Address Label Selector Component
+// ============================================================================
+
+interface AddressLabelSelectorProps {
+  value: AddressLabel;
+  onChange: (label: AddressLabel) => void;
+  colors: (typeof Colors)['light'];
+}
+
+/**
+ * Selector for address label (Home, Work, Other)
+ */
+export function AddressLabelSelector({ value, onChange, colors }: AddressLabelSelectorProps) {
+  const labels: { label: AddressLabel; icon: keyof typeof Ionicons.glyphMap }[] = [
+    { label: 'Home', icon: 'home-outline' },
+    { label: 'Work', icon: 'briefcase-outline' },
+    { label: 'Other', icon: 'location-outline' },
+  ];
+
+  return (
+    <View style={styles.labelSelectorContainer}>
+      <Text style={[styles.labelSelectorTitle, { color: colors.text }]}>Address Label</Text>
+      <View style={styles.labelOptions}>
+        {labels.map((item) => (
+          <Pressable
+            key={item.label}
+            onPress={() => onChange(item.label)}
+            style={[
+              styles.labelOption,
+              {
+                backgroundColor:
+                  value === item.label ? PrimaryColors[500] : colors.backgroundSecondary,
+                borderColor: value === item.label ? PrimaryColors[500] : colors.border,
+              },
+            ]}
+            accessibilityLabel={`${item.label} address label`}
+            accessibilityRole="radio"
+            accessibilityState={{ selected: value === item.label }}
+            testID={`address-label-${item.label.toLowerCase()}`}
+          >
+            <Ionicons
+              name={item.icon}
+              size={18}
+              color={value === item.label ? NeutralColors[0] : colors.textSecondary}
+            />
+            <Text
+              style={[
+                styles.labelOptionText,
+                { color: value === item.label ? NeutralColors[0] : colors.text },
+              ]}
+            >
+              {item.label}
+            </Text>
+          </Pressable>
+        ))}
+      </View>
+    </View>
+  );
+}
+
+// ============================================================================
+// Add/Edit Address Modal
+// ============================================================================
+
+interface AddressModalProps {
+  visible: boolean;
+  onClose: () => void;
+  onSave: (address: AddressFormData) => void;
+  initialData?: Address;
+  isEditing?: boolean;
+}
+
+/**
+ * Modal for adding or editing an address
+ */
+export function AddressModal({
+  visible,
+  onClose,
+  onSave,
+  initialData,
+  isEditing,
+}: AddressModalProps) {
+  const colorScheme = useColorScheme() ?? 'light';
+  const colors = Colors[colorScheme];
+  const insets = useSafeAreaInsets();
+
+  const form = useForm<AddressFormData>({
+    resolver: zodResolver(addressSchema),
+    defaultValues: initialData
+      ? {
+          label: initialData.label,
+          street: initialData.street,
+          city: initialData.city,
+          zipCode: initialData.zipCode,
+          instructions: initialData.instructions || '',
+          isDefault: initialData.isDefault,
+        }
+      : {
+          label: 'Home',
+          street: '',
+          city: '',
+          zipCode: '',
+          instructions: '',
+          isDefault: false,
+        },
+    mode: 'onChange',
+  });
+
+  const handleSave = useCallback(
+    (data: AddressFormData) => {
+      onSave(data);
+      form.reset();
+      onClose();
+    },
+    [onSave, onClose, form]
+  );
+
+  const handleClose = useCallback(() => {
+    form.reset();
+    onClose();
+  }, [form, onClose]);
+
+  return (
+    <Modal
+      visible={visible}
+      animationType="slide"
+      presentationStyle="pageSheet"
+      onRequestClose={handleClose}
+    >
+      <KeyboardAvoidingView
+        style={[styles.modalContainer, { backgroundColor: colors.background }]}
+        behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+      >
+        <TouchableWithoutFeedback onPress={Keyboard.dismiss}>
+          <View style={[styles.modalContent, { paddingTop: insets.top || Spacing[4] }]}>
+            {/* Header */}
+            <View style={[styles.modalHeader, { borderBottomColor: colors.divider }]}>
+              <Pressable
+                onPress={handleClose}
+                hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
+                accessibilityLabel="Close modal"
+                accessibilityRole="button"
+                testID="address-modal-close"
+              >
+                <Ionicons name="close" size={24} color={colors.text} />
+              </Pressable>
+              <Text style={[styles.modalTitle, { color: colors.text }]}>
+                {isEditing ? 'Edit Address' : 'Add New Address'}
+              </Text>
+              <View style={{ width: 24 }} />
+            </View>
+
+            <ScrollView
+              style={styles.modalScroll}
+              contentContainerStyle={styles.modalScrollContent}
+              showsVerticalScrollIndicator={false}
+              keyboardShouldPersistTaps="handled"
+            >
+              {/* Address Label Selector */}
+              <Controller
+                control={form.control}
+                name="label"
+                render={({ field: { onChange, value } }) => (
+                  <AddressLabelSelector value={value} onChange={onChange} colors={colors} />
+                )}
+              />
+
+              {/* Street Address */}
+              <Controller
+                control={form.control}
+                name="street"
+                render={({ field: { onChange, onBlur, value }, fieldState: { error } }) => (
+                  <View style={styles.inputContainer}>
+                    <Text style={[styles.inputLabel, { color: colors.text }]}>Street Address</Text>
+                    <View
+                      style={[
+                        styles.inputWrapper,
+                        {
+                          borderColor: error ? ErrorColors[500] : colors.border,
+                          backgroundColor: colors.backgroundSecondary,
+                        },
+                      ]}
+                    >
+                      <Ionicons
+                        name="location-outline"
+                        size={20}
+                        color={colors.textSecondary}
+                        style={styles.inputIcon}
+                      />
+                      <TextInput
+                        style={[styles.input, { color: colors.text }]}
+                        placeholder="123 Main Street, Apt 4B"
+                        placeholderTextColor={colors.textTertiary}
+                        value={value}
+                        onChangeText={onChange}
+                        onBlur={onBlur}
+                        autoCapitalize="words"
+                        testID="address-street-input"
+                      />
+                    </View>
+                    {error && (
+                      <Text style={[styles.inputError, { color: ErrorColors[500] }]}>
+                        {error.message}
+                      </Text>
+                    )}
+                  </View>
+                )}
+              />
+
+              {/* City */}
+              <Controller
+                control={form.control}
+                name="city"
+                render={({ field: { onChange, onBlur, value }, fieldState: { error } }) => (
+                  <View style={styles.inputContainer}>
+                    <Text style={[styles.inputLabel, { color: colors.text }]}>City</Text>
+                    <View
+                      style={[
+                        styles.inputWrapper,
+                        {
+                          borderColor: error ? ErrorColors[500] : colors.border,
+                          backgroundColor: colors.backgroundSecondary,
+                        },
+                      ]}
+                    >
+                      <TextInput
+                        style={[styles.input, styles.inputNoPadding, { color: colors.text }]}
+                        placeholder="New York"
+                        placeholderTextColor={colors.textTertiary}
+                        value={value}
+                        onChangeText={onChange}
+                        onBlur={onBlur}
+                        autoCapitalize="words"
+                        testID="address-city-input"
+                      />
+                    </View>
+                    {error && (
+                      <Text style={[styles.inputError, { color: ErrorColors[500] }]}>
+                        {error.message}
+                      </Text>
+                    )}
+                  </View>
+                )}
+              />
+
+              {/* ZIP Code */}
+              <Controller
+                control={form.control}
+                name="zipCode"
+                render={({ field: { onChange, onBlur, value }, fieldState: { error } }) => (
+                  <View style={styles.inputContainer}>
+                    <Text style={[styles.inputLabel, { color: colors.text }]}>ZIP Code</Text>
+                    <View
+                      style={[
+                        styles.inputWrapper,
+                        {
+                          borderColor: error ? ErrorColors[500] : colors.border,
+                          backgroundColor: colors.backgroundSecondary,
+                        },
+                      ]}
+                    >
+                      <TextInput
+                        style={[styles.input, styles.inputNoPadding, { color: colors.text }]}
+                        placeholder="10001"
+                        placeholderTextColor={colors.textTertiary}
+                        value={value}
+                        onChangeText={onChange}
+                        onBlur={onBlur}
+                        keyboardType="number-pad"
+                        testID="address-zipcode-input"
+                      />
+                    </View>
+                    {error && (
+                      <Text style={[styles.inputError, { color: ErrorColors[500] }]}>
+                        {error.message}
+                      </Text>
+                    )}
+                  </View>
+                )}
+              />
+
+              {/* Delivery Instructions */}
+              <Controller
+                control={form.control}
+                name="instructions"
+                render={({ field: { onChange, onBlur, value } }) => (
+                  <View style={styles.inputContainer}>
+                    <Text style={[styles.inputLabel, { color: colors.text }]}>
+                      Delivery Instructions (Optional)
+                    </Text>
+                    <View
+                      style={[
+                        styles.inputWrapper,
+                        styles.inputWrapperMultiline,
+                        {
+                          borderColor: colors.border,
+                          backgroundColor: colors.backgroundSecondary,
+                        },
+                      ]}
+                    >
+                      <TextInput
+                        style={[
+                          styles.input,
+                          styles.inputNoPadding,
+                          styles.inputMultiline,
+                          { color: colors.text },
+                        ]}
+                        placeholder="Buzz apartment 4B, leave at door, etc."
+                        placeholderTextColor={colors.textTertiary}
+                        value={value || ''}
+                        onChangeText={onChange}
+                        onBlur={onBlur}
+                        multiline
+                        numberOfLines={3}
+                        maxLength={MAX_DELIVERY_INSTRUCTIONS_LENGTH}
+                        testID="address-instructions-input"
+                      />
+                    </View>
+                    <Text style={[styles.characterCount, { color: colors.textTertiary }]}>
+                      {(value || '').length}/{MAX_DELIVERY_INSTRUCTIONS_LENGTH}
+                    </Text>
+                  </View>
+                )}
+              />
+
+              {/* Set as Default Toggle */}
+              <Controller
+                control={form.control}
+                name="isDefault"
+                render={({ field: { onChange, value } }) => (
+                  <View style={styles.defaultToggleContainer}>
+                    <View style={styles.defaultToggleTextContainer}>
+                      <Text style={[styles.defaultToggleLabel, { color: colors.text }]}>
+                        Set as default address
+                      </Text>
+                      <Text
+                        style={[styles.defaultToggleDescription, { color: colors.textSecondary }]}
+                      >
+                        This address will be selected by default for deliveries
+                      </Text>
+                    </View>
+                    <Switch
+                      value={value}
+                      onValueChange={onChange}
+                      trackColor={{ false: colors.border, true: PrimaryColors[500] }}
+                      thumbColor={NeutralColors[0]}
+                      testID="address-default-toggle"
+                    />
+                  </View>
+                )}
+              />
+            </ScrollView>
+
+            {/* Save Button */}
+            <View
+              style={[
+                styles.modalFooter,
+                { paddingBottom: insets.bottom || Spacing[4], borderTopColor: colors.divider },
+              ]}
+            >
+              <Pressable
+                onPress={form.handleSubmit(handleSave)}
+                style={[styles.modalSaveButton, { backgroundColor: PrimaryColors[500] }]}
+                accessibilityLabel={isEditing ? 'Save changes' : 'Add address'}
+                accessibilityRole="button"
+                testID="address-modal-save"
+              >
+                <Text style={[styles.modalSaveButtonText, { color: NeutralColors[0] }]}>
+                  {isEditing ? 'Save Changes' : 'Add Address'}
+                </Text>
+              </Pressable>
+            </View>
+          </View>
+        </TouchableWithoutFeedback>
+      </KeyboardAvoidingView>
+    </Modal>
+  );
+}
+
+// ============================================================================
+// Enhanced Delivery Address Section Components
+// ============================================================================
+
+interface SelectedAddressDisplayProps {
+  address: Address;
+  onEdit: () => void;
+  colors: (typeof Colors)['light'];
+}
+
+/**
+ * Displays the currently selected address with edit button
+ */
+function SelectedAddressDisplay({ address, onEdit, colors }: SelectedAddressDisplayProps) {
+  const scale = useSharedValue(1);
+
+  const handlePressIn = useCallback(() => {
+    scale.value = withSpring(0.98, SPRING_CONFIG);
+  }, [scale]);
+
+  const handlePressOut = useCallback(() => {
+    scale.value = withSpring(1, SPRING_CONFIG);
+  }, [scale]);
+
+  const animatedStyle = useAnimatedStyle(() => ({
+    transform: [{ scale: scale.value }],
+  }));
+
+  return (
+    <Animated.View entering={FadeIn.duration(AnimationDurations.normal)} style={animatedStyle}>
+      <View
+        style={[
+          styles.selectedAddressContainer,
+          { backgroundColor: PrimaryColors[50], borderColor: PrimaryColors[200] },
+        ]}
+        testID="selected-address-display"
+      >
+        <View style={styles.selectedAddressMain}>
+          <View style={styles.selectedAddressHeader}>
+            <View
+              style={[styles.selectedAddressIconContainer, { backgroundColor: PrimaryColors[100] }]}
+            >
+              <Ionicons name={getAddressIcon(address.label)} size={20} color={PrimaryColors[500]} />
+            </View>
+            <View style={styles.selectedAddressInfo}>
+              <View style={styles.selectedAddressLabelRow}>
+                <Text style={[styles.selectedAddressLabel, { color: colors.text }]}>
+                  {address.label}
+                </Text>
+                {address.isDefault && (
+                  <View style={[styles.defaultBadge, { backgroundColor: SuccessColors[100] }]}>
+                    <Text style={[styles.defaultBadgeText, { color: SuccessColors[700] }]}>
+                      Default
+                    </Text>
+                  </View>
+                )}
+              </View>
+              <Text
+                style={[styles.selectedAddressStreet, { color: colors.textSecondary }]}
+                numberOfLines={1}
+              >
+                {address.street}
+              </Text>
+              <Text style={[styles.selectedAddressCity, { color: colors.textTertiary }]}>
+                {address.city}, {address.zipCode}
+              </Text>
+            </View>
+          </View>
+          <Pressable
+            onPress={onEdit}
+            onPressIn={handlePressIn}
+            onPressOut={handlePressOut}
+            style={[styles.editAddressButton, { backgroundColor: colors.background }]}
+            accessibilityLabel="Edit selected address"
+            accessibilityRole="button"
+            hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
+            testID="edit-selected-address-button"
+          >
+            <Ionicons name="pencil-outline" size={18} color={PrimaryColors[500]} />
+          </Pressable>
+        </View>
+        {address.instructions && (
+          <View style={[styles.instructionsPreview, { borderTopColor: PrimaryColors[100] }]}>
+            <Ionicons name="chatbubble-outline" size={14} color={colors.textTertiary} />
+            <Text
+              style={[styles.instructionsPreviewText, { color: colors.textSecondary }]}
+              numberOfLines={2}
+            >
+              {address.instructions}
+            </Text>
+          </View>
+        )}
+      </View>
+    </Animated.View>
+  );
+}
+
+interface DeliveryInstructionsInputProps {
+  value: string;
+  onChange: (text: string) => void;
+  colors: (typeof Colors)['light'];
+}
+
+/**
+ * Input field for delivery instructions
+ */
+function DeliveryInstructionsInput({ value, onChange, colors }: DeliveryInstructionsInputProps) {
+  const [isFocused, setIsFocused] = useState(false);
+
+  return (
+    <Animated.View entering={FadeInDown.duration(AnimationDurations.normal).delay(100)}>
+      <View style={styles.deliveryInstructionsContainer}>
+        <Text style={[styles.deliveryInstructionsLabel, { color: colors.text }]}>
+          Delivery Instructions
+        </Text>
+        <View
+          style={[
+            styles.deliveryInstructionsInputWrapper,
+            {
+              borderColor: isFocused ? PrimaryColors[500] : colors.border,
+              backgroundColor: colors.backgroundSecondary,
+            },
+          ]}
+        >
+          <Ionicons
+            name="chatbubble-ellipses-outline"
+            size={18}
+            color={isFocused ? PrimaryColors[500] : colors.textTertiary}
+            style={styles.deliveryInstructionsIcon}
+          />
+          <TextInput
+            style={[styles.deliveryInstructionsInput, { color: colors.text }]}
+            placeholder="e.g., Ring doorbell, leave at front door..."
+            placeholderTextColor={colors.textTertiary}
+            value={value}
+            onChangeText={onChange}
+            onFocus={() => setIsFocused(true)}
+            onBlur={() => setIsFocused(false)}
+            multiline
+            numberOfLines={2}
+            maxLength={MAX_DELIVERY_INSTRUCTIONS_LENGTH}
+            accessibilityLabel="Delivery instructions"
+            testID="delivery-instructions-input"
+          />
+        </View>
+        <View style={styles.deliveryInstructionsFooter}>
+          <Text style={[styles.deliveryInstructionsHint, { color: colors.textTertiary }]}>
+            Special instructions for the driver
+          </Text>
+          <Text style={[styles.deliveryInstructionsCount, { color: colors.textTertiary }]}>
+            {value.length}/{MAX_DELIVERY_INSTRUCTIONS_LENGTH}
+          </Text>
+        </View>
+      </View>
+    </Animated.View>
+  );
+}
+
+interface EstimatedDeliveryDisplayProps {
+  estimatedTime: string;
+  colors: (typeof Colors)['light'];
+}
+
+/**
+ * Displays estimated delivery time prominently
+ */
+function EstimatedDeliveryDisplay({ estimatedTime, colors }: EstimatedDeliveryDisplayProps) {
+  return (
+    <Animated.View
+      entering={FadeInDown.duration(AnimationDurations.normal).delay(150)}
+      style={[styles.estimatedDeliveryContainer, { backgroundColor: colors.backgroundSecondary }]}
+    >
+      <View style={[styles.estimatedDeliveryIcon, { backgroundColor: PrimaryColors[100] }]}>
+        <Ionicons name="time-outline" size={20} color={PrimaryColors[500]} />
+      </View>
+      <View style={styles.estimatedDeliveryInfo}>
+        <Text style={[styles.estimatedDeliveryLabel, { color: colors.textSecondary }]}>
+          Estimated Delivery
+        </Text>
+        <Text style={[styles.estimatedDeliveryTime, { color: colors.text }]}>{estimatedTime}</Text>
+      </View>
+    </Animated.View>
+  );
+}
+
 interface PlaceOrderButtonProps {
   total: number;
   onPress: () => void;
@@ -553,6 +1146,8 @@ export default function CheckoutScreen() {
 
   // Store state
   const user = useAuthStore((state) => state.user);
+  const addAddress = useAuthStore((state) => state.addAddress);
+  const updateAddress = useAuthStore((state) => state.updateAddress);
   const items = useCartStore((state) => state.items);
   const restaurant = useCartStore((state) => state.restaurant);
   const getSubtotal = useCartStore((state) => state.getSubtotal);
@@ -570,6 +1165,11 @@ export default function CheckoutScreen() {
   );
   const [selectedPaymentMethod, setSelectedPaymentMethod] = useState<'card' | 'cash'>('card');
   const [isPlacingOrder, setIsPlacingOrder] = useState(false);
+  const [deliveryInstructions, setDeliveryInstructions] = useState(
+    user?.addresses.find((a) => a.id === selectedAddressId)?.instructions ?? ''
+  );
+  const [addressModalVisible, setAddressModalVisible] = useState(false);
+  const [editingAddress, setEditingAddress] = useState<Address | null>(null);
 
   // Computed values
   const subtotal = getSubtotal();
@@ -613,6 +1213,68 @@ export default function CheckoutScreen() {
   const handleSelectPayment = useCallback((method: 'card' | 'cash') => {
     setSelectedPaymentMethod(method);
   }, []);
+
+  const handleDeliveryInstructionsChange = useCallback((text: string) => {
+    setDeliveryInstructions(text);
+  }, []);
+
+  const handleOpenAddAddressModal = useCallback(() => {
+    setEditingAddress(null);
+    setAddressModalVisible(true);
+  }, []);
+
+  const handleOpenEditAddressModal = useCallback(() => {
+    if (selectedAddress) {
+      setEditingAddress(selectedAddress);
+      setAddressModalVisible(true);
+    }
+  }, [selectedAddress]);
+
+  const handleCloseAddressModal = useCallback(() => {
+    setAddressModalVisible(false);
+    setEditingAddress(null);
+  }, []);
+
+  const handleSaveAddress = useCallback(
+    (data: AddressFormData) => {
+      if (editingAddress) {
+        // Update existing address
+        updateAddress(editingAddress.id, {
+          label: data.label,
+          street: data.street,
+          city: data.city,
+          zipCode: data.zipCode,
+          instructions: data.instructions,
+          isDefault: data.isDefault,
+        });
+        // If we updated the delivery instructions, also update local state
+        if (data.instructions) {
+          setDeliveryInstructions(data.instructions);
+        }
+      } else {
+        // Add new address
+        const newAddress: Address = {
+          id: `addr-${Date.now()}`,
+          label: data.label,
+          street: data.street,
+          city: data.city,
+          zipCode: data.zipCode,
+          instructions: data.instructions,
+          isDefault: data.isDefault,
+          coordinates: { latitude: 0, longitude: 0 }, // Would be set by geocoding in real app
+        };
+        addAddress(newAddress);
+        // Select the new address
+        setSelectedAddressId(newAddress.id);
+        if (data.instructions) {
+          setDeliveryInstructions(data.instructions);
+        }
+      }
+      setAddressModalVisible(false);
+      setEditingAddress(null);
+    },
+    [editingAddress, updateAddress, addAddress]
+  );
 
   const handlePlaceOrder = useCallback(async () => {
     if (!canPlaceOrder) {
@@ -733,16 +1395,94 @@ export default function CheckoutScreen() {
             }
           >
             {user?.addresses && user.addresses.length > 0 ? (
-              <View style={styles.addressList}>
-                {user.addresses.map((address) => (
-                  <AddressCard
-                    key={address.id}
-                    address={address}
-                    isSelected={address.id === selectedAddressId}
-                    onSelect={() => handleSelectAddress(address.id)}
+              <View style={styles.addressSectionContent}>
+                {/* Selected Address Display */}
+                {selectedAddress ? (
+                  <SelectedAddressDisplay
+                    address={selectedAddress}
+                    onEdit={handleOpenEditAddressModal}
                     colors={colors}
                   />
-                ))}
+                ) : (
+                  <View style={styles.addressList}>
+                    {user.addresses.map((address) => (
+                      <AddressCard
+                        key={address.id}
+                        address={address}
+                        isSelected={address.id === selectedAddressId}
+                        onSelect={() => handleSelectAddress(address.id)}
+                        colors={colors}
+                      />
+                    ))}
+                  </View>
+                )}
+
+                {/* Change Address Link - shown when address is selected */}
+                {selectedAddress && user.addresses.length > 1 && (
+                  <Animated.View
+                    entering={FadeInDown.duration(AnimationDurations.normal).delay(50)}
+                  >
+                    <Pressable
+                      onPress={() => {
+                        setSelectedAddressId(null);
+                      }}
+                      style={styles.changeAddressLink}
+                      accessibilityLabel="Change delivery address"
+                      accessibilityRole="button"
+                      testID="change-address-link"
+                    >
+                      <Text style={[styles.changeAddressText, { color: PrimaryColors[500] }]}>
+                        Change address
+                      </Text>
+                    </Pressable>
+                  </Animated.View>
+                )}
+
+                {/* Address Selection List - shown when no address is selected */}
+                {!selectedAddress && (
+                  <Animated.View
+                    entering={FadeIn.duration(AnimationDurations.normal)}
+                    exiting={FadeOut.duration(AnimationDurations.fast)}
+                  >
+                    <View style={styles.addressList}>
+                      {user.addresses.map((address) => (
+                        <AddressCard
+                          key={address.id}
+                          address={address}
+                          isSelected={address.id === selectedAddressId}
+                          onSelect={() => handleSelectAddress(address.id)}
+                          colors={colors}
+                        />
+                      ))}
+                    </View>
+                  </Animated.View>
+                )}
+
+                {/* Delivery Instructions Input */}
+                <DeliveryInstructionsInput
+                  value={deliveryInstructions}
+                  onChange={handleDeliveryInstructionsChange}
+                  colors={colors}
+                />
+
+                {/* Estimated Delivery Time */}
+                <EstimatedDeliveryDisplay estimatedTime={estimatedDelivery} colors={colors} />
+
+                {/* Add New Address Button */}
+                <Animated.View entering={FadeInDown.duration(AnimationDurations.normal).delay(200)}>
+                  <Pressable
+                    onPress={handleOpenAddAddressModal}
+                    style={[styles.addNewAddressButton, { borderColor: colors.border }]}
+                    accessibilityLabel="Add new address"
+                    accessibilityRole="button"
+                    testID="add-new-address-button"
+                  >
+                    <Ionicons name="add-circle-outline" size={20} color={PrimaryColors[500]} />
+                    <Text style={[styles.addNewAddressText, { color: PrimaryColors[500] }]}>
+                      Add New Address
+                    </Text>
+                  </Pressable>
+                </Animated.View>
               </View>
             ) : (
               <View style={styles.noAddressContainer}>
@@ -751,6 +1491,7 @@ export default function CheckoutScreen() {
                   No saved addresses
                 </Text>
                 <Pressable
+                  onPress={handleOpenAddAddressModal}
                   style={[styles.addAddressButton, { borderColor: PrimaryColors[500] }]}
                   accessibilityLabel="Add new address"
                   accessibilityRole="button"
@@ -886,6 +1627,15 @@ export default function CheckoutScreen() {
           isLoading={isPlacingOrder}
           isDisabled={!canPlaceOrder}
           colors={colors}
+        />
+
+        {/* Address Modal */}
+        <AddressModal
+          visible={addressModalVisible}
+          onClose={handleCloseAddressModal}
+          onSave={handleSaveAddress}
+          initialData={editingAddress || undefined}
+          isEditing={!!editingAddress}
         />
       </View>
     </KeyboardAvoidingView>
@@ -1221,5 +1971,334 @@ const styles = StyleSheet.create({
     fontSize: Typography.base.fontSize,
     lineHeight: Typography.base.lineHeight,
     textAlign: 'center',
+  },
+
+  // Address Section Content
+  addressSectionContent: {
+    gap: Spacing[3],
+  },
+
+  // Selected Address Display
+  selectedAddressContainer: {
+    borderRadius: BorderRadius.lg,
+    borderWidth: 1.5,
+    overflow: 'hidden',
+  },
+  selectedAddressMain: {
+    flexDirection: 'row',
+    alignItems: 'flex-start',
+    padding: Spacing[3],
+  },
+  selectedAddressHeader: {
+    flexDirection: 'row',
+    flex: 1,
+  },
+  selectedAddressIconContainer: {
+    width: 44,
+    height: 44,
+    borderRadius: BorderRadius.md,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  selectedAddressInfo: {
+    flex: 1,
+    marginLeft: Spacing[3],
+  },
+  selectedAddressLabelRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: Spacing[2],
+    marginBottom: Spacing[0.5],
+  },
+  selectedAddressLabel: {
+    fontSize: Typography.base.fontSize,
+    lineHeight: Typography.base.lineHeight,
+    fontWeight: FontWeights.semibold as TextStyle['fontWeight'],
+  },
+  selectedAddressStreet: {
+    fontSize: Typography.sm.fontSize,
+    lineHeight: Typography.sm.lineHeight,
+  },
+  selectedAddressCity: {
+    fontSize: Typography.xs.fontSize,
+    lineHeight: Typography.xs.lineHeight,
+    marginTop: Spacing[0.5],
+  },
+  editAddressButton: {
+    width: 36,
+    height: 36,
+    borderRadius: BorderRadius.full,
+    alignItems: 'center',
+    justifyContent: 'center',
+    ...Shadows.sm,
+  },
+  instructionsPreview: {
+    flexDirection: 'row',
+    alignItems: 'flex-start',
+    padding: Spacing[3],
+    paddingTop: Spacing[2],
+    borderTopWidth: 1,
+    gap: Spacing[2],
+  },
+  instructionsPreviewText: {
+    flex: 1,
+    fontSize: Typography.sm.fontSize,
+    lineHeight: Typography.sm.lineHeight,
+    fontStyle: 'italic',
+  },
+  defaultBadge: {
+    paddingHorizontal: Spacing[2],
+    paddingVertical: Spacing[0.5],
+    borderRadius: BorderRadius.sm,
+  },
+  defaultBadgeText: {
+    fontSize: Typography.xs.fontSize,
+    lineHeight: Typography.xs.lineHeight,
+    fontWeight: FontWeights.medium as TextStyle['fontWeight'],
+  },
+  changeAddressLink: {
+    alignItems: 'center',
+    paddingVertical: Spacing[1],
+  },
+  changeAddressText: {
+    fontSize: Typography.sm.fontSize,
+    lineHeight: Typography.sm.lineHeight,
+    fontWeight: FontWeights.medium as TextStyle['fontWeight'],
+  },
+
+  // Delivery Instructions Input
+  deliveryInstructionsContainer: {
+    gap: Spacing[1],
+  },
+  deliveryInstructionsLabel: {
+    fontSize: Typography.sm.fontSize,
+    lineHeight: Typography.sm.lineHeight,
+    fontWeight: FontWeights.medium as TextStyle['fontWeight'],
+  },
+  deliveryInstructionsInputWrapper: {
+    flexDirection: 'row',
+    alignItems: 'flex-start',
+    borderRadius: BorderRadius.md,
+    borderWidth: 1,
+    paddingHorizontal: Spacing[3],
+    paddingVertical: Spacing[2.5] ?? 10,
+    minHeight: 72,
+  },
+  deliveryInstructionsIcon: {
+    marginTop: Spacing[1],
+    marginRight: Spacing[2],
+  },
+  deliveryInstructionsInput: {
+    flex: 1,
+    fontSize: Typography.base.fontSize,
+    lineHeight: Typography.base.lineHeight,
+    paddingTop: 0,
+    paddingBottom: 0,
+    minHeight: 48,
+    textAlignVertical: 'top',
+  },
+  deliveryInstructionsFooter: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+  },
+  deliveryInstructionsHint: {
+    fontSize: Typography.xs.fontSize,
+    lineHeight: Typography.xs.lineHeight,
+  },
+  deliveryInstructionsCount: {
+    fontSize: Typography.xs.fontSize,
+    lineHeight: Typography.xs.lineHeight,
+  },
+
+  // Estimated Delivery Display
+  estimatedDeliveryContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    padding: Spacing[3],
+    borderRadius: BorderRadius.md,
+    gap: Spacing[3],
+  },
+  estimatedDeliveryIcon: {
+    width: 40,
+    height: 40,
+    borderRadius: BorderRadius.md,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  estimatedDeliveryInfo: {
+    flex: 1,
+  },
+  estimatedDeliveryLabel: {
+    fontSize: Typography.xs.fontSize,
+    lineHeight: Typography.xs.lineHeight,
+    fontWeight: FontWeights.medium as TextStyle['fontWeight'],
+  },
+  estimatedDeliveryTime: {
+    fontSize: Typography.lg.fontSize,
+    lineHeight: Typography.lg.lineHeight,
+    fontWeight: FontWeights.bold as TextStyle['fontWeight'],
+  },
+
+  // Add New Address Button
+  addNewAddressButton: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    paddingVertical: Spacing[3],
+    borderRadius: BorderRadius.md,
+    borderWidth: 1,
+    borderStyle: 'dashed',
+    gap: Spacing[2],
+  },
+  addNewAddressText: {
+    fontSize: Typography.sm.fontSize,
+    lineHeight: Typography.sm.lineHeight,
+    fontWeight: FontWeights.medium as TextStyle['fontWeight'],
+  },
+
+  // Address Modal Styles
+  modalContainer: {
+    flex: 1,
+  },
+  modalContent: {
+    flex: 1,
+  },
+  modalHeader: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    paddingHorizontal: Spacing[4],
+    paddingVertical: Spacing[3],
+    borderBottomWidth: 1,
+  },
+  modalTitle: {
+    fontSize: Typography.lg.fontSize,
+    lineHeight: Typography.lg.lineHeight,
+    fontWeight: FontWeights.semibold as TextStyle['fontWeight'],
+  },
+  modalScroll: {
+    flex: 1,
+  },
+  modalScrollContent: {
+    paddingHorizontal: Spacing[4],
+    paddingTop: Spacing[4],
+    paddingBottom: Spacing[4],
+  },
+  modalFooter: {
+    paddingHorizontal: Spacing[4],
+    paddingTop: Spacing[3],
+    borderTopWidth: 1,
+  },
+  modalSaveButton: {
+    alignItems: 'center',
+    justifyContent: 'center',
+    paddingVertical: Spacing[4],
+    borderRadius: BorderRadius.lg,
+  },
+  modalSaveButtonText: {
+    fontSize: Typography.base.fontSize,
+    lineHeight: Typography.base.lineHeight,
+    fontWeight: FontWeights.semibold as TextStyle['fontWeight'],
+  },
+
+  // Address Form Styles
+  labelSelectorContainer: {
+    marginBottom: Spacing[4],
+  },
+  labelSelectorTitle: {
+    fontSize: Typography.sm.fontSize,
+    lineHeight: Typography.sm.lineHeight,
+    fontWeight: FontWeights.medium as TextStyle['fontWeight'],
+    marginBottom: Spacing[2],
+  },
+  labelOptions: {
+    flexDirection: 'row',
+    gap: Spacing[2],
+  },
+  labelOption: {
+    flex: 1,
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    paddingVertical: Spacing[2.5] ?? 10,
+    borderRadius: BorderRadius.lg,
+    borderWidth: 1.5,
+    gap: Spacing[1],
+  },
+  labelOptionText: {
+    fontSize: Typography.sm.fontSize,
+    lineHeight: Typography.sm.lineHeight,
+    fontWeight: FontWeights.medium as TextStyle['fontWeight'],
+  },
+  inputContainer: {
+    marginBottom: Spacing[4],
+  },
+  inputLabel: {
+    fontSize: Typography.sm.fontSize,
+    lineHeight: Typography.sm.lineHeight,
+    fontWeight: FontWeights.medium as TextStyle['fontWeight'],
+    marginBottom: Spacing[1],
+  },
+  inputWrapper: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    borderRadius: BorderRadius.md,
+    borderWidth: 1,
+    paddingHorizontal: Spacing[3],
+    minHeight: 48,
+  },
+  inputWrapperMultiline: {
+    alignItems: 'flex-start',
+    minHeight: 88,
+    paddingVertical: Spacing[3],
+  },
+  inputIcon: {
+    marginRight: Spacing[2],
+  },
+  input: {
+    flex: 1,
+    fontSize: Typography.base.fontSize,
+    lineHeight: Typography.base.lineHeight,
+    paddingVertical: Spacing[3],
+  },
+  inputNoPadding: {
+    paddingVertical: 0,
+  },
+  inputMultiline: {
+    minHeight: 64,
+    textAlignVertical: 'top',
+  },
+  inputError: {
+    fontSize: Typography.xs.fontSize,
+    lineHeight: Typography.xs.lineHeight,
+    marginTop: Spacing[1],
+  },
+  characterCount: {
+    fontSize: Typography.xs.fontSize,
+    lineHeight: Typography.xs.lineHeight,
+    marginTop: Spacing[1],
+    textAlign: 'right',
+  },
+  defaultToggleContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    paddingVertical: Spacing[3],
+    marginTop: Spacing[2],
+  },
+  defaultToggleTextContainer: {
+    flex: 1,
+    marginRight: Spacing[3],
+  },
+  defaultToggleLabel: {
+    fontSize: Typography.base.fontSize,
+    lineHeight: Typography.base.lineHeight,
+    fontWeight: FontWeights.medium as TextStyle['fontWeight'],
+    marginBottom: Spacing[0.5],
+  },
+  defaultToggleDescription: {
+    fontSize: Typography.sm.fontSize,
+    lineHeight: Typography.sm.lineHeight,
   },
 });

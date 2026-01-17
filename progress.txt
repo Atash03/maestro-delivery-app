@@ -282,9 +282,9 @@ Phase 4: Checkout & Payment - IN PROGRESS
 
 ### Completed in Phase 4
 - [x] **4.1 Build checkout screen layout**
+- [x] **4.2 Build delivery address section**
 
 ### Next Up
-- **4.2 Build delivery address section**
 - **4.3 Build order summary section**
 - **4.4 Build payment method section**
 - **4.5 Build add card screen**
@@ -1485,6 +1485,72 @@ Phase 4: Checkout & Payment - IN PROGRESS
     - Edge case tests
     - Callback memoization tests
   - All 3134 tests passing, linting clean (only pre-existing warnings)
+
+### Session 33
+- Date: 2026-01-18
+- Tasks Completed:
+  - [x] 4.2 Build delivery address section
+- Summary:
+  - Enhanced the checkout screen delivery address section with comprehensive functionality
+  - Created AddressLabelSelector component:
+    - Three label options: Home, Work, Other
+    - Each with appropriate icons (home, briefcase, location)
+    - Radio button style selection with accessibility support
+    - Press animation feedback
+  - Created AddressModal component for adding/editing addresses:
+    - Uses react-hook-form with zodResolver for validation
+    - Address schema validates label, street, city, zipCode, instructions, isDefault
+    - Street address input with location icon
+    - City and ZIP code inputs
+    - Delivery instructions textarea with character count (200 max)
+    - Set as default toggle with Switch
+    - Supports both add new and edit existing address modes
+    - Modal presentation with pageSheet style
+    - Close button and save button with appropriate labels
+  - Created SelectedAddressDisplay component:
+    - Shows selected address prominently with PrimaryColors background
+    - Displays address icon based on label (Home/Work/Other)
+    - Shows default badge when address is marked default
+    - Edit button with pencil icon for quick editing
+    - Instructions preview section when address has delivery instructions
+    - Spring-based press animation
+  - Created DeliveryInstructionsInput component:
+    - Standalone input for delivery-specific instructions
+    - Character counter showing current/max length
+    - Hint text "Special instructions for the driver"
+    - Focus state styling with border color change
+    - Multiline input for longer instructions
+  - Created EstimatedDeliveryDisplay component:
+    - Prominently displays estimated delivery time
+    - Time icon with primary color background
+    - Label and time value in clear typography
+    - FadeInDown animation on appearance
+  - Updated Checkout screen integration:
+    - Added state for deliveryInstructions, addressModalVisible, editingAddress
+    - Added handlers: handleDeliveryInstructionsChange, handleOpenAddAddressModal, handleOpenEditAddressModal, handleCloseAddressModal, handleSaveAddress
+    - "Change address" link when multiple addresses exist
+    - "Add New Address" button with dashed border style
+    - Integrated with auth store (addAddress, updateAddress)
+    - New address automatically selected after creation
+    - Delivery instructions initialized from selected address
+  - Exported new types and components:
+    - MAX_DELIVERY_INSTRUCTIONS_LENGTH constant (200)
+    - addressSchema for form validation
+    - AddressFormData type
+    - AddressLabelSelector and AddressModal components
+  - Added comprehensive test suite (177 tests) covering:
+    - File structure and exports
+    - Constants and schema validation
+    - All component props and types
+    - Component functionality and interactions
+    - Checkout integration
+    - Address operations (add/edit)
+    - Styling
+    - Animations
+    - Accessibility
+    - Edge cases
+    - Form validation
+  - All 3311 tests passing, linting clean (only pre-existing warnings)
 
 ---
 

@@ -481,7 +481,7 @@ src/
   - Sticky "Place Order" button at bottom
   - Commit: `feat(checkout): create checkout screen with collapsible sections`
 
-- [ ] **4.2 Build delivery address section**
+- [x] **4.2 Build delivery address section**
   - Show selected address with edit button
   - "Add New Address" option
   - Delivery instructions input
