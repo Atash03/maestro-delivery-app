@@ -1,6 +1,6 @@
 {
   "expo": {
-    "name": "maestro-delivery-app",
+    "name": "Maestro",
     "slug": "maestro-delivery-app",
     "version": "1.0.0",
     "orientation": "portrait",
@@ -13,7 +13,7 @@
     },
     "android": {
       "adaptiveIcon": {
-        "backgroundColor": "#E6F4FE",
+        "backgroundColor": "#FF6B35",
         "foregroundImage": "./src/assets/images/android-icon-foreground.png",
         "backgroundImage": "./src/assets/images/android-icon-background.png",
         "monochromeImage": "./src/assets/images/android-icon-monochrome.png"
@@ -33,9 +33,10 @@
           "image": "./src/assets/images/splash-icon.png",
           "imageWidth": 200,
           "resizeMode": "contain",
-          "backgroundColor": "#ffffff",
+          "backgroundColor": "#FFF5F0",
           "dark": {
-            "backgroundColor": "#000000"
+            "image": "./src/assets/images/splash-icon.png",
+            "backgroundColor": "#0A0A0A"
           }
         }
       ]

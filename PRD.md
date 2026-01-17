@@ -215,7 +215,7 @@ src/
 
 ### Tasks
 
-- [ ] **1.1 Create splash screen configuration**
+- [x] **1.1 Create splash screen configuration**
   - Configure `expo-splash-screen` in `app.json`
   - Add animated logo reveal on app launch
   - Commit: `feat(splash): configure animated splash screen`
