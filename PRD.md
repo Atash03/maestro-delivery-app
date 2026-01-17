@@ -158,7 +158,7 @@ src/
   - Create `/src/stores/index.ts` to export all stores
   - Commit: `feat(stores): set up Zustand stores for auth, cart, and orders`
 
-- [ ] **0.4 Create design system constants**
+- [x] **0.4 Create design system constants**
   - Update `/src/constants/theme.ts` with:
     - Extended color palette (primary, secondary, success, warning, error, neutral shades)
     - Typography scale (xs, sm, base, lg, xl, 2xl, 3xl)
