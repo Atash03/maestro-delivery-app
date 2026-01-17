@@ -57,12 +57,14 @@ describe('Filters Modal', () => {
 
     it('should export FilterState type', () => {
       const content = readFile(FILTERS_PATH);
-      expect(content).toContain('export interface FilterState');
+      // FilterState is now re-exported from the store
+      expect(content).toMatch(/export\s+type\s*\{\s*FilterState\s*\}/);
     });
 
     it('should export DEFAULT_FILTER_STATE constant', () => {
       const content = readFile(FILTERS_PATH);
-      expect(content).toContain('export const DEFAULT_FILTER_STATE');
+      // DEFAULT_FILTER_STATE is now re-exported from the store
+      expect(content).toMatch(/export\s*\{\s*DEFAULT_FILTER_STATE\s*\}/);
     });
 
     it('should export filter options constants', () => {
@@ -91,28 +93,31 @@ describe('Filters Modal', () => {
   // ============================================================================
 
   describe('FilterState Type', () => {
-    it('should have sortBy property of SortOptionType', () => {
-      const content = readFile(FILTERS_PATH);
-      expect(content).toContain('sortBy: SortOptionType');
+    // FilterState is now defined in the store and imported
+    const FILTER_STORE_PATH = path.join(__dirname, '../stores/filter-store.ts');
+
+    it('should have sortBy property of SortOption', () => {
+      const content = fs.readFileSync(FILTER_STORE_PATH, 'utf-8');
+      expect(content).toContain('sortBy: SortOption');
     });
 
     it('should have priceRange property as PriceLevel array', () => {
-      const content = readFile(FILTERS_PATH);
+      const content = fs.readFileSync(FILTER_STORE_PATH, 'utf-8');
       expect(content).toContain('priceRange: PriceLevel[]');
     });
 
     it('should have minRating property as number or null', () => {
-      const content = readFile(FILTERS_PATH);
+      const content = fs.readFileSync(FILTER_STORE_PATH, 'utf-8');
       expect(content).toContain('minRating: number | null');
     });
 
     it('should have maxDeliveryTime property as number or null', () => {
-      const content = readFile(FILTERS_PATH);
+      const content = fs.readFileSync(FILTER_STORE_PATH, 'utf-8');
       expect(content).toContain('maxDeliveryTime: number | null');
     });
 
     it('should have dietary property as DietaryOption array', () => {
-      const content = readFile(FILTERS_PATH);
+      const content = fs.readFileSync(FILTER_STORE_PATH, 'utf-8');
       expect(content).toContain('dietary: DietaryOption[]');
     });
   });
@@ -122,28 +127,31 @@ describe('Filters Modal', () => {
   // ============================================================================
 
   describe('Default Filter State', () => {
+    // Default filter state is now defined in the store
+    const FILTER_STORE_PATH = path.join(__dirname, '../stores/filter-store.ts');
+
     it('should have recommended as default sortBy', () => {
-      const content = readFile(FILTERS_PATH);
+      const content = fs.readFileSync(FILTER_STORE_PATH, 'utf-8');
       expect(content).toMatch(/sortBy:\s*['"]recommended['"]/);
     });
 
     it('should have empty priceRange by default', () => {
-      const content = readFile(FILTERS_PATH);
+      const content = fs.readFileSync(FILTER_STORE_PATH, 'utf-8');
       expect(content).toMatch(/priceRange:\s*\[\]/);
     });
 
     it('should have null minRating by default', () => {
-      const content = readFile(FILTERS_PATH);
+      const content = fs.readFileSync(FILTER_STORE_PATH, 'utf-8');
       expect(content).toMatch(/minRating:\s*null/);
     });
 
     it('should have null maxDeliveryTime by default', () => {
-      const content = readFile(FILTERS_PATH);
+      const content = fs.readFileSync(FILTER_STORE_PATH, 'utf-8');
       expect(content).toMatch(/maxDeliveryTime:\s*null/);
     });
 
     it('should have empty dietary by default', () => {
-      const content = readFile(FILTERS_PATH);
+      const content = fs.readFileSync(FILTER_STORE_PATH, 'utf-8');
       expect(content).toMatch(/dietary:\s*\[\]/);
     });
   });

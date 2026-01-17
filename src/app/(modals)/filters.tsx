@@ -14,11 +14,12 @@
  * - "Clear All" option
  * - Animated filter chip selection
  * - Spring-based press animations
+ * - Persists filters to store on apply
  */
 
 import { Ionicons } from '@expo/vector-icons';
 import { router } from 'expo-router';
-import { useCallback, useMemo, useState } from 'react';
+import { useCallback, useEffect, useMemo, useState } from 'react';
 import {
   Pressable,
   ScrollView,
@@ -51,27 +52,12 @@ import {
   Typography,
 } from '@/constants/theme';
 import { useColorScheme } from '@/hooks/use-color-scheme';
+import { DEFAULT_FILTER_STATE, type FilterState, useFilterStore } from '@/stores';
 import type { DietaryOption, PriceLevel, SortOption as SortOptionType } from '@/types';
 
-// ============================================================================
-// Types
-// ============================================================================
-
-export interface FilterState {
-  sortBy: SortOptionType;
-  priceRange: PriceLevel[];
-  minRating: number | null;
-  maxDeliveryTime: number | null;
-  dietary: DietaryOption[];
-}
-
-export const DEFAULT_FILTER_STATE: FilterState = {
-  sortBy: 'recommended',
-  priceRange: [],
-  minRating: null,
-  maxDeliveryTime: null,
-  dietary: [],
-};
+// Re-export FilterState for backwards compatibility
+export type { FilterState };
+export { DEFAULT_FILTER_STATE };
 
 // ============================================================================
 // Constants
@@ -217,8 +203,23 @@ export default function FiltersScreen() {
   const colors = Colors[colorScheme ?? 'light'];
   const insets = useSafeAreaInsets();
 
-  // Filter state
-  const [filters, setFilters] = useState<FilterState>(DEFAULT_FILTER_STATE);
+  // Get initial state from store
+  const storeFilters = useFilterStore((state) => ({
+    sortBy: state.sortBy,
+    priceRange: state.priceRange,
+    minRating: state.minRating,
+    maxDeliveryTime: state.maxDeliveryTime,
+    dietary: state.dietary,
+  }));
+  const applyFiltersToStore = useFilterStore((state) => state.applyFilters);
+
+  // Local filter state (initialized from store)
+  const [filters, setFilters] = useState<FilterState>(storeFilters);
+
+  // Sync local state when store changes (e.g., on clear from elsewhere)
+  useEffect(() => {
+    setFilters(storeFilters);
+  }, [storeFilters]);
 
   // Calculate active filter count
   const activeFilterCount = useMemo(() => {
@@ -273,10 +274,10 @@ export default function FiltersScreen() {
   }, []);
 
   const handleApply = useCallback(() => {
-    // In a real app, this would update a global store or pass filters back via navigation params
-    // For now, we just close the modal
+    // Save filters to store for persistence
+    applyFiltersToStore(filters);
     router.back();
-  }, []);
+  }, [applyFiltersToStore, filters]);
 
   const handleClose = useCallback(() => {
     router.back();

@@ -5,6 +5,7 @@
  * - Delivery address header with selector
  * - Search bar for restaurant/dish search
  * - Horizontal cuisine category scroll with selection
+ * - Filter button with active filter count badge
  * - Featured Restaurants carousel with larger cards
  * - Popular Near You section
  * - Quick Bites section (fast delivery)
@@ -12,12 +13,20 @@
  * - Pull-to-refresh with custom animation
  * - Skeleton loading states on initial load
  * - Uses @shopify/flash-list for performance
+ * - Filters persist across sessions via filter store
  */
 
+import { Ionicons } from '@expo/vector-icons';
 import { router } from 'expo-router';
 import { useCallback, useEffect, useState } from 'react';
-import { FlatList, ScrollView, StyleSheet, View } from 'react-native';
-import Animated, { FadeIn, FadeInRight } from 'react-native-reanimated';
+import { FlatList, Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
+import Animated, {
+  FadeIn,
+  FadeInRight,
+  useAnimatedStyle,
+  useSharedValue,
+  withSpring,
+} from 'react-native-reanimated';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { CategoryChip } from '@/components/cards';
@@ -26,10 +35,20 @@ import { DeliveryAddressHeader } from '@/components/delivery-address-header';
 import { RestaurantSection } from '@/components/restaurant-section';
 import { SearchBar } from '@/components/search-bar';
 import { ThemedText } from '@/components/themed-text';
-import { Colors, Spacing } from '@/constants/theme';
+import {
+  BorderRadius,
+  Colors,
+  FontWeights,
+  PrimaryColors,
+  Shadows,
+  Spacing,
+  Typography,
+} from '@/constants/theme';
 import { mockCategories } from '@/data/mock';
 import { useColorScheme } from '@/hooks/use-color-scheme';
+import { useFilteredRestaurants } from '@/hooks/use-filtered-restaurants';
 import { useHomeData } from '@/hooks/use-home-data';
+import { useFilterStore } from '@/stores';
 import type { Address, Category, Restaurant } from '@/types';
 
 // ============================================================================
@@ -44,6 +63,68 @@ const PROMOTIONAL_BADGES: Record<string, string> = {
   'rest-005': 'Free Delivery',
   'rest-013': 'New Menu!',
 };
+
+const AnimatedPressable = Animated.createAnimatedComponent(Pressable);
+
+// ============================================================================
+// Filter Button Component
+// ============================================================================
+
+interface FilterButtonProps {
+  activeCount: number;
+  onPress: () => void;
+  testID?: string;
+}
+
+function FilterButton({ activeCount, onPress, testID }: FilterButtonProps) {
+  const colorScheme = useColorScheme();
+  const colors = Colors[colorScheme ?? 'light'];
+
+  const scale = useSharedValue(1);
+
+  const handlePressIn = useCallback(() => {
+    scale.value = withSpring(0.95, { damping: 15, stiffness: 200, mass: 0.5 });
+  }, [scale]);
+
+  const handlePressOut = useCallback(() => {
+    scale.value = withSpring(1, { damping: 15, stiffness: 200, mass: 0.5 });
+  }, [scale]);
+
+  const animatedStyle = useAnimatedStyle(() => ({
+    transform: [{ scale: scale.value }],
+  }));
+
+  return (
+    <AnimatedPressable
+      onPress={onPress}
+      onPressIn={handlePressIn}
+      onPressOut={handlePressOut}
+      style={[
+        styles.filterButton,
+        {
+          backgroundColor: activeCount > 0 ? PrimaryColors[500] : colors.backgroundSecondary,
+          borderColor: activeCount > 0 ? PrimaryColors[500] : colors.border,
+        },
+        animatedStyle,
+      ]}
+      accessibilityRole="button"
+      accessibilityLabel={`Filters${activeCount > 0 ? `, ${activeCount} active` : ''}`}
+      accessibilityHint="Opens filter options"
+      testID={testID}
+    >
+      <Ionicons
+        name="options-outline"
+        size={18}
+        color={activeCount > 0 ? '#FFFFFF' : colors.text}
+      />
+      {activeCount > 0 && (
+        <View style={styles.filterBadge}>
+          <Text style={styles.filterBadgeText}>{activeCount}</Text>
+        </View>
+      )}
+    </AnimatedPressable>
+  );
+}
 
 // ============================================================================
 // Component
@@ -64,23 +145,42 @@ export default function HomeScreen() {
       : (mockCategories.find((c) => c.id === selectedCategory)?.name ?? null);
 
   // Home data hook
-  const {
-    featuredRestaurants,
-    popularRestaurants,
-    quickBitesRestaurants,
-    newRestaurants,
-    isLoading,
-    isRefreshing,
-    refresh,
-    filterByCategory,
-  } = useHomeData({
+  const { allRestaurants, isLoading, isRefreshing, refresh, filterByCategory } = useHomeData({
     selectedCategory: selectedCategoryName,
   });
+
+  // Get active filter count from store
+  const activeFilterCount = useFilterStore((state) => state.getActiveFilterCount());
+  const clearFilters = useFilterStore((state) => state.clearFilters);
+
+  // Apply filters to all restaurants
+  const { filteredRestaurants, hasActiveFilters } = useFilteredRestaurants({
+    restaurants: allRestaurants,
+    categoryFilter: selectedCategoryName,
+  });
+
+  // Categorize filtered restaurants for sections
+  const featuredRestaurants = filteredRestaurants.filter((r) => r.rating >= 4.6).slice(0, 10);
+  const popularRestaurants = filteredRestaurants.filter((r) => r.reviewCount >= 300).slice(0, 10);
+  const quickBitesRestaurants = filteredRestaurants
+    .filter((r) => r.deliveryTime.max <= 30)
+    .slice(0, 10);
+  const newRestaurants = filteredRestaurants.filter((r) => r.reviewCount < 300).slice(0, 10);
 
   // Update filter when category changes
   useEffect(() => {
     filterByCategory(selectedCategoryName);
   }, [selectedCategoryName, filterByCategory]);
+
+  // Handle filter button press
+  const handleFilterPress = useCallback(() => {
+    router.push('/(modals)/filters');
+  }, []);
+
+  // Handle clear filters
+  const handleClearFilters = useCallback(() => {
+    clearFilters();
+  }, [clearFilters]);
 
   // Handle address change
   const handleAddressChange = useCallback((_address: Address) => {
@@ -185,15 +285,24 @@ export default function HomeScreen() {
         onAddNewAddress={handleAddNewAddress}
       />
 
-      {/* Search Bar */}
+      {/* Search Bar with Filter Button */}
       <Animated.View entering={FadeIn.delay(100).duration(300)} style={styles.searchContainer}>
-        <SearchBar
-          placeholder="Search restaurants or dishes"
-          onSubmit={handleSearchSubmit}
-          navigateOnFocus
-          onFocus={handleSearchFocus}
-          testID="home-search-bar"
-        />
+        <View style={styles.searchRow}>
+          <View style={styles.searchBarWrapper}>
+            <SearchBar
+              placeholder="Search restaurants or dishes"
+              onSubmit={handleSearchSubmit}
+              navigateOnFocus
+              onFocus={handleSearchFocus}
+              testID="home-search-bar"
+            />
+          </View>
+          <FilterButton
+            activeCount={activeFilterCount}
+            onPress={handleFilterPress}
+            testID="home-filter-button"
+          />
+        </View>
       </Animated.View>
 
       {/* Category Scroll */}
@@ -224,12 +333,31 @@ export default function HomeScreen() {
         }
         testID="home-scroll-view"
       >
-        {/* Selected Category Filter Indicator */}
-        {selectedCategory !== 'cat-all' && (
+        {/* Active Filters Indicator */}
+        {(selectedCategory !== 'cat-all' || hasActiveFilters) && (
           <Animated.View entering={FadeIn.duration(200)} style={styles.filterIndicator}>
-            <ThemedText style={[styles.filterText, { color: colors.primary }]}>
-              Showing: {mockCategories.find((c) => c.id === selectedCategory)?.name}
-            </ThemedText>
+            <View style={styles.filterIndicatorRow}>
+              <ThemedText style={[styles.filterText, { color: colors.primary }]}>
+                {selectedCategory !== 'cat-all' && hasActiveFilters
+                  ? `${mockCategories.find((c) => c.id === selectedCategory)?.name} • ${activeFilterCount} filter${activeFilterCount !== 1 ? 's' : ''}`
+                  : selectedCategory !== 'cat-all'
+                    ? `Showing: ${mockCategories.find((c) => c.id === selectedCategory)?.name}`
+                    : `${activeFilterCount} filter${activeFilterCount !== 1 ? 's' : ''} active`}
+              </ThemedText>
+              {hasActiveFilters && (
+                <Pressable
+                  onPress={handleClearFilters}
+                  style={styles.clearFiltersButton}
+                  accessibilityLabel="Clear all filters"
+                  accessibilityRole="button"
+                  testID="clear-filters-button"
+                >
+                  <Text style={[styles.clearFiltersText, { color: colors.primary }]}>
+                    Clear filters
+                  </Text>
+                </Pressable>
+              )}
+            </View>
           </Animated.View>
         )}
 
@@ -284,16 +412,39 @@ export default function HomeScreen() {
         />
 
         {/* Empty State when filtering returns no results */}
-        {!isLoading && !hasAnyRestaurants && selectedCategory !== 'cat-all' && (
-          <Animated.View entering={FadeIn.duration(300)} style={styles.emptyState}>
-            <ThemedText style={[styles.emptyTitle, { color: colors.text }]}>
-              No restaurants found
-            </ThemedText>
-            <ThemedText style={[styles.emptySubtitle, { color: colors.textSecondary }]}>
-              Try selecting a different category or check back later
-            </ThemedText>
-          </Animated.View>
-        )}
+        {!isLoading &&
+          !hasAnyRestaurants &&
+          (selectedCategory !== 'cat-all' || hasActiveFilters) && (
+            <Animated.View entering={FadeIn.duration(300)} style={styles.emptyState}>
+              <Ionicons
+                name="restaurant-outline"
+                size={48}
+                color={colors.textTertiary}
+                style={styles.emptyIcon}
+              />
+              <ThemedText style={[styles.emptyTitle, { color: colors.text }]}>
+                No restaurants found
+              </ThemedText>
+              <ThemedText style={[styles.emptySubtitle, { color: colors.textSecondary }]}>
+                {hasActiveFilters
+                  ? 'Try adjusting your filters or selecting a different category'
+                  : 'Try selecting a different category or check back later'}
+              </ThemedText>
+              {hasActiveFilters && (
+                <Pressable
+                  onPress={handleClearFilters}
+                  style={[styles.emptyStateClearButton, { borderColor: colors.primary }]}
+                  accessibilityLabel="Clear all filters"
+                  accessibilityRole="button"
+                  testID="empty-state-clear-filters"
+                >
+                  <Text style={[styles.emptyStateClearText, { color: colors.primary }]}>
+                    Clear all filters
+                  </Text>
+                </Pressable>
+              )}
+            </Animated.View>
+          )}
 
         {/* Bottom spacing */}
         <View style={styles.bottomSpacer} />
@@ -314,6 +465,41 @@ const styles = StyleSheet.create({
     paddingHorizontal: Spacing[4],
     paddingTop: Spacing[2],
   },
+  searchRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: Spacing[2],
+  },
+  searchBarWrapper: {
+    flex: 1,
+  },
+  filterButton: {
+    width: 44,
+    height: 44,
+    borderRadius: BorderRadius.lg,
+    alignItems: 'center',
+    justifyContent: 'center',
+    borderWidth: 1,
+    ...Shadows.sm,
+  },
+  filterBadge: {
+    position: 'absolute',
+    top: -4,
+    right: -4,
+    backgroundColor: '#FFFFFF',
+    borderRadius: BorderRadius.full,
+    minWidth: 18,
+    height: 18,
+    alignItems: 'center',
+    justifyContent: 'center',
+    paddingHorizontal: 4,
+    ...Shadows.sm,
+  },
+  filterBadgeText: {
+    fontSize: Typography.xs.fontSize,
+    fontWeight: FontWeights.bold,
+    color: PrimaryColors[500],
+  },
   categorySection: {
     marginTop: Spacing[3],
   },
@@ -333,22 +519,51 @@ const styles = StyleSheet.create({
     paddingHorizontal: Spacing[4],
     marginBottom: Spacing[3],
   },
+  filterIndicatorRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+  },
   filterText: {
-    fontWeight: '600',
+    fontWeight: FontWeights.semibold,
+    fontSize: Typography.sm.fontSize,
+  },
+  clearFiltersButton: {
+    paddingVertical: Spacing[1],
+    paddingHorizontal: Spacing[2],
+  },
+  clearFiltersText: {
+    fontSize: Typography.sm.fontSize,
+    fontWeight: FontWeights.medium,
   },
   emptyState: {
     alignItems: 'center',
     paddingVertical: Spacing[12],
     paddingHorizontal: Spacing[4],
   },
+  emptyIcon: {
+    marginBottom: Spacing[4],
+  },
   emptyTitle: {
-    fontSize: 18,
-    fontWeight: '600',
+    fontSize: Typography.lg.fontSize,
+    fontWeight: FontWeights.semibold,
     marginBottom: Spacing[2],
   },
   emptySubtitle: {
-    fontSize: 14,
+    fontSize: Typography.sm.fontSize,
     textAlign: 'center',
+    marginBottom: Spacing[4],
+  },
+  emptyStateClearButton: {
+    paddingVertical: Spacing[2],
+    paddingHorizontal: Spacing[4],
+    borderRadius: BorderRadius.lg,
+    borderWidth: 1,
+    marginTop: Spacing[2],
+  },
+  emptyStateClearText: {
+    fontSize: Typography.base.fontSize,
+    fontWeight: FontWeights.medium,
   },
   bottomSpacer: {
     height: Spacing[8],
