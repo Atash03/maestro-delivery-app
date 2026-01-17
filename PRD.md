@@ -186,7 +186,7 @@ src/
   - Create `/src/components/ui/avatar.tsx` - User/restaurant avatar with fallback
   - Commit: `feat(ui): create base UI component library with animations`
 
-- [ ] **0.7 Create animation utility components**
+- [x] **0.7 Create animation utility components**
   - Create `/src/components/animations/fade-in.tsx` - Fade in on mount
   - Create `/src/components/animations/slide-up.tsx` - Slide up on mount
   - Create `/src/components/animations/scale-press.tsx` - Scale on press wrapper
