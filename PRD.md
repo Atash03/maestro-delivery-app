@@ -130,7 +130,7 @@ src/
   ```
   - Commit: `chore(deps): install state management, forms, and utility packages`
 
-- [ ] **0.2 Create TypeScript type definitions**
+- [x] **0.2 Create TypeScript type definitions**
   - Create `/src/types/index.ts` with interfaces for:
     - `User` (id, name, email, phone, avatar, addresses)
     - `Address` (id, label, street, city, zipCode, coordinates, isDefault)
