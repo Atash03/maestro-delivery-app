@@ -1,7 +1,7 @@
 # Maestro Food Delivery App - Progress Tracking
 
 ## Current Status
-Phase: Phase 1 Complete - Ready for Phase 2: Discovery
+Phase: Phase 2 - Discovery (Task 2.1 Complete)
 Last Updated: 2026-01-18
 
 ---
@@ -278,7 +278,10 @@ Last Updated: 2026-01-18
 
 ## Current Work
 
-Phase 1 complete. Ready to begin Phase 2: Discovery - Finding the Perfect Meal
+Working on Phase 2: Discovery - Finding the Perfect Meal
+
+### Completed in Phase 2
+- [x] **2.1 Build home screen header**
 
 ---
 
@@ -621,6 +624,38 @@ Phase 1 complete. Ready to begin Phase 2: Discovery - Finding the Perfect Meal
   - Created 156 new tests covering all profile screen functionality
   - All 1053 tests passing, linting clean
   - Phase 1 is now complete!
+
+### Session 16
+- Date: 2026-01-18
+- Tasks Completed:
+  - [x] 2.1 Build home screen header
+- Summary:
+  - Created `/src/components/delivery-address-header.tsx` with comprehensive address selection
+  - Features:
+    - DeliveryAddressHeader component showing current delivery address
+    - Animated dropdown arrow with rotation interpolation (0-180 degrees)
+    - Press animation with scale feedback (0.98 scale)
+    - Modal with AddressPickerModal for selecting addresses
+  - AddressPickerModal includes:
+    - Header with title and close button
+    - List of saved addresses with selection highlight
+    - Address cards showing label, street, city, ZIP, instructions
+    - Default address badge indicator
+    - Icon mapping for address labels (Home → home, Work → briefcase, Other → location)
+    - Empty state for guest users and users with no addresses
+    - Add New Address button (hidden for guests)
+  - Updated home screen (`/src/app/(tabs)/index.tsx`):
+    - Added DeliveryAddressHeader component
+    - Added handlers for address change and add new address navigation
+    - Integrated with safe area insets for proper spacing
+  - Animations using react-native-reanimated:
+    - Spring-based arrow rotation on modal open/close
+    - FadeIn/FadeOut for address cards with staggered delays
+    - Scale press animation for interactive elements
+  - Full theme support (light/dark mode)
+  - Guest mode handling with appropriate empty states
+  - Created comprehensive test suite (55 new tests)
+  - All 1108 tests passing, linting clean (only pre-existing warnings)
 
 ---
 

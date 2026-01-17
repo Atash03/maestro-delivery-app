@@ -298,7 +298,7 @@ src/
 
 ### Tasks
 
-- [ ] **2.1 Build home screen header**
+- [x] **2.1 Build home screen header**
   - Create delivery address selector with current address display
   - Tappable to open address picker modal
   - Animated dropdown arrow
