@@ -232,7 +232,7 @@ src/
   - Persist `hasOnboarded` flag to AsyncStorage
   - Commit: `feat(onboarding): create animated onboarding carousel with 4 slides`
 
-- [ ] **1.3 Build sign-up screen**
+- [x] **1.3 Build sign-up screen**
   - Create `/src/app/(auth)/sign-up.tsx`
   - Toggle between Email and Phone sign-up methods
   - Form fields:
