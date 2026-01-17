@@ -176,7 +176,7 @@ src/
   - Use placeholder images from `https://picsum.photos/` or include local assets
   - Commit: `feat(mock): add comprehensive mock data for restaurants, menus, and orders`
 
-- [ ] **0.6 Create base UI components**
+- [x] **0.6 Create base UI components**
   - Create `/src/components/ui/button.tsx` - Primary, secondary, outline, ghost variants with press animation
   - Create `/src/components/ui/input.tsx` - Text input with label, error state, icons
   - Create `/src/components/ui/card.tsx` - Pressable card with shadow and scale animation
