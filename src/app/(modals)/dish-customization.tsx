@@ -475,16 +475,46 @@ function QuantitySelector({
 // Main Component
 // ============================================================================
 
+/**
+ * Converts SelectedCustomization array from cart to Map format for editing
+ */
+export function cartSelectionsToMap(
+  selectedCustomizations: SelectedCustomization[]
+): Map<string, Set<string>> {
+  const map = new Map<string, Set<string>>();
+
+  for (const customization of selectedCustomizations) {
+    const optionIds = new Set(customization.selectedOptions.map((o) => o.optionId));
+    map.set(customization.customizationId, optionIds);
+  }
+
+  return map;
+}
+
 export default function DishCustomizationScreen() {
-  const { itemId } = useLocalSearchParams<{ itemId: string }>();
+  const { itemId, cartItemId, editMode } = useLocalSearchParams<{
+    itemId: string;
+    cartItemId?: string;
+    editMode?: string;
+  }>();
   const insets = useSafeAreaInsets();
   const colorScheme = useColorScheme();
   const colors = Colors[colorScheme ?? 'light'];
 
+  const isEditMode = editMode === 'true' && !!cartItemId;
+
   // Cart store
   const addItem = useCartStore((state) => state.addItem);
+  const updateItem = useCartStore((state) => state.updateItem);
+  const items = useCartStore((state) => state.items);
   const canAddFromRestaurant = useCartStore((state) => state.canAddFromRestaurant);
   const clearCart = useCartStore((state) => state.clearCart);
+
+  // Get cart item if editing
+  const existingCartItem = useMemo(
+    () => (isEditMode ? items.find((item) => item.id === cartItemId) : undefined),
+    [isEditMode, items, cartItemId]
+  );
 
   // Get menu item and restaurant
   const menuItem = useMemo(() => getMenuItemById(itemId), [itemId]);
@@ -493,17 +523,30 @@ export default function DishCustomizationScreen() {
     [menuItem]
   );
 
-  // State
-  const [quantity, setQuantity] = useState(1);
-  const [specialInstructions, setSpecialInstructions] = useState('');
+  // State - initialize from existing cart item if editing
+  const [quantity, setQuantity] = useState(existingCartItem?.quantity ?? 1);
+  const [specialInstructions, setSpecialInstructions] = useState(
+    existingCartItem?.specialInstructions ?? ''
+  );
   const [selections, setSelections] = useState<Map<string, Set<string>>>(new Map());
 
-  // Initialize selections when menu item loads
+  // Initialize selections when menu item loads or when editing
   useEffect(() => {
     if (menuItem?.customizations) {
-      setSelections(getDefaultSelections(menuItem.customizations));
+      if (existingCartItem) {
+        // When editing, use existing cart item selections
+        const existingSelections = cartSelectionsToMap(existingCartItem.selectedCustomizations);
+        // Fill in any missing customizations with defaults
+        const fullSelections = getDefaultSelections(menuItem.customizations);
+        for (const [key, value] of existingSelections) {
+          fullSelections.set(key, value);
+        }
+        setSelections(fullSelections);
+      } else {
+        setSelections(getDefaultSelections(menuItem.customizations));
+      }
     }
-  }, [menuItem]);
+  }, [menuItem, existingCartItem]);
 
   // Calculate total price
   const totalPrice = useMemo(() => {
@@ -565,16 +608,36 @@ export default function DishCustomizationScreen() {
 
     const selectedCustomizations = selectionsToCartFormat(selections, menuItem.customizations);
 
-    addItem(
-      menuItem,
-      quantity,
-      selectedCustomizations,
-      specialInstructions.trim() || undefined,
-      restaurant
-    );
+    if (isEditMode && cartItemId) {
+      // Update existing cart item
+      updateItem(cartItemId, {
+        quantity,
+        selectedCustomizations,
+        specialInstructions: specialInstructions.trim() || undefined,
+      });
+    } else {
+      // Add new item
+      addItem(
+        menuItem,
+        quantity,
+        selectedCustomizations,
+        specialInstructions.trim() || undefined,
+        restaurant
+      );
+    }
 
     router.back();
-  }, [menuItem, restaurant, selections, quantity, specialInstructions, addItem]);
+  }, [
+    menuItem,
+    restaurant,
+    selections,
+    quantity,
+    specialInstructions,
+    addItem,
+    updateItem,
+    isEditMode,
+    cartItemId,
+  ]);
 
   const handleAddToCart = useCallback(() => {
     if (!menuItem || !restaurant) return;
@@ -589,8 +652,8 @@ export default function DishCustomizationScreen() {
       return;
     }
 
-    // Check if we can add from this restaurant
-    if (!canAddFromRestaurant(restaurant.id)) {
+    // Skip restaurant validation when editing existing item
+    if (!isEditMode && !canAddFromRestaurant(restaurant.id)) {
       Alert.alert(
         'Clear Cart?',
         'You have items from another restaurant in your cart. Would you like to clear it and add this item?',
@@ -610,7 +673,15 @@ export default function DishCustomizationScreen() {
     }
 
     addItemToCart();
-  }, [menuItem, restaurant, validation, canAddFromRestaurant, clearCart, addItemToCart]);
+  }, [
+    menuItem,
+    restaurant,
+    validation,
+    canAddFromRestaurant,
+    clearCart,
+    addItemToCart,
+    isEditMode,
+  ]);
 
   // Loading/error states
   if (!menuItem || !restaurant) {
@@ -815,7 +886,7 @@ export default function DishCustomizationScreen() {
             disabled={!validation.isValid}
             testID="add-to-cart-button"
           >
-            Add to Cart - {formatPrice(totalPrice)}
+            {isEditMode ? 'Update Item' : 'Add to Cart'} - {formatPrice(totalPrice)}
           </Button>
           {!validation.isValid && (
             <Text style={[styles.validationWarning, { color: ErrorColors[500] }]}>
@@ -832,7 +903,14 @@ export default function DishCustomizationScreen() {
 // Exports
 // ============================================================================
 
-export { CustomizationOption, CustomizationSection, QuantitySelector, IMAGE_HEIGHT, SPRING_CONFIG };
+export {
+  CustomizationOption,
+  CustomizationSection,
+  QuantitySelector,
+  IMAGE_HEIGHT,
+  SPRING_CONFIG,
+  cartSelectionsToMap,
+};
 
 // ============================================================================
 // Styles

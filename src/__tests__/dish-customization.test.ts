@@ -1047,7 +1047,10 @@ describe('Dish Customization Modal', () => {
 
     it('should display price in add to cart button', () => {
       const content = readFile(DISH_CUSTOMIZATION_PATH);
-      expect(content).toContain('Add to Cart - {formatPrice(totalPrice)}');
+      // Button shows either "Add to Cart" or "Update Item" depending on edit mode
+      expect(content).toContain(
+        "{isEditMode ? 'Update Item' : 'Add to Cart'} - {formatPrice(totalPrice)}"
+      );
     });
   });
 

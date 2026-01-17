@@ -446,7 +446,7 @@ src/
   - Subtle bounce animation on item add
   - Commit: `feat(cart): add floating cart preview with animations`
 
-- [ ] **3.8 Build cart modal**
+- [x] **3.8 Build cart modal**
   - Create `/src/app/(modals)/cart.tsx`
   - Full item list with customizations shown
   - Edit item (re-open customization modal)
