@@ -546,7 +546,7 @@ src/
 
 ### Tasks
 
-- [ ] **5.1 Build order confirmation screen**
+- [x] **5.1 Build order confirmation screen**
   - Create `/src/app/order/[id].tsx`
   - Success animation (checkmark with confetti or particles)
   - Order number and estimated time

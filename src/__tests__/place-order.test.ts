@@ -517,9 +517,15 @@ describe('Place Order - Order Tracking Screen Content', () => {
     expect(orderTrackingScreenContent).toContain('handleBackToHome');
   });
 
-  test('has Phase 5 placeholder', () => {
-    expect(orderTrackingScreenContent).toContain('Real-time order tracking');
-    expect(orderTrackingScreenContent).toContain('Phase 5');
+  test('has Track Order button', () => {
+    expect(orderTrackingScreenContent).toContain('Track Order');
+    expect(orderTrackingScreenContent).toContain('handleTrackOrder');
+  });
+
+  test('has confetti animation', () => {
+    expect(orderTrackingScreenContent).toContain('ConfettiExplosion');
+    expect(orderTrackingScreenContent).toContain('ConfettiParticle');
+    expect(orderTrackingScreenContent).toContain('CONFETTI_COLORS');
   });
 });
 

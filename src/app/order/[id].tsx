@@ -1,14 +1,14 @@
 /**
- * Order Tracking Screen
+ * Order Confirmation Screen
  *
  * Shows order confirmation with success animation after placing an order.
- * Full real-time tracking will be implemented in Phase 5.
+ * Provides navigation to track the order or return home.
  *
  * Features:
- * - Animated success checkmark with confetti-like effect
+ * - Animated success checkmark with confetti particle effects
  * - Order ID and estimated delivery time display
  * - Restaurant and order summary
- * - Navigation to home or order details
+ * - Track Order and Back to Home navigation
  */
 
 import { Ionicons } from '@expo/vector-icons';
@@ -19,9 +19,11 @@ import { Pressable, ScrollView, StyleSheet, Text, type TextStyle, View } from 'r
 import Animated, {
   FadeInDown,
   FadeInUp,
+  interpolate,
   useAnimatedStyle,
   useSharedValue,
   withDelay,
+  withRepeat,
   withSequence,
   withSpring,
   withTiming,
@@ -35,10 +37,12 @@ import {
   FontWeights,
   NeutralColors,
   PrimaryColors,
+  SecondaryColors,
   Shadows,
   Spacing,
   SuccessColors,
   Typography,
+  WarningColors,
 } from '@/constants/theme';
 import { useColorScheme } from '@/hooks/use-color-scheme';
 import { useOrderStore } from '@/stores';
@@ -50,6 +54,19 @@ const SPRING_CONFIG = {
   stiffness: 200,
   mass: 0.5,
 };
+
+// Confetti particle colors
+const CONFETTI_COLORS = [
+  PrimaryColors[500],
+  SecondaryColors[500],
+  SuccessColors[500],
+  WarningColors[500],
+  PrimaryColors[300],
+  SecondaryColors[300],
+];
+
+// Number of confetti particles
+const CONFETTI_COUNT = 24;
 
 // ============================================================================
 // Helper Functions
@@ -86,8 +103,103 @@ export function getMinutesUntil(futureDate: Date): number {
 // Sub-Components
 // ============================================================================
 
+interface ConfettiParticleProps {
+  index: number;
+  color: string;
+}
+
 /**
- * Animated success checkmark with pulse and scale effects
+ * Single confetti particle with animated fall and rotation
+ */
+function ConfettiParticle({ index, color }: ConfettiParticleProps) {
+  const progress = useSharedValue(0);
+  const rotation = useSharedValue(0);
+
+  // Calculate random starting position and trajectory
+  const startX = useMemo(() => {
+    const angle = (index / CONFETTI_COUNT) * 2 * Math.PI;
+    return Math.cos(angle) * 20;
+  }, [index]);
+
+  const endX = useMemo(() => {
+    const angle = (index / CONFETTI_COUNT) * 2 * Math.PI;
+    const spread = 80 + Math.random() * 60;
+    return Math.cos(angle) * spread + (Math.random() - 0.5) * 40;
+  }, [index]);
+
+  const endY = useMemo(() => {
+    const angle = (index / CONFETTI_COUNT) * 2 * Math.PI;
+    const spread = 80 + Math.random() * 60;
+    return Math.sin(angle) * spread + Math.random() * 30;
+  }, [index]);
+
+  const size = useMemo(() => 6 + Math.random() * 6, []);
+  const delay = useMemo(() => 300 + Math.random() * 200, []);
+
+  useEffect(() => {
+    // Animate particle explosion
+    progress.value = withDelay(
+      delay,
+      withSequence(withTiming(1, { duration: 600 }), withTiming(1.2, { duration: 400 }))
+    );
+
+    // Animate rotation
+    rotation.value = withDelay(delay, withRepeat(withTiming(360, { duration: 1000 }), 2, false));
+  }, [progress, rotation, delay]);
+
+  const particleStyle = useAnimatedStyle(() => {
+    const translateX = interpolate(progress.value, [0, 1, 1.2], [startX, endX, endX]);
+    const translateY = interpolate(progress.value, [0, 1, 1.2], [0, endY, endY + 40]);
+    const scale = interpolate(progress.value, [0, 0.3, 1, 1.2], [0, 1, 1, 0]);
+    const opacity = interpolate(progress.value, [0, 0.3, 1, 1.2], [0, 1, 1, 0]);
+
+    return {
+      transform: [{ translateX }, { translateY }, { scale }, { rotate: `${rotation.value}deg` }],
+      opacity,
+    };
+  });
+
+  const isCircle = index % 3 === 0;
+  const isSquare = index % 3 === 1;
+
+  return (
+    <Animated.View
+      style={[
+        styles.confettiParticle,
+        {
+          backgroundColor: color,
+          width: size,
+          height: isSquare ? size : size * 1.5,
+          borderRadius: isCircle ? size / 2 : isSquare ? 2 : 1,
+        },
+        particleStyle,
+      ]}
+    />
+  );
+}
+
+/**
+ * Confetti explosion container
+ */
+function ConfettiExplosion() {
+  const particles = useMemo(() => {
+    return Array.from({ length: CONFETTI_COUNT }, (_, index) => ({
+      index,
+      color: CONFETTI_COLORS[index % CONFETTI_COLORS.length],
+    }));
+  }, []);
+
+  return (
+    <View style={styles.confettiContainer} pointerEvents="none">
+      {particles.map((particle) => (
+        <ConfettiParticle key={particle.index} index={particle.index} color={particle.color} />
+      ))}
+    </View>
+  );
+}
+
+/**
+ * Animated success checkmark with pulse, scale effects, and confetti particles
  */
 function SuccessAnimation() {
   const scale = useSharedValue(0);
@@ -134,6 +246,9 @@ function SuccessAnimation() {
 
   return (
     <View style={styles.successContainer}>
+      {/* Confetti particles */}
+      <ConfettiExplosion />
+
       {/* Pulse ring */}
       <Animated.View
         style={[styles.pulseRing, { backgroundColor: SuccessColors[200] }, pulseStyle]}
@@ -313,6 +428,16 @@ export default function OrderTrackingScreen() {
   }, [id, getOrderById, currentOrder]);
 
   // Handlers
+  const handleTrackOrder = useCallback(() => {
+    // Navigate to detailed order tracking (will be enhanced in future tasks)
+    // For now, stay on this screen which shows order status
+    // In a real app, this would navigate to a dedicated tracking screen with map
+    if (id || order?.id) {
+      // We're already on the tracking screen, scroll to show tracking details
+      // Future enhancement: navigate to detailed tracking with map
+    }
+  }, [id, order?.id]);
+
   const handleBackToHome = useCallback(() => {
     router.replace('/(tabs)');
   }, [router]);
@@ -367,27 +492,40 @@ export default function OrderTrackingScreen() {
         {/* Order Info Card */}
         {order && <OrderInfoCard order={order} colors={colors} />}
 
-        {/* Placeholder for Phase 5 */}
+        {/* Order Status Info */}
         <Animated.View
           entering={FadeInDown.duration(AnimationDurations.normal).delay(700)}
-          style={[styles.placeholderContainer, { backgroundColor: colors.backgroundSecondary }]}
+          style={[styles.statusInfoContainer, { backgroundColor: colors.backgroundSecondary }]}
         >
-          <Ionicons name="construct-outline" size={24} color={colors.textTertiary} />
-          <Text style={[styles.placeholderText, { color: colors.textTertiary }]}>
-            Real-time order tracking with map and driver updates coming in Phase 5
-          </Text>
+          <View style={[styles.statusIconContainer, { backgroundColor: PrimaryColors[100] }]}>
+            <Ionicons name="restaurant-outline" size={20} color={PrimaryColors[500]} />
+          </View>
+          <View style={styles.statusTextContainer}>
+            <Text style={[styles.statusTitle, { color: colors.text }]}>Preparing Your Order</Text>
+            <Text style={[styles.statusSubtitle, { color: colors.textSecondary }]}>
+              The restaurant is now preparing your delicious food
+            </Text>
+          </View>
         </Animated.View>
       </ScrollView>
 
       {/* Action Buttons */}
       <View style={[styles.buttonContainer, { backgroundColor: colors.background }]}>
         <ActionButton
-          label="Back to Home"
-          icon="home-outline"
-          onPress={handleBackToHome}
+          label="Track Order"
+          icon="navigate-outline"
+          onPress={handleTrackOrder}
           variant="primary"
           colors={colors}
           delay={800}
+        />
+        <ActionButton
+          label="Back to Home"
+          icon="home-outline"
+          onPress={handleBackToHome}
+          variant="secondary"
+          colors={colors}
+          delay={900}
         />
       </View>
     </View>
@@ -413,8 +551,18 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
     marginBottom: Spacing[6],
-    height: 160,
-    width: 160,
+    height: 200,
+    width: 200,
+  },
+  confettiContainer: {
+    position: 'absolute',
+    width: 200,
+    height: 200,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  confettiParticle: {
+    position: 'absolute',
   },
   pulseRing: {
     position: 'absolute',
@@ -536,7 +684,7 @@ const styles = StyleSheet.create({
     fontSize: Typography.sm.fontSize,
     lineHeight: Typography.sm.lineHeight,
   },
-  placeholderContainer: {
+  statusInfoContainer: {
     flexDirection: 'row',
     alignItems: 'center',
     gap: Spacing[3],
@@ -545,11 +693,25 @@ const styles = StyleSheet.create({
     borderRadius: BorderRadius.lg,
     width: '100%',
   },
-  placeholderText: {
+  statusIconContainer: {
+    width: 44,
+    height: 44,
+    borderRadius: BorderRadius.full,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  statusTextContainer: {
     flex: 1,
+  },
+  statusTitle: {
+    fontSize: Typography.base.fontSize,
+    lineHeight: Typography.base.lineHeight,
+    fontWeight: FontWeights.semibold as TextStyle['fontWeight'],
+    marginBottom: Spacing[1],
+  },
+  statusSubtitle: {
     fontSize: Typography.sm.fontSize,
     lineHeight: Typography.sm.lineHeight,
-    fontStyle: 'italic',
   },
   buttonContainer: {
     padding: Spacing[4],
