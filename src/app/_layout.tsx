@@ -197,10 +197,10 @@ export default function RootLayout() {
 
               {/* Modal screens - Presented modally over other content */}
               <Stack.Screen
-                name="modal"
+                name="(modals)"
                 options={{
                   presentation: 'modal',
-                  title: 'Modal',
+                  headerShown: false,
                 }}
               />
             </Stack>

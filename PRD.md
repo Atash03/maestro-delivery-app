@@ -349,7 +349,7 @@ src/
   - No results state: "No results for [query]"
   - Commit: `feat(search): build search screen with instant results`
 
-- [ ] **2.7 Create filter modal**
+- [x] **2.7 Create filter modal**
   - Create `/src/app/(modals)/filters.tsx`
   - Filter sections:
     - Sort by: Recommended, Fastest Delivery, Rating, Distance
