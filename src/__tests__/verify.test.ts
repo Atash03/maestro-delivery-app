@@ -613,9 +613,9 @@ describe('Verify Screen', () => {
 
     it('shows context-aware help message', () => {
       const content = fs.readFileSync(screenPath, 'utf-8');
-      expect(content).toContain(
-        "Having trouble? Check your {isEmail ? 'spam folder' : 'SMS messages'} or contact support."
-      );
+      expect(content).toContain('Having trouble?');
+      expect(content).toContain("isEmail ? 'spam folder' : 'SMS messages'");
+      expect(content).toContain('support');
     });
   });
 

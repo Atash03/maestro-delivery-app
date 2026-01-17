@@ -265,7 +265,7 @@ src/
   - Animated success checkmark on verification
   - Commit: `feat(auth): build OTP verification screen with auto-submit`
 
-- [ ] **1.6 Implement guest mode**
+- [x] **1.6 Implement guest mode**
   - Add guest login flow in auth store
   - Show limited UI for guests (prompt to sign up for saved addresses, order history)
   - Guest-to-user conversion flow

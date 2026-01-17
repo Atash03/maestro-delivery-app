@@ -229,11 +229,30 @@ Last Updated: 2026-01-18
     - Error states
   - All 785 tests passing, linting clean (only pre-existing warnings)
 
+- [x] **1.6 Implement guest mode**
+  - Created `/src/components/guest-prompt-banner.tsx` with GuestPromptBanner component
+  - Supports 5 prompt types: orders, addresses, profile, favorites, general
+  - Each type has unique title, description, and icon
+  - Full-screen mode with centered content, large icon, and sign-up/sign-in buttons
+  - Banner mode with Card component for inline prompts
+  - Animated with FadeInUp/FadeInDown, staggered delays
+  - Updated `/src/app/(tabs)/profile.tsx` with guest mode detection
+  - Shows GuestPromptBanner when isGuest, full profile UI when authenticated
+  - Added menu items for Edit Profile, Saved Addresses, Payment Methods
+  - Added Sign Out functionality with navigation to sign-in
+  - Updated `/src/app/(tabs)/orders.tsx` with guest mode detection
+  - Created `/src/hooks/use-guest-conversion.ts` hook for guest-to-user conversion
+  - Tracks restricted features: order_history, saved_addresses, saved_payments, favorites, profile, checkout
+  - Provides promptSignUp, promptSignIn, convertToUser functions
+  - Tracks hasGuestCart and guestCartItemCount for cart preservation
+  - Created comprehensive test suite (112 new tests)
+  - All 897 tests passing, linting clean (only pre-existing warnings)
+
 ---
 
 ## Current Work
 
-Phase 1 in progress. Ready to begin Task 1.6: Implement guest mode
+Phase 1 in progress. Ready to begin Task 1.7: Build profile creation/edit screen
 
 ---
 
@@ -518,6 +537,40 @@ Phase 1 in progress. Ready to begin Task 1.6: Implement guest mode
   - Mock verification accepts "123456" as valid code
   - Created 146 new tests covering all functionality
   - All 785 tests passing, linting clean
+
+### Session 14
+- Date: 2026-01-18
+- Tasks Completed:
+  - [x] 1.6 Implement guest mode
+- Summary:
+  - Created GuestPromptBanner component in `/src/components/guest-prompt-banner.tsx`:
+    - Supports 5 prompt types: orders, addresses, profile, favorites, general
+    - Each type has unique title, description, and Ionicons icon
+    - Full-screen mode with centered layout, 100px icon circle, Sign Up button, Sign In link
+    - Banner mode with Card component, smaller icon, inline sign-up/sign-in buttons
+    - Uses react-native-reanimated FadeInUp/FadeInDown with staggered delays
+    - Navigates to sign-up or sign-in screens via expo-router
+    - Full theme support with PrimaryColors accents
+  - Updated Profile screen (`/src/app/(tabs)/profile.tsx`):
+    - Checks isGuest from useAuthStore
+    - Shows GuestPromptBanner with type="profile" when guest
+    - Shows full profile UI with Avatar, user info, and menu sections when authenticated
+    - Menu sections: Account (Edit Profile, Saved Addresses, Payment Methods), Preferences, Support
+    - Sign Out option that calls signOut and navigates to sign-in
+    - Animated menu items with FadeInDown
+  - Updated Orders screen (`/src/app/(tabs)/orders.tsx`):
+    - Checks isGuest from useAuthStore
+    - Shows GuestPromptBanner with type="orders" when guest
+    - Placeholder content for authenticated users (full implementation in Phase 6)
+  - Created useGuestConversion hook (`/src/hooks/use-guest-conversion.ts`):
+    - Defines 6 restricted features: order_history, saved_addresses, saved_payments, favorites, profile, checkout
+    - isFeatureRestricted function checks if a feature is blocked for guests
+    - promptSignUp and promptSignIn functions navigate to auth screens
+    - convertToUser function wraps auth store's convertGuestToUser
+    - hasGuestCart and guestCartItemCount track guest cart state for preservation
+  - Created 112 new tests for guest mode functionality
+  - Fixed pre-existing test issue in verify.test.ts (help text spanning multiple lines)
+  - All 897 tests passing, linting clean (only pre-existing warnings)
 
 ---
 
