@@ -194,7 +194,7 @@ src/
   - All should use `react-native-reanimated` with `entering`/`exiting` props
   - Commit: `feat(animations): add reusable animation wrapper components`
 
-- [ ] **0.8 Configure navigation structure**
+- [x] **0.8 Configure navigation structure**
   - Update `/src/app/_layout.tsx` for auth/main flow routing
   - Create `/src/app/(auth)/_layout.tsx` with stack navigation
   - Update `/src/app/(tabs)/_layout.tsx` with 4 tabs: Home, Search, Orders, Profile

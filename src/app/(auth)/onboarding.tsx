@@ -5,17 +5,17 @@ import { Colors, Spacing } from '@/constants/theme';
 import { useColorScheme } from '@/hooks/use-color-scheme';
 
 /**
- * Home screen - Main discovery feed
- * Full implementation will be done in Phase 2, Task 2.5
+ * Onboarding screen - Welcome carousel for new users
+ * Full implementation will be done in Phase 1, Task 1.2
  */
-export default function HomeScreen() {
+export default function OnboardingScreen() {
   const colorScheme = useColorScheme();
   const colors = Colors[colorScheme ?? 'light'];
 
   return (
     <View style={[styles.container, { backgroundColor: colors.background }]}>
-      <ThemedText type="title">Maestro</ThemedText>
-      <ThemedText style={styles.subtitle}>Discover restaurants near you</ThemedText>
+      <ThemedText type="title">Welcome to Maestro</ThemedText>
+      <ThemedText style={styles.subtitle}>Your food, delivered</ThemedText>
     </View>
   );
 }
