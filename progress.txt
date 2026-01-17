@@ -1934,3 +1934,72 @@ Instructions for AI Agents:
   - All 247 tests in order-confirmation.test.ts and place-order.test.ts pass
   - Linting clean, formatting applied
   - Phase 5 Task 5.1 complete - Order confirmation screen with confetti animation
+
+### Session 40
+- Date: 2026-01-18
+- Tasks Completed:
+  - [x] 5.2 Create order status tracker component
+- Summary:
+  - Created `/src/components/order-status-tracker.tsx` with comprehensive tracking visualization:
+    - OrderStatusTracker component that displays order progress through 7 visual steps
+    - Visual progress steps with unique icons:
+      1. Order Placed (receipt-outline)
+      2. Restaurant Confirmed (checkmark-circle-outline)
+      3. Preparing Your Order (restaurant-outline)
+      4. Ready for Pickup (bag-check-outline)
+      5. Driver On The Way (bicycle-outline)
+      6. Almost There (navigate-outline)
+      7. Delivered (checkmark-done-outline)
+    - Animated progress line between steps:
+      - Uses react-native-reanimated useDerivedValue for state changes
+      - Completed steps show 100% filled line (SuccessColors[500])
+      - Current step shows 50% filled line as "in progress"
+      - Pending steps show empty line (backgroundTertiary)
+    - Current step highlighted with pulse animation:
+      - Continuous pulse ring animation using withRepeat and interpolate
+      - Subtle icon container scale animation (1.0 → 1.05 → 1.0)
+      - Uses PrimaryColors[500] for current step
+    - Timestamp display for completed steps:
+      - Uses date-fns format function for 'h:mm a' formatting
+      - Timestamps passed via statusTimestamps prop
+      - Only shown for completed steps (isCompleted && hasTimestamp)
+    - StepIcon component:
+      - Three states: completed (green checkmark), current (orange with pulse), pending (gray)
+      - SuccessColors[500] for completed, PrimaryColors[500] for current
+    - StepContent component:
+      - Label and description with proper theming
+      - Description only shown for completed and current steps
+      - Semibold font weight for current step, medium for others
+    - StepRow component with FadeIn animation:
+      - Staggered entrance with 50ms delay per step
+      - testID for each step: `order-status-step-${status}`
+    - CancelledBanner component:
+      - Displayed when currentStatus is CANCELLED
+      - Error styling with close icon and cancellation message
+      - Optional timestamp display for when order was cancelled
+    - Component Props:
+      - currentStatus: OrderStatus (required)
+      - statusTimestamps: Partial<Record<OrderStatus, Date>> (optional)
+      - testID: string (optional, defaults to 'order-status-tracker')
+    - Type exports: OrderStatusStep, OrderStatusTrackerProps
+  - Created comprehensive test suite in `/src/__tests__/order-status-tracker.test.ts` (47 tests):
+    - Module structure and exports tests
+    - OrderStatus enum validation tests
+    - Status order flow tests (excluding CANCELLED)
+    - Status index calculation tests
+    - Status step metadata tests (labels, descriptions, icons)
+    - Timestamp formatting tests (AM/PM, midnight, noon, single digits)
+    - Component props validation tests
+    - Step state determination tests (isCompleted, isCurrent, isPending)
+    - Cancelled order handling tests
+    - Visual constants tests (ICON_SIZE, LINE_WIDTH)
+    - Animation values tests (pulse timing, progress duration, stagger delay)
+    - Color scheme handling tests
+    - Accessibility tests (testID patterns)
+    - Timestamps with steps integration tests
+  - Fixed linting issues:
+    - Removed unused ViewStyle import
+    - Removed unused isPending variable in StepRow
+    - Fixed unused formatStr parameter in test mock
+  - All 47 tests passing, linting clean
+  - Phase 5 Task 5.2 complete - Animated order status tracker component created
