@@ -429,14 +429,12 @@ export default function OrderTrackingScreen() {
 
   // Handlers
   const handleTrackOrder = useCallback(() => {
-    // Navigate to detailed order tracking (will be enhanced in future tasks)
-    // For now, stay on this screen which shows order status
-    // In a real app, this would navigate to a dedicated tracking screen with map
-    if (id || order?.id) {
-      // We're already on the tracking screen, scroll to show tracking details
-      // Future enhancement: navigate to detailed tracking with map
+    // Navigate to detailed order tracking with map
+    const orderId = id || order?.id;
+    if (orderId) {
+      router.push(`/order/tracking/${orderId}`);
     }
-  }, [id, order?.id]);
+  }, [id, order?.id, router]);
 
   const handleBackToHome = useCallback(() => {
     router.replace('/(tabs)');

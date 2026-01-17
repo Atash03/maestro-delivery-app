@@ -568,7 +568,7 @@ src/
   - Timestamp for completed steps
   - Commit: `feat(tracking): create animated order status tracker`
 
-- [ ] **5.3 Build map view with driver location**
+- [x] **5.3 Build map view with driver location**
   - Integrate `react-native-maps`
   - Show restaurant marker
   - Show delivery address marker

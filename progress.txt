@@ -2003,3 +2003,51 @@ Instructions for AI Agents:
     - Fixed unused formatStr parameter in test mock
   - All 47 tests passing, linting clean
   - Phase 5 Task 5.2 complete - Animated order status tracker component created
+
+---
+
+### Session: 2026-01-18 (Phase 5 Task 5.3)
+
+- [x] **5.3 Build map view with driver location**
+  - Summary:
+    - Created `/src/components/order-tracking-map.tsx` with interactive map for order tracking:
+      - OrderTrackingMap component using react-native-maps for map display
+      - Restaurant marker with restaurant icon and orange styling
+      - Delivery address marker with home icon and green styling
+      - Animated driver marker with pulse animation and vehicle-specific icons
+      - Route polyline connecting all points:
+        - Before pickup: driver → restaurant → delivery (dashed line)
+        - After pickup: driver → delivery (solid line)
+        - No driver: restaurant → delivery
+      - Re-center button to focus map on driver location
+      - Driver info badge displaying name and vehicle details
+      - Dark mode support with custom map styling
+      - Helper functions:
+        - calculateRegion: Fits all markers with appropriate padding
+        - calculateBearing: Calculates direction between coordinates
+    - Created `/src/app/order/tracking/[id].tsx` - Dedicated tracking screen with:
+      - Interactive map section with collapsible toggle
+      - ETA card displaying estimated arrival time and current status
+      - Full order status tracker integration
+      - Help button for support access
+      - Error state for invalid order IDs
+      - Smooth animations using react-native-reanimated
+    - Updated `/src/app/order/[id].tsx`:
+      - "Track Order" button now navigates to tracking screen with map
+    - Created comprehensive test suite `/src/__tests__/order-tracking-map.test.ts` (51 tests):
+      - Module structure and exports tests
+      - calculateRegion helper tests (empty, single, multiple points)
+      - calculateBearing helper tests (N, E, S, W directions)
+      - Component props validation tests
+      - Vehicle icons configuration tests
+      - Map styling tests (padding, dark mode style)
+      - Route polyline logic tests (before/after pickup, no driver)
+      - Marker types configuration tests
+      - Accessibility tests (testIDs, accessibility labels)
+      - Animation configuration tests
+      - Polyline styling tests (dashed vs solid lines)
+      - Driver info badge tests
+      - Color scheme support tests
+    - All 51 new tests passing
+    - Linting clean (fixed unused NeutralColors import)
+  - Phase 5 Task 5.3 complete - Map view with driver location tracking created
