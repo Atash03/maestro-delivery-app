@@ -383,7 +383,7 @@ src/
 
 ### Tasks
 
-- [ ] **3.1 Build restaurant detail header**
+- [x] **3.1 Build restaurant detail header**
   - Create `/src/app/restaurant/[id].tsx`
   - Hero image with parallax effect on scroll
   - Restaurant name, rating, review count

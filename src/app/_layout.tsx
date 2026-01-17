@@ -203,6 +203,15 @@ export default function RootLayout() {
                   headerShown: false,
                 }}
               />
+
+              {/* Restaurant detail screen */}
+              <Stack.Screen
+                name="restaurant/[id]"
+                options={{
+                  headerShown: false,
+                  animation: 'slide_from_right',
+                }}
+              />
             </Stack>
           </Animated.View>
         )}
