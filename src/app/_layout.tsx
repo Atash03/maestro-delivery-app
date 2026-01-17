@@ -212,6 +212,22 @@ export default function RootLayout() {
                   animation: 'slide_from_right',
                 }}
               />
+
+              {/* Order screens */}
+              <Stack.Screen
+                name="order/checkout"
+                options={{
+                  headerShown: false,
+                  animation: 'slide_from_right',
+                }}
+              />
+              <Stack.Screen
+                name="order/[id]"
+                options={{
+                  headerShown: false,
+                  animation: 'slide_from_right',
+                }}
+              />
             </Stack>
           </Animated.View>
         )}

@@ -471,7 +471,7 @@ src/
 
 ### Tasks
 
-- [ ] **4.1 Build checkout screen layout**
+- [x] **4.1 Build checkout screen layout**
   - Create `/src/app/order/checkout.tsx`
   - Collapsible sections:
     1. Delivery Address

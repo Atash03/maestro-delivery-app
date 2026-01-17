@@ -1,7 +1,7 @@
 # Maestro Food Delivery App - Progress Tracking
 
 ## Current Status
-Phase: Phase 3 - Restaurant & Menu Selection (COMPLETE!)
+Phase: Phase 4 - Checkout & Payment (IN PROGRESS)
 Last Updated: 2026-01-18
 
 ---
@@ -278,20 +278,18 @@ Last Updated: 2026-01-18
 
 ## Current Work
 
-Phase 3: Restaurant & Menu Selection - COMPLETE!
+Phase 4: Checkout & Payment - IN PROGRESS
 
-### Completed in Phase 3
-- [x] **3.1 Build restaurant detail header**
-- [x] **3.2 Create sticky menu category tabs**
-- [x] **3.3 Build menu item card**
-- [x] **3.4 Build menu list with sections**
-- [x] **3.5 Create dish customization modal**
-- [x] **3.6 Implement cart functionality**
-- [x] **3.7 Build floating cart preview**
-- [x] **3.8 Build cart modal**
+### Completed in Phase 4
+- [x] **4.1 Build checkout screen layout**
 
 ### Next Up
-- Phase 4: Checkout & Payment
+- **4.2 Build delivery address section**
+- **4.3 Build order summary section**
+- **4.4 Build payment method section**
+- **4.5 Build add card screen**
+- **4.6 Build promo code section**
+- **4.7 Implement place order flow**
 
 ---
 
@@ -1427,6 +1425,66 @@ Phase 3: Restaurant & Menu Selection - COMPLETE!
     - Performance optimization tests
   - Phase 3 is now COMPLETE!
   - All 2958 tests passing, linting clean (only pre-existing warnings)
+
+### Session 32
+- Date: 2026-01-18
+- Tasks Completed:
+  - [x] 4.1 Build checkout screen layout
+- Summary:
+  - Created `/src/app/order/checkout.tsx` with comprehensive checkout functionality
+  - Implemented 4 collapsible sections with animated expand/collapse:
+    1. Delivery Address - Address selection with radio buttons, empty state for no addresses
+    2. Order Summary - Itemized list with customizations, cost breakdown (subtotal, delivery fee, tax, total)
+    3. Payment Method - Credit/Debit Card and Cash on Delivery options
+    4. Promo Code - Placeholder for Task 4.6
+  - Created CollapsibleSection component with animated chevron rotation and content height
+  - Created SectionHeader component with icon, title, and summary
+  - Created AddressCard component with selection state and radio button
+  - Created OrderItemRow component for displaying cart items
+  - Created PaymentOption component with radio selection
+  - Created PlaceOrderButton component with loading and disabled states
+  - Sticky "Place Order" button at bottom with total price
+  - Helper functions: formatPrice, calculateTax, getDeliveryFee, calculateTotal, formatEstimatedDelivery, getAddressIcon
+  - Constants: TAX_RATE (8.75%), DELIVERY_FEE_MINIMUM ($2.99)
+  - Restaurant info banner showing current restaurant and estimated delivery time
+  - Empty cart state handling with cart icon and message
+  - Validation: requires selected address and items in cart
+  - Order placement: simulates API call, clears cart, navigates to order tracking
+  - Created `/src/app/order/[id].tsx` placeholder for order tracking (Phase 5)
+  - Updated root layout to include order/checkout and order/[id] routes with slide_from_right animation
+  - Full keyboard handling with KeyboardAvoidingView
+  - Animations: FadeIn, FadeInDown, FadeInUp, spring-based scale animations
+  - Full theme support (light/dark mode)
+  - Comprehensive accessibility: labels, roles, states, test IDs
+  - All callbacks memoized with useCallback
+  - All computed values optimized with useMemo
+  - Created comprehensive test suite (176 tests) in `/src/__tests__/checkout-screen.test.ts`:
+    - File structure tests
+    - Export tests
+    - Helper function unit tests
+    - Collapsible sections tests
+    - Delivery address section tests
+    - Order summary section tests
+    - Payment method section tests
+    - Place order button tests
+    - Header tests
+    - Restaurant info tests
+    - Empty cart state tests
+    - Animation tests
+    - Styling tests
+    - Accessibility tests
+    - Navigation tests
+    - Root layout integration tests
+    - Order tracking placeholder tests
+    - Keyboard handling tests
+    - Promo code section tests
+    - Store integration tests
+    - Import tests
+    - Computed values tests
+    - Validation tests
+    - Edge case tests
+    - Callback memoization tests
+  - All 3134 tests passing, linting clean (only pre-existing warnings)
 
 ---
 
