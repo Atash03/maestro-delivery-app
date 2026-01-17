@@ -505,7 +505,7 @@ src/
   - Radio button selection
   - Commit: `feat(checkout): add payment method selection`
 
-- [ ] **4.5 Build add card screen**
+- [x] **4.5 Build add card screen**
   - Create `/src/app/order/add-card.tsx`
   - Card number input with formatting
   - Expiry date (MM/YY) input

@@ -285,9 +285,9 @@ Phase 4: Checkout & Payment - IN PROGRESS
 - [x] **4.2 Build delivery address section**
 - [x] **4.3 Build order summary section**
 - [x] **4.4 Build payment method section**
+- [x] **4.5 Build add card screen**
 
 ### Next Up
-- **4.5 Build add card screen**
 - **4.6 Build promo code section**
 - **4.7 Implement place order flow**
 
@@ -1669,6 +1669,69 @@ Phase 4: Checkout & Payment - IN PROGRESS
     - Edge cases
   - Updated `/src/__tests__/checkout-screen.test.ts` to match new payment section structure
   - All 3675 tests passing, linting clean (only pre-existing warnings)
+
+### Session 36
+- Date: 2026-01-18
+- Tasks Completed:
+  - [x] 4.5 Build add card screen
+- Summary:
+  - Created `/src/app/order/add-card.tsx` with comprehensive add card functionality:
+    - Visual card preview showing entered data with brand-specific styling
+    - Card number input with automatic formatting (groups of 4 digits)
+    - Expiry date input with MM/YY formatting
+    - CVV input with secure entry (3 digits, 4 for Amex)
+    - Cardholder name input with auto-capitalization
+    - Card type auto-detection (Visa, Mastercard, Amex, Discover) with brand icons
+    - Save card toggle for future use
+  - Implemented validation using react-hook-form + zod:
+    - Luhn algorithm validation for card numbers
+    - Expiry date validation (format and not expired)
+    - CVV length validation (3-4 digits based on brand)
+    - Cardholder name required
+  - Helper functions exported for reuse:
+    - isValidLuhn: Validates card number using Luhn algorithm
+    - isValidExpiry: Validates expiry date is not in the past
+    - parseExpiry: Parses MM/YY string to month/year
+    - formatCardNumber: Formats card number with spaces
+    - formatExpiryDate: Formats expiry as MM/YY
+    - getCvvLength: Returns 4 for Amex, 3 for others
+    - getCardBrandColor: Returns brand-specific color
+    - getCardBrandName: Returns brand display name
+  - Sub-components created:
+    - CardBrandIcon: Displays card brand icon with letter
+    - FormInput: Reusable form input with label, error, and focus states
+    - SaveCardToggle: Toggle with descriptive text
+    - SubmitButton: Button with loading and disabled states
+    - CardPreview: Visual credit card preview with brand styling
+  - Animation features:
+    - Staggered FadeInDown animations for form fields
+    - Spring-based press animations for buttons
+    - FadeIn for card brand detection
+    - Focus state border color transitions
+  - Integrated with payment store:
+    - Uses generatePaymentMethodId from store
+    - Uses detectCardBrand from store
+    - Calls addPaymentMethod on successful submission
+    - Navigates back to checkout after adding card
+  - Updated root layout to include add-card route with slide_from_right animation
+  - Security notice with shield icon indicating encrypted card data
+  - Full keyboard handling with KeyboardAvoidingView
+  - Comprehensive accessibility labels and test IDs
+  - Created comprehensive test suite (165 tests) in `/src/__tests__/add-card.test.ts`:
+    - File structure and exports tests
+    - Luhn algorithm validation tests
+    - Expiry validation tests
+    - Form schema tests
+    - Helper function tests
+    - Component tests
+    - Animation tests
+    - Styling tests
+    - Accessibility tests
+    - Store integration tests
+    - Checkout navigation tests
+    - Edge case tests
+    - Performance optimization tests
+  - All 3840 tests passing, linting clean (only pre-existing warnings)
 
 ---
 
