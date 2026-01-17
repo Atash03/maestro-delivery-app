@@ -1,7 +1,7 @@
 # Maestro Food Delivery App - Progress Tracking
 
 ## Current Status
-Phase: Phase 3 - Restaurant & Menu Selection (Task 3.6 Complete)
+Phase: Phase 3 - Restaurant & Menu Selection (Task 3.7 Complete)
 Last Updated: 2026-01-18
 
 ---
@@ -287,9 +287,9 @@ Phase 3: Restaurant & Menu Selection - In Progress
 - [x] **3.4 Build menu list with sections**
 - [x] **3.5 Create dish customization modal**
 - [x] **3.6 Implement cart functionality**
+- [x] **3.7 Build floating cart preview**
 
 ### Next Up in Phase 3
-- [ ] **3.7 Build floating cart preview**
 - [ ] **3.8 Build cart modal**
 
 ---
@@ -1293,6 +1293,63 @@ Phase 3: Restaurant & Menu Selection - In Progress
     - Dependencies tests
     - Performance/memoization tests
   - All 2662 tests passing, linting clean (only pre-existing warnings)
+
+### Session 30
+- Date: 2026-01-18
+- Tasks Completed:
+  - [x] 3.7 Build floating cart preview
+- Summary:
+  - Created `/src/components/cart-preview.tsx` with comprehensive cart preview functionality:
+    - CartPreview component fixed at bottom of restaurant screen
+    - Shows item count badge and total price
+    - "View Cart" text with chevron icon
+    - Navigates to cart modal on press
+  - Animation features:
+    - FadeInUp entering animation with springify effect
+    - FadeOutDown exiting animation
+    - Spring-based press animation (scale to 0.97)
+    - Bounce animation on item add (scale to 1.05 then settle)
+    - Badge scale animation (scale to 1.3 then settle)
+    - Uses withSequence for sequential bounce effects
+    - prevItemCountRef tracks item count changes
+  - Helper functions exported for reuse:
+    - formatCartTotal: Formats price with dollar sign and 2 decimals
+    - formatItemCount: Returns "1 item" or "X items" with proper pluralization
+  - Restaurant detail integration:
+    - Added CartPreview to restaurant/[id].tsx
+    - Added cartRestaurantId from cart store
+    - showCartPreview conditional based on cart state and restaurant match
+    - Dynamic scroll padding when cart preview is visible
+    - Imported CART_PREVIEW_HEIGHT constant for padding calculation
+  - Styling:
+    - PrimaryColors[500] background for brand consistency
+    - NeutralColors[0] for text and badge background
+    - BorderRadius.xl for container, BorderRadius.full for circular badge
+    - Shadows.lg for elevation
+    - ZIndex.fixed for proper layering
+    - Safe area insets for bottom positioning
+  - Accessibility:
+    - Comprehensive accessibilityLabel with item count and total
+    - accessibilityRole="button"
+    - accessibilityHint for action description
+  - Created comprehensive test suite (138 tests) in `/src/__tests__/cart-preview.test.ts`:
+    - File structure tests
+    - Component exports and props tests
+    - Helper function tests
+    - Cart store integration tests
+    - Visibility logic tests
+    - Bounce animation tests
+    - Press animation tests
+    - Navigation tests
+    - UI structure tests
+    - Animation configuration tests
+    - Styling tests
+    - Accessibility tests
+    - Hooks usage tests
+    - Import tests
+    - Restaurant detail integration tests
+    - Edge case tests
+  - All 2800 tests passing, linting clean (only pre-existing warnings)
 
 ---
 

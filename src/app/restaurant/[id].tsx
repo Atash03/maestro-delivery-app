@@ -36,6 +36,7 @@ import Animated, {
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { RestaurantMenuItemCard } from '@/components/cards';
+import { CART_PREVIEW_HEIGHT, CartPreview } from '@/components/cart-preview';
 import { INDICATOR_HEIGHT, MenuCategoryTabs, TAB_HEIGHT } from '@/components/menu-category-tabs';
 import { EmptyMenu, MenuSectionHeader, MenuSkeleton } from '@/components/menu-section-list';
 import { ThemedText } from '@/components/themed-text';
@@ -266,10 +267,14 @@ export default function RestaurantDetailScreen() {
 
   // Cart Store
   const cartItems = useCartStore((state) => state.items);
+  const cartRestaurantId = useCartStore((state) => state.restaurantId);
   const addItem = useCartStore((state) => state.addItem);
   const updateQuantity = useCartStore((state) => state.updateQuantity);
   const canAddFromRestaurant = useCartStore((state) => state.canAddFromRestaurant);
   const clearCart = useCartStore((state) => state.clearCart);
+
+  // Check if cart preview should be visible (to add extra padding)
+  const showCartPreview = cartItems.length > 0 && cartRestaurantId === id;
 
   // State
   const [restaurant, setRestaurant] = useState<Restaurant | null>(null);
@@ -653,7 +658,10 @@ export default function RestaurantDetailScreen() {
         onScroll={scrollHandler}
         scrollEventThrottle={16}
         showsVerticalScrollIndicator={false}
-        contentContainerStyle={{ paddingBottom: insets.bottom + Spacing[6] }}
+        contentContainerStyle={{
+          paddingBottom:
+            insets.bottom + Spacing[6] + (showCartPreview ? CART_PREVIEW_HEIGHT + Spacing[4] : 0),
+        }}
       >
         {/* Hero Image with Parallax */}
         <View style={styles.headerContainer}>
@@ -918,6 +926,9 @@ export default function RestaurantDetailScreen() {
           />
         </Animated.View>
       )}
+
+      {/* Floating Cart Preview */}
+      <CartPreview restaurantId={id} testID="cart-preview" />
     </View>
   );
 }

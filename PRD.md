@@ -437,7 +437,7 @@ src/
   - Remove items with swipe-to-delete
   - Commit: `feat(cart): implement cart management with restaurant validation`
 
-- [ ] **3.7 Build floating cart preview**
+- [x] **3.7 Build floating cart preview**
   - Create `/src/components/cart-preview.tsx`
   - Fixed at bottom of restaurant screen
   - Shows item count and total
