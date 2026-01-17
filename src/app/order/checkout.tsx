@@ -75,9 +75,11 @@ import {
   getCardBrandDisplayName,
   useAuthStore,
   useCartStore,
+  useOrderStore,
   usePaymentStore,
 } from '@/stores';
-import type { Address, AddressLabel, CardBrand, PaymentMethod, PromoCode } from '@/types';
+import type { Address, AddressLabel, CardBrand, Order, PaymentMethod, PromoCode } from '@/types';
+import { OrderStatus } from '@/types';
 
 // ============================================================================
 // Constants
@@ -165,6 +167,36 @@ export function getAddressIcon(label: string): keyof typeof Ionicons.glyphMap {
     default:
       return 'location-outline';
   }
+}
+
+/**
+ * Generates a unique order ID
+ */
+export function generateOrderId(): string {
+  const timestamp = Date.now().toString(36).toUpperCase();
+  const random = Math.random().toString(36).substr(2, 5).toUpperCase();
+  return `ORD-${timestamp}-${random}`;
+}
+
+/**
+ * Simulates an API call to place an order
+ * In production, this would call the actual backend
+ */
+export async function simulatePlaceOrder(
+  order: Order
+): Promise<{ success: boolean; orderId: string; error?: string }> {
+  // Simulate network latency
+  await new Promise((resolve) => setTimeout(resolve, 1500 + Math.random() * 1000));
+
+  // Simulate occasional failures (10% chance)
+  if (Math.random() < 0.1) {
+    throw new Error('Unable to process your order. Please try again.');
+  }
+
+  return {
+    success: true,
+    orderId: order.id,
+  };
 }
 
 // ============================================================================
@@ -1844,6 +1876,9 @@ export default function CheckoutScreen() {
   const getSubtotal = useCartStore((state) => state.getSubtotal);
   const clearCart = useCartStore((state) => state.clearCart);
 
+  // Order store state
+  const createOrder = useOrderStore((state) => state.createOrder);
+
   // Payment store state
   const paymentMethods = usePaymentStore((state) => state.paymentMethods);
   const selectedPaymentMethodId = usePaymentStore((state) => state.selectedPaymentMethodId);
@@ -2049,23 +2084,129 @@ export default function CheckoutScreen() {
   );
 
   const handlePlaceOrder = useCallback(async () => {
-    if (!canPlaceOrder) {
-      Alert.alert('Missing Information', 'Please select a delivery address to continue.');
+    // Validate all sections are complete
+    if (!selectedAddress) {
+      Alert.alert('Missing Address', 'Please select a delivery address to continue.');
+      return;
+    }
+
+    if (items.length === 0) {
+      Alert.alert('Empty Cart', 'Your cart is empty. Please add items to continue.');
+      return;
+    }
+
+    if (!hasPaymentMethod) {
+      Alert.alert('Missing Payment', 'Please select a payment method to continue.');
+      return;
+    }
+
+    if (!restaurant) {
+      Alert.alert('Error', 'Restaurant information is missing. Please try again.');
+      return;
+    }
+
+    if (!user) {
+      Alert.alert('Error', 'User information is missing. Please sign in to continue.');
       return;
     }
 
     setIsPlacingOrder(true);
 
-    // Simulate API call
-    await new Promise((resolve) => setTimeout(resolve, 2000));
+    try {
+      // Create the payment method object
+      const paymentMethod: PaymentMethod =
+        selectedPaymentMethodId === 'cash'
+          ? {
+              id: 'cash',
+              type: 'cash',
+              isDefault: false,
+            }
+          : (selectedPayment ?? {
+              id: 'unknown',
+              type: 'card',
+              isDefault: false,
+            });
 
-    // Clear cart and navigate to order confirmation
-    clearCart();
-    setIsPlacingOrder(false);
+      // Calculate estimated delivery time
+      const now = new Date();
+      const deliveryTimeMinutes = restaurant.deliveryTime?.max ?? 45;
+      const estimatedDeliveryDate = new Date(now.getTime() + deliveryTimeMinutes * 60 * 1000);
 
-    // Navigate to order tracking (to be implemented in Phase 5)
-    router.replace('/order/[id]' as never);
-  }, [canPlaceOrder, clearCart, router]);
+      // Create the order object
+      const orderId = generateOrderId();
+      const order: Order = {
+        id: orderId,
+        userId: user.id,
+        restaurant: restaurant,
+        items: items,
+        status: OrderStatus.PENDING,
+        createdAt: now,
+        updatedAt: now,
+        estimatedDelivery: estimatedDeliveryDate,
+        address: {
+          ...selectedAddress,
+          instructions: deliveryInstructions || selectedAddress.instructions,
+        },
+        paymentMethod: paymentMethod,
+        subtotal: subtotal,
+        deliveryFee: deliveryFee,
+        tax: tax,
+        discount: discount > 0 ? discount : undefined,
+        total: total,
+        promoCode: appliedPromoCode?.code,
+        specialInstructions: deliveryInstructions || undefined,
+      };
+
+      // Simulate API call to place order
+      await simulatePlaceOrder(order);
+
+      // Save order to store
+      createOrder(order);
+
+      // Clear cart on success
+      clearCart();
+
+      setIsPlacingOrder(false);
+
+      // Navigate to order tracking with animated transition
+      router.replace(`/order/${orderId}` as never);
+    } catch (error) {
+      setIsPlacingOrder(false);
+
+      // Show error with retry option
+      const errorMessage =
+        error instanceof Error ? error.message : 'An unexpected error occurred. Please try again.';
+
+      Alert.alert('Order Failed', errorMessage, [
+        {
+          text: 'Cancel',
+          style: 'cancel',
+        },
+        {
+          text: 'Retry',
+          onPress: () => handlePlaceOrder(),
+        },
+      ]);
+    }
+  }, [
+    selectedAddress,
+    items,
+    hasPaymentMethod,
+    restaurant,
+    user,
+    selectedPaymentMethodId,
+    selectedPayment,
+    deliveryInstructions,
+    subtotal,
+    deliveryFee,
+    tax,
+    discount,
+    total,
+    appliedPromoCode,
+    createOrder,
+    clearCart,
+    router,
+  ]);
 
   // Format customizations for display
   const formatCustomizations = useCallback((item: (typeof items)[0]) => {

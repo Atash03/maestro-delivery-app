@@ -522,7 +522,7 @@ src/
   - Remove promo code option
   - Commit: `feat(checkout): add promo code input with validation`
 
-- [ ] **4.7 Implement place order flow**
+- [x] **4.7 Implement place order flow**
   - Validate all sections complete
   - Loading state on button
   - Mock API call with delay
