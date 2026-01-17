@@ -304,7 +304,7 @@ src/
   - Animated dropdown arrow
   - Commit: `feat(home): add delivery address header with selector`
 
-- [ ] **2.2 Create search bar component**
+- [x] **2.2 Create search bar component**
   - Create `/src/components/search-bar.tsx`
   - Search icon with animated focus state
   - Clear button when text entered
