@@ -257,7 +257,7 @@ src/
   - Animated button loading state
   - Commit: `feat(auth): build sign-in screen with biometric support`
 
-- [ ] **1.5 Build verification screen**
+- [x] **1.5 Build verification screen**
   - Create `/src/app/(auth)/verify.tsx`
   - OTP input (6 digits) with auto-focus between inputs
   - Resend code timer (60 seconds countdown)
