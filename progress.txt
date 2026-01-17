@@ -25,11 +25,23 @@ Last Updated: 2026-01-17
   - Added filter and search types: RestaurantFilters, SearchQuery, SearchResult
   - Created comprehensive test suite (21 tests) verifying all types work correctly
 
+- [x] **0.3 Set up Zustand stores**
+  - Created `/src/stores/auth-store.ts` with user, isAuthenticated, isGuest state
+  - Actions: signIn, signUp, signOut, setGuest, updateProfile, address management (add, update, remove, setDefault), convertGuestToUser
+  - Created `/src/stores/cart-store.ts` with items, restaurantId, restaurant state
+  - Actions: addItem, removeItem, updateQuantity, updateItem, clearCart, getSubtotal, getItemCount, canAddFromRestaurant, setRestaurant
+  - Created `/src/stores/order-store.ts` with currentOrder, orderHistory state
+  - Actions: createOrder, updateOrderStatus, assignDriver, updateDriverLocation, updateEstimatedDelivery, completeOrder, cancelOrder, fetchOrderHistory, getOrderById, getActiveOrders, getPastOrders, clearCurrentOrder
+  - Created `/src/stores/index.ts` to export all stores
+  - All stores use Zustand persist middleware with AsyncStorage for data persistence
+  - Created comprehensive test suite (45 tests) for all store functionality
+  - All 85 tests passing, linting clean
+
 ---
 
 ## Current Work
 
-Ready to begin task 0.3: Set up Zustand stores
+Ready to begin task 0.4: Create design system constants
 
 ---
 
@@ -69,6 +81,20 @@ Ready to begin task 0.3: Set up Zustand stores
   - Added filter/search types for restaurant discovery
   - Created 21 tests verifying type correctness
   - All 40 tests passing, linting clean
+
+### Session 3
+- Date: 2026-01-17
+- Tasks Completed:
+  - [x] 0.3 Set up Zustand stores
+- Summary:
+  - Created three Zustand stores with persistence via AsyncStorage:
+    - `auth-store.ts`: User authentication, guest mode, profile/address management
+    - `cart-store.ts`: Cart items, restaurant tracking, price calculations, restaurant validation
+    - `order-store.ts`: Order lifecycle, driver tracking, order history with active/past filtering
+  - All stores export via index.ts for clean imports
+  - Created comprehensive test suite (45 new tests) covering all store actions
+  - Fixed unused variable lint error in cart-store
+  - All 85 tests passing, linting clean
 
 ---
 

@@ -145,7 +145,7 @@ src/
     - `Issue` (id, orderId, category, description, photos, status, createdAt)
   - Commit: `feat(types): add core TypeScript interfaces for app entities`
 
-- [ ] **0.3 Set up Zustand stores**
+- [x] **0.3 Set up Zustand stores**
   - Create `/src/stores/auth-store.ts`:
     - State: user, isAuthenticated, isGuest
     - Actions: signIn, signUp, signOut, setGuest, updateProfile
