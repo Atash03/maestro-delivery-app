@@ -416,7 +416,7 @@ src/
   - Skeleton loading for menu
   - Commit: `feat(menu): build sectioned menu list with sticky headers`
 
-- [ ] **3.5 Create dish customization modal**
+- [x] **3.5 Create dish customization modal**
   - Create `/src/app/(modals)/dish-customization.tsx`
   - Large dish image at top
   - Full description

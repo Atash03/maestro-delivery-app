@@ -1,7 +1,7 @@
 # Maestro Food Delivery App - Progress Tracking
 
 ## Current Status
-Phase: Phase 3 - Restaurant & Menu Selection (Task 3.4 Complete)
+Phase: Phase 3 - Restaurant & Menu Selection (Task 3.5 Complete)
 Last Updated: 2026-01-18
 
 ---
@@ -285,9 +285,9 @@ Phase 3: Restaurant & Menu Selection - In Progress
 - [x] **3.2 Create sticky menu category tabs**
 - [x] **3.3 Build menu item card**
 - [x] **3.4 Build menu list with sections**
+- [x] **3.5 Create dish customization modal**
 
 ### Next Up in Phase 3
-- [ ] **3.5 Create dish customization modal**
 - [ ] **3.6 Implement cart functionality**
 - [ ] **3.7 Build floating cart preview**
 - [ ] **3.8 Build cart modal**
@@ -1179,6 +1179,66 @@ Phase 3: Restaurant & Menu Selection - In Progress
     - Edge case tests
     - Constant value tests
   - All 2415 tests passing, linting clean (only pre-existing warnings)
+
+### Session 28
+- Date: 2026-01-18
+- Tasks Completed:
+  - [x] 3.5 Create dish customization modal
+- Summary:
+  - Created `/src/app/(modals)/dish-customization.tsx` with comprehensive customization functionality:
+    - DishCustomizationScreen component for customizing menu items before adding to cart
+    - Hero image section (240px) with gradient overlay showing dish image
+    - Full description with calories and allergen information
+    - Required choices (radio buttons): Size, Base, etc. with single selection
+    - Optional add-ons (checkboxes): Extra toppings, sides with multi-selection up to maxSelections
+    - Quantity selector with animated increment/decrement buttons
+    - Special instructions text input (200 character limit) with character counter
+    - Running total at bottom updating in real-time based on selections and quantity
+    - "Add to Cart" button with current total price
+    - Form validation for required customizations
+  - Helper functions exported for reuse:
+    - formatPrice: Formats price with dollar sign and 2 decimal places
+    - calculateTotalPrice: Calculates total based on base price, customizations, and quantity
+    - getDefaultSelections: Gets default or first-required selections for customizations
+    - validateSelections: Validates all required customizations have selections
+    - selectionsToCartFormat: Converts selections map to SelectedCustomization array for cart
+  - Sub-components created:
+    - CustomizationOption: Radio button or checkbox for option selection with spring animation
+    - CustomizationSection: Section for a single customization group with staggered animations
+    - QuantitySelector: Quantity control with animated buttons and quantity bounce effect
+  - Features:
+    - Radio vs checkbox behavior based on maxSelections (1 = radio, >1 = checkbox)
+    - Disabled state for checkboxes when max selections reached
+    - "Required" badge for required customizations
+    - "Popular" and "Spicy" badges on hero image
+    - Missing selection hints with error coloring
+    - Cart switching confirmation when adding from different restaurant
+    - Auto-navigation back after adding to cart
+  - Updated `/src/app/(modals)/_layout.tsx` to include dish-customization route
+  - Updated `/src/app/restaurant/[id].tsx`:
+    - handleMenuItemPress navigates to dish-customization modal for items with customizations
+    - handleMenuItemIncrement opens modal for customizable items with quantity 0
+  - Created comprehensive test suite (103 tests) in `/src/__tests__/dish-customization.test.ts`:
+    - File structure and export tests
+    - Modals layout integration tests
+    - Restaurant detail integration tests
+    - Component structure tests
+    - Helper function unit tests (formatPrice, calculateTotalPrice, getDefaultSelections, validateSelections, selectionsToCartFormat)
+    - Constants tests
+    - Mock data compatibility tests
+    - Radio vs checkbox behavior tests
+    - QuantitySelector logic tests
+    - Animation configuration tests
+    - Styling tests
+    - Accessibility tests
+    - Cart integration tests
+    - Edge case tests
+    - Validation message tests
+    - Price display logic tests
+    - UI component tests
+    - Keyboard handling tests
+    - Safe area handling tests
+  - All 2518 tests passing, linting clean (only pre-existing warnings)
 
 ---
 

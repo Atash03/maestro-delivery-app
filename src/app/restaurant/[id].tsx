@@ -472,34 +472,29 @@ export default function RestaurantDetailScreen() {
   // Handle menu item press (opens customization modal)
   const handleMenuItemPress = useCallback(
     (item: MenuItem) => {
-      // TODO: Navigate to dish customization modal (Task 3.5)
-      // For now, if no customizations, we can add directly
       if (item.customizations.length === 0) {
+        // No customizations, add directly
         handleMenuItemAdd(item);
       } else {
         // Navigate to customization modal
-        Alert.alert(
-          'Customize Order',
-          'This item has customization options. Full customization modal coming in Task 3.5.',
-          [
-            { text: 'Cancel', style: 'cancel' },
-            {
-              text: 'Add Basic Item',
-              onPress: () => handleMenuItemAdd(item),
-            },
-          ]
-        );
+        router.push({
+          pathname: '/(modals)/dish-customization',
+          params: { itemId: item.id },
+        });
       }
     },
-    [handleMenuItemAdd]
+    [handleMenuItemAdd, router]
   );
 
   // Handle increment quantity
   const handleMenuItemIncrement = useCallback(
     (item: MenuItem) => {
-      // For items with customizations, we should open the modal
+      // For items with customizations, we should open the modal to allow new customization
       if (item.customizations.length > 0) {
-        handleMenuItemPress(item);
+        router.push({
+          pathname: '/(modals)/dish-customization',
+          params: { itemId: item.id },
+        });
         return;
       }
 
@@ -512,7 +507,7 @@ export default function RestaurantDetailScreen() {
         handleMenuItemAdd(item);
       }
     },
-    [getCartItemByMenuItemId, updateQuantity, handleMenuItemPress, handleMenuItemAdd]
+    [getCartItemByMenuItemId, updateQuantity, handleMenuItemAdd, router]
   );
 
   // Handle decrement quantity
