@@ -55,6 +55,20 @@ export {
   orderStatusSequence,
   simulateOrderStatusUpdate,
 } from './orders';
+
+// ============================================================================
+// Promo Codes
+// ============================================================================
+export type { PromoValidationResult } from './promo-codes';
+export {
+  calculateDiscount,
+  formatPromoCodeDescription,
+  getPromoCodeByCode,
+  getValidPromoCodes,
+  mockPromoCodes,
+  validatePromoCode,
+  validatePromoCodeAsync,
+} from './promo-codes';
 // ============================================================================
 // Restaurants
 // ============================================================================

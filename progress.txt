@@ -286,9 +286,9 @@ Phase 4: Checkout & Payment - IN PROGRESS
 - [x] **4.3 Build order summary section**
 - [x] **4.4 Build payment method section**
 - [x] **4.5 Build add card screen**
+- [x] **4.6 Build promo code section**
 
 ### Next Up
-- **4.6 Build promo code section**
 - **4.7 Implement place order flow**
 
 ---
@@ -1732,6 +1732,66 @@ Phase 4: Checkout & Payment - IN PROGRESS
     - Edge case tests
     - Performance optimization tests
   - All 3840 tests passing, linting clean (only pre-existing warnings)
+
+### Session 37
+- Date: 2026-01-18
+- Tasks Completed:
+  - [x] 4.6 Build promo code section
+- Summary:
+  - Created `/src/data/mock/promo-codes.ts` with comprehensive promo code mock data:
+    - 7 sample promo codes: WELCOME10, SAVE5, SPICY20, FREEDELIVERY, VIP25, EXPIRED2024, INVALID
+    - Percentage and fixed discount types
+    - minOrderAmount, maxDiscount, and expiresAt support
+    - Helper functions: getPromoCodeByCode, validatePromoCode, calculateDiscount, formatPromoCodeDescription, getValidPromoCodes
+    - Async validation with configurable delay: validatePromoCodeAsync
+    - PromoValidationResult interface for type-safe validation results
+  - Updated `/src/data/mock/index.ts` to export all promo code functions and types
+  - Updated `/src/app/order/checkout.tsx` with full promo code functionality:
+    - PromoCodeSection component with input and applied states
+    - Promo code input with Apply button and auto-capitalize
+    - Success feedback: Applied promo shows code, description, and savings amount
+    - Error feedback with FadeIn animation and alert icon
+    - Remove promo code option with X button
+    - Hint text showing sample codes: "Try: WELCOME10, SAVE5, or FREEDELIVERY"
+    - State variables: promoCodeInput, isValidatingPromo, appliedPromoCode, promoValidationError
+    - Handlers: handlePromoCodeChange, handleApplyPromoCode, handleRemovePromoCode
+    - Discount calculated using calculateDiscount from mock data
+    - Total updated with calculateTotal(subtotal, deliveryFee, tax, discount)
+    - Applied promo code shown as badge in section header
+  - Animation features:
+    - Shake animation for input errors using shakeX shared value
+    - Scale animation for Apply button with spring physics
+    - FadeIn animation for error messages
+    - Spring-based press animation on buttons
+  - Order Summary integration:
+    - Discount row shown when promo is applied (with pricetag icon)
+    - Discount displayed as negative value (-$X.XX)
+    - Savings badge in TotalRow showing "You save $X.XX"
+  - New styles added:
+    - promoInputContainer, promoInputRow, promoInput
+    - promoApplyButton, promoApplyText
+    - promoErrorContainer, promoErrorText
+    - promoHintText
+    - promoAppliedContainer, promoAppliedContent, promoAppliedDetails
+    - promoAppliedCode, promoAppliedDescription
+    - promoRemoveButton, promoAppliedBadge
+  - Created comprehensive test suite (141 tests) in `/src/__tests__/promo-code.test.ts`:
+    - File structure tests
+    - Mock data tests
+    - Helper function tests
+    - PromoValidationResult type tests
+    - Checkout integration tests
+    - PromoCodeSection component tests
+    - Styles tests
+    - Animation tests
+    - Accessibility tests
+    - Edge case tests
+    - Section integration tests
+    - Order summary integration tests
+    - Performance tests
+    - Types tests
+  - Updated `/src/__tests__/checkout-screen.test.ts` to match new implementation
+  - All 3981 tests passing, linting clean (only pre-existing warnings)
 
 ---
 

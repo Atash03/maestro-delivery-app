@@ -62,6 +62,12 @@ import {
   SuccessColors,
   Typography,
 } from '@/constants/theme';
+import {
+  calculateDiscount,
+  formatPromoCodeDescription,
+  type PromoValidationResult,
+  validatePromoCodeAsync,
+} from '@/data/mock';
 import { useColorScheme } from '@/hooks/use-color-scheme';
 import {
   formatCardExpiry,
@@ -71,7 +77,7 @@ import {
   useCartStore,
   usePaymentStore,
 } from '@/stores';
-import type { Address, AddressLabel, CardBrand, PaymentMethod } from '@/types';
+import type { Address, AddressLabel, CardBrand, PaymentMethod, PromoCode } from '@/types';
 
 // ============================================================================
 // Constants
@@ -1578,6 +1584,168 @@ function EstimatedDeliveryDisplay({ estimatedTime, colors }: EstimatedDeliveryDi
   );
 }
 
+// ============================================================================
+// Promo Code Section
+// ============================================================================
+
+interface PromoCodeSectionProps {
+  promoCode: string;
+  onChangePromoCode: (text: string) => void;
+  onApply: () => void;
+  onRemove: () => void;
+  isValidating: boolean;
+  appliedPromo: PromoCode | null;
+  validationError: string | null;
+  discount: number;
+  colors: (typeof Colors)['light'];
+}
+
+/**
+ * Promo code input section with validation feedback
+ */
+export function PromoCodeSection({
+  promoCode,
+  onChangePromoCode,
+  onApply,
+  onRemove,
+  isValidating,
+  appliedPromo,
+  validationError,
+  discount,
+  colors,
+}: PromoCodeSectionProps) {
+  const scale = useSharedValue(1);
+  const shakeX = useSharedValue(0);
+
+  // Shake animation on error
+  const inputAnimatedStyle = useAnimatedStyle(() => ({
+    transform: [{ translateX: shakeX.value }],
+  }));
+
+  const handlePressIn = useCallback(() => {
+    scale.value = withSpring(0.95, SPRING_CONFIG);
+  }, [scale]);
+
+  const handlePressOut = useCallback(() => {
+    scale.value = withSpring(1, SPRING_CONFIG);
+  }, [scale]);
+
+  const buttonStyle = useAnimatedStyle(() => ({
+    transform: [{ scale: scale.value }],
+  }));
+
+  // If promo is already applied, show the applied state
+  if (appliedPromo) {
+    return (
+      <View style={styles.promoAppliedContainer} testID="promo-applied">
+        <View style={styles.promoAppliedContent}>
+          <View style={[styles.promoAppliedIconContainer, { backgroundColor: SuccessColors[100] }]}>
+            <Ionicons name="pricetag" size={20} color={SuccessColors[600]} />
+          </View>
+          <View style={styles.promoAppliedDetails}>
+            <Text style={[styles.promoAppliedCode, { color: colors.text }]}>
+              {appliedPromo.code}
+            </Text>
+            <Text style={[styles.promoAppliedDescription, { color: SuccessColors[600] }]}>
+              {formatPromoCodeDescription(appliedPromo)} • Saving {formatPrice(discount)}
+            </Text>
+          </View>
+        </View>
+        <Pressable
+          onPress={onRemove}
+          style={[styles.promoRemoveButton, { backgroundColor: colors.backgroundSecondary }]}
+          accessibilityLabel="Remove promo code"
+          accessibilityRole="button"
+          testID="promo-remove-button"
+        >
+          <Ionicons name="close" size={16} color={colors.textSecondary} />
+        </Pressable>
+      </View>
+    );
+  }
+
+  return (
+    <View style={styles.promoInputContainer} testID="promo-input-section">
+      <Animated.View style={[styles.promoInputWrapper, inputAnimatedStyle]}>
+        <View
+          style={[
+            styles.promoInputRow,
+            {
+              backgroundColor: colors.backgroundSecondary,
+              borderColor: validationError ? ErrorColors[500] : colors.border,
+            },
+          ]}
+        >
+          <Ionicons
+            name="pricetag-outline"
+            size={20}
+            color={validationError ? ErrorColors[500] : colors.textTertiary}
+            style={styles.promoInputIcon}
+          />
+          <TextInput
+            style={[
+              styles.promoInput,
+              { color: colors.text },
+              validationError && { color: ErrorColors[600] },
+            ]}
+            placeholder="Enter promo code"
+            placeholderTextColor={colors.textTertiary}
+            value={promoCode}
+            onChangeText={onChangePromoCode}
+            autoCapitalize="characters"
+            autoCorrect={false}
+            editable={!isValidating}
+            testID="promo-input"
+            accessibilityLabel="Promo code input"
+          />
+          <AnimatedPressable
+            onPress={onApply}
+            onPressIn={handlePressIn}
+            onPressOut={handlePressOut}
+            disabled={!promoCode.trim() || isValidating}
+            style={[
+              styles.promoApplyButton,
+              {
+                backgroundColor:
+                  promoCode.trim() && !isValidating ? PrimaryColors[500] : NeutralColors[300],
+              },
+              buttonStyle,
+            ]}
+            accessibilityLabel="Apply promo code"
+            accessibilityRole="button"
+            accessibilityState={{ disabled: !promoCode.trim() || isValidating }}
+            testID="promo-apply-button"
+          >
+            {isValidating ? (
+              <Text style={[styles.promoApplyText, { color: NeutralColors[0] }]}>...</Text>
+            ) : (
+              <Text style={[styles.promoApplyText, { color: NeutralColors[0] }]}>Apply</Text>
+            )}
+          </AnimatedPressable>
+        </View>
+      </Animated.View>
+
+      {/* Error Message */}
+      {validationError && (
+        <Animated.View
+          entering={FadeIn.duration(AnimationDurations.fast)}
+          style={styles.promoErrorContainer}
+        >
+          <Ionicons name="alert-circle" size={14} color={ErrorColors[500]} />
+          <Text style={[styles.promoErrorText, { color: ErrorColors[500] }]} testID="promo-error">
+            {validationError}
+          </Text>
+        </Animated.View>
+      )}
+
+      {/* Hint text */}
+      <Text style={[styles.promoHintText, { color: colors.textTertiary }]}>
+        Try: WELCOME10, SAVE5, or FREEDELIVERY
+      </Text>
+    </View>
+  );
+}
+
 interface PlaceOrderButtonProps {
   total: number;
   onPress: () => void;
@@ -1700,6 +1868,12 @@ export default function CheckoutScreen() {
   const [addressModalVisible, setAddressModalVisible] = useState(false);
   const [editingAddress, setEditingAddress] = useState<Address | null>(null);
 
+  // Promo code state
+  const [promoCodeInput, setPromoCodeInput] = useState('');
+  const [isValidatingPromo, setIsValidatingPromo] = useState(false);
+  const [appliedPromoCode, setAppliedPromoCode] = useState<PromoCode | null>(null);
+  const [promoValidationError, setPromoValidationError] = useState<string | null>(null);
+
   // Computed values
   const subtotal = getSubtotal();
   const deliveryFee = useMemo(
@@ -1707,9 +1881,13 @@ export default function CheckoutScreen() {
     [restaurant?.deliveryFee]
   );
   const tax = useMemo(() => calculateTax(subtotal), [subtotal]);
+  const discount = useMemo(
+    () => (appliedPromoCode ? calculateDiscount(appliedPromoCode, subtotal) : 0),
+    [appliedPromoCode, subtotal]
+  );
   const total = useMemo(
-    () => calculateTotal(subtotal, deliveryFee, tax),
-    [subtotal, deliveryFee, tax]
+    () => calculateTotal(subtotal, deliveryFee, tax, discount),
+    [subtotal, deliveryFee, tax, discount]
   );
   const selectedAddress = useMemo(
     () => user?.addresses.find((a) => a.id === selectedAddressId),
@@ -1787,6 +1965,46 @@ export default function CheckoutScreen() {
   const handleCloseAddressModal = useCallback(() => {
     setAddressModalVisible(false);
     setEditingAddress(null);
+  }, []);
+
+  // Promo code handlers
+  const handlePromoCodeChange = useCallback(
+    (text: string) => {
+      setPromoCodeInput(text.toUpperCase());
+      // Clear error when user starts typing
+      if (promoValidationError) {
+        setPromoValidationError(null);
+      }
+    },
+    [promoValidationError]
+  );
+
+  const handleApplyPromoCode = useCallback(async () => {
+    if (!promoCodeInput.trim()) return;
+
+    setIsValidatingPromo(true);
+    setPromoValidationError(null);
+
+    const result: PromoValidationResult = await validatePromoCodeAsync(
+      promoCodeInput.trim(),
+      subtotal
+    );
+
+    setIsValidatingPromo(false);
+
+    if (result.isValid && result.promoCode) {
+      setAppliedPromoCode(result.promoCode);
+      setPromoCodeInput('');
+      setPromoValidationError(null);
+    } else {
+      setPromoValidationError(result.error ?? 'Invalid promo code');
+    }
+  }, [promoCodeInput, subtotal]);
+
+  const handleRemovePromoCode = useCallback(() => {
+    setAppliedPromoCode(null);
+    setPromoCodeInput('');
+    setPromoValidationError(null);
   }, []);
 
   const handleSaveAddress = useCallback(
@@ -2085,6 +2303,7 @@ export default function CheckoutScreen() {
               deliveryFee={deliveryFee}
               tax={tax}
               total={total}
+              discount={discount}
               colors={colors}
               formatCustomizations={formatCustomizations}
             />
@@ -2121,12 +2340,25 @@ export default function CheckoutScreen() {
             onToggle={() => toggleSection('promo')}
             colors={colors}
             delay={400}
+            rightContent={
+              appliedPromoCode ? (
+                <Text style={[styles.promoAppliedBadge, { color: SuccessColors[600] }]}>
+                  {appliedPromoCode.code}
+                </Text>
+              ) : null
+            }
           >
-            <View style={styles.promoContent}>
-              <Text style={[styles.promoPlaceholder, { color: colors.textTertiary }]}>
-                Promo code input will be implemented in Task 4.6
-              </Text>
-            </View>
+            <PromoCodeSection
+              promoCode={promoCodeInput}
+              onChangePromoCode={handlePromoCodeChange}
+              onApply={handleApplyPromoCode}
+              onRemove={handleRemovePromoCode}
+              isValidating={isValidatingPromo}
+              appliedPromo={appliedPromoCode}
+              validationError={promoValidationError}
+              discount={discount}
+              colors={colors}
+            />
           </CollapsibleSection>
         </ScrollView>
 
@@ -2529,14 +2761,105 @@ const styles = StyleSheet.create({
     lineHeight: Typography.xs.lineHeight,
     marginTop: Spacing[0.5],
   },
-  promoContent: {
-    paddingVertical: Spacing[4],
-    alignItems: 'center',
+  // Promo Code Section Styles
+  promoInputContainer: {
+    gap: Spacing[2],
   },
-  promoPlaceholder: {
+  promoInputWrapper: {
+    // For animation
+  },
+  promoInputRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    borderRadius: BorderRadius.lg,
+    borderWidth: 1,
+    paddingLeft: Spacing[3],
+    paddingRight: Spacing[1],
+    minHeight: 52,
+  },
+  promoInputIcon: {
+    marginRight: Spacing[2],
+  },
+  promoInput: {
+    flex: 1,
+    fontSize: Typography.base.fontSize,
+    lineHeight: Typography.base.lineHeight,
+    paddingVertical: Spacing[3],
+  },
+  promoApplyButton: {
+    paddingHorizontal: Spacing[4],
+    paddingVertical: Spacing[2],
+    borderRadius: BorderRadius.md,
+    marginLeft: Spacing[1],
+  },
+  promoApplyText: {
     fontSize: Typography.sm.fontSize,
     lineHeight: Typography.sm.lineHeight,
-    fontStyle: 'italic',
+    fontWeight: FontWeights.semibold as TextStyle['fontWeight'],
+  },
+  promoErrorContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: Spacing[1],
+    paddingHorizontal: Spacing[1],
+  },
+  promoErrorText: {
+    fontSize: Typography.sm.fontSize,
+    lineHeight: Typography.sm.lineHeight,
+  },
+  promoHintText: {
+    fontSize: Typography.xs.fontSize,
+    lineHeight: Typography.xs.lineHeight,
+    textAlign: 'center',
+    marginTop: Spacing[1],
+  },
+  promoAppliedContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    padding: Spacing[3],
+    borderRadius: BorderRadius.lg,
+    borderWidth: 1,
+    borderColor: SuccessColors[200],
+    backgroundColor: SuccessColors[50],
+  },
+  promoAppliedContent: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    flex: 1,
+    gap: Spacing[3],
+  },
+  promoAppliedIconContainer: {
+    width: 40,
+    height: 40,
+    borderRadius: BorderRadius.md,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  promoAppliedDetails: {
+    flex: 1,
+  },
+  promoAppliedCode: {
+    fontSize: Typography.base.fontSize,
+    lineHeight: Typography.base.lineHeight,
+    fontWeight: FontWeights.semibold as TextStyle['fontWeight'],
+  },
+  promoAppliedDescription: {
+    fontSize: Typography.sm.fontSize,
+    lineHeight: Typography.sm.lineHeight,
+    marginTop: Spacing[0.5],
+  },
+  promoRemoveButton: {
+    width: 28,
+    height: 28,
+    borderRadius: BorderRadius.full,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  promoAppliedBadge: {
+    fontSize: Typography.xs.fontSize,
+    lineHeight: Typography.xs.lineHeight,
+    fontWeight: FontWeights.semibold as TextStyle['fontWeight'],
   },
   placeOrderContainer: {
     position: 'absolute',

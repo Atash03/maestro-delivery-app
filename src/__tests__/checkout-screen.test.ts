@@ -812,8 +812,9 @@ describe('Checkout Screen - Promo Code Section', () => {
     expect(checkoutScreenContent).toContain('Promo Code');
   });
 
-  test('has placeholder for Phase 4.6 implementation', () => {
-    expect(checkoutScreenContent).toContain('Task 4.6');
+  test('has PromoCodeSection component implementation', () => {
+    expect(checkoutScreenContent).toContain('PromoCodeSection');
+    expect(checkoutScreenContent).toContain('promoCode={promoCodeInput}');
   });
 
   test('tracks promo section expanded state', () => {

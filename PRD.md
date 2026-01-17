@@ -515,7 +515,7 @@ src/
   - Save card toggle
   - Commit: `feat(payment): build add card screen with validation`
 
-- [ ] **4.6 Build promo code section**
+- [x] **4.6 Build promo code section**
   - Promo code input with Apply button
   - Success/error feedback animation
   - Applied discount shown in summary
