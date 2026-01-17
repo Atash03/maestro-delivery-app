@@ -329,7 +329,7 @@ src/
   - Press animation (scale down slightly)
   - Commit: `feat(cards): create restaurant card with rating and delivery info`
 
-- [ ] **2.5 Build home screen sections**
+- [x] **2.5 Build home screen sections**
   - Update `/src/app/(tabs)/index.tsx`:
     - "Featured Restaurants" carousel (horizontal scroll with larger cards)
     - "Popular Near You" section

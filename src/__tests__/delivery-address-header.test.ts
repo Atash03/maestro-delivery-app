@@ -65,6 +65,25 @@ jest.mock('expo-linear-gradient', () => ({
   LinearGradient: 'LinearGradient',
 }));
 
+// Mock @shopify/flash-list
+jest.mock('@shopify/flash-list', () => ({
+  FlashList: 'FlashList',
+}));
+
+// Mock useHomeData hook
+jest.mock('@/hooks/use-home-data', () => ({
+  useHomeData: () => ({
+    featuredRestaurants: [],
+    popularRestaurants: [],
+    quickBitesRestaurants: [],
+    newRestaurants: [],
+    isLoading: false,
+    isRefreshing: false,
+    refresh: jest.fn(),
+    filterByCategory: jest.fn(),
+  }),
+}));
+
 // Mock hooks
 jest.mock('@/hooks/use-color-scheme', () => ({
   useColorScheme: () => 'light',

@@ -95,6 +95,25 @@ jest.mock('expo-linear-gradient', () => ({
   LinearGradient: 'LinearGradient',
 }));
 
+// Mock @shopify/flash-list
+jest.mock('@shopify/flash-list', () => ({
+  FlashList: 'FlashList',
+}));
+
+// Mock useHomeData hook
+jest.mock('@/hooks/use-home-data', () => ({
+  useHomeData: () => ({
+    featuredRestaurants: [],
+    popularRestaurants: [],
+    quickBitesRestaurants: [],
+    newRestaurants: [],
+    isLoading: false,
+    isRefreshing: false,
+    refresh: jest.fn(),
+    filterByCategory: jest.fn(),
+  }),
+}));
+
 // Mock react-native-safe-area-context
 jest.mock('react-native-safe-area-context', () => ({
   useSafeAreaInsets: () => ({ top: 44, bottom: 34, left: 0, right: 0 }),
@@ -677,7 +696,7 @@ describe('Home Screen Category Integration', () => {
         'utf8'
       );
       expect(homeScreenContent).toContain("selectedCategory !== 'cat-all'");
-      expect(homeScreenContent).toContain('Filtering by:');
+      expect(homeScreenContent).toContain('Showing:');
     });
 
     it('displays selected category name in filter text', () => {
