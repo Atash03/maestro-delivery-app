@@ -2102,3 +2102,68 @@ Instructions for AI Agents:
     - All 59 new tests passing
     - Linting clean (removed unused NeutralColors import, fixed template literal)
   - Phase 5 Task 5.4 complete - ETA countdown display component created
+
+---
+
+### Session: 2026-01-18 (Phase 5 Task 5.5)
+
+- [x] **5.5 Build driver info card**
+  - Summary:
+    - Created `/src/components/cards/driver-card.tsx` - A card component for displaying driver information during order tracking:
+      - Driver photo with avatar fallback (shows initials icon if no image)
+      - Driver name and rating with star icon
+      - "Your Driver" label for context
+      - Online indicator (green dot) positioned at bottom-right of avatar
+      - Vehicle description with icon (car, bicycle icons for different types)
+      - License plate display with styled badge
+      - Call button (opens phone dialer using Linking API)
+      - Message button (placeholder for chat functionality)
+      - Animated slide-up appearance when driver assigned (SlideInDown + FadeIn)
+    - Two display modes:
+      - Normal mode: Full card with labeled action buttons
+      - Compact mode: Smaller card with icon-only action buttons
+    - Helper functions exported:
+      - formatVehicleDescription: Formats vehicle info (color, make, model, or type)
+      - formatLicensePlate: Uppercases and formats license plate
+      - openPhoneDialer: Opens phone dialer with cleaned number
+    - Vehicle type support:
+      - car: car-outline icon
+      - motorcycle, bicycle, scooter: bicycle-outline icon
+      - Fallback labels for each type
+    - Animation features:
+      - SlideInDown entry animation with spring physics (damping 15, stiffness 150)
+      - FadeIn entry animation with configurable delay
+      - Button press animation (scale 0.95 on press)
+    - Styling:
+      - Uses design system tokens: BorderRadius.xl, Typography, Spacing
+      - Theme-aware colors from Colors[colorScheme]
+      - SuccessColors[500] for call button and online indicator
+      - WarningColors[500] for star rating
+      - Shadows.md for card elevation
+    - Accessibility:
+      - Comprehensive accessibility labels describing driver and vehicle
+      - testID props for all interactive elements
+      - Call and message buttons with proper labels
+    - Updated `/src/components/cards/index.ts`:
+      - Added exports for DriverCard, DriverCardProps
+      - Added exports for formatVehicleDescription, formatLicensePlate, openPhoneDialer
+    - Created comprehensive test suite `/src/__tests__/driver-card.test.ts` (99 tests):
+      - Module structure and exports tests (7 tests)
+      - formatVehicleDescription tests with full/partial info (10 tests)
+      - formatLicensePlate tests (5 tests)
+      - openPhoneDialer tests with mock Linking API (5 tests)
+      - Driver data structure tests (5 tests)
+      - Component props tests (required, optional, defaults) (10 tests)
+      - Vehicle types tests (icons, labels) (8 tests)
+      - Rating display tests (6 tests)
+      - Accessibility tests (testID patterns, labels) (7 tests)
+      - Animation configuration tests (spring config, slide animation) (8 tests)
+      - Compact mode tests (5 tests)
+      - Online indicator tests (4 tests)
+      - Color scheme tests (5 tests)
+      - Avatar fallback tests (4 tests)
+      - Action buttons tests (9 tests)
+      - Integration tests (4 tests)
+    - All 99 new tests passing
+    - Linting clean
+  - Phase 5 Task 5.5 complete - Driver info card with contact options created

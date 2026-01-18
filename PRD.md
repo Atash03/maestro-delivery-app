@@ -584,7 +584,7 @@ src/
   - Update animation when ETA changes
   - Commit: `feat(tracking): create ETA countdown display`
 
-- [ ] **5.5 Build driver info card**
+- [x] **5.5 Build driver info card**
   - Create `/src/components/cards/driver-card.tsx`
   - Driver photo, name
   - Vehicle description

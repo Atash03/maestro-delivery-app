@@ -7,6 +7,13 @@
 
 export { CategoryChip, type CategoryChipProps } from './category-chip';
 export {
+  DriverCard,
+  type DriverCardProps,
+  formatLicensePlate,
+  formatVehicleDescription,
+  openPhoneDialer,
+} from './driver-card';
+export {
   formatMenuItemPrice,
   MenuItemCard,
   type MenuItemCardProps,
