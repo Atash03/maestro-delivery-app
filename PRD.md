@@ -709,7 +709,7 @@ src/
   - Search FAQs
   - Commit: `feat(support): build help center with FAQ sections`
 
-- [ ] **7.2 Build report issue screen**
+- [x] **7.2 Build report issue screen**
   - Create `/src/app/support/issue/[orderId].tsx`
   - Pre-select order from navigation param
   - Issue categories:

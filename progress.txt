@@ -2,7 +2,7 @@
 
 ## Current Status
 Phase: Phase 7 - Issue Resolution (IN PROGRESS)
-Task 7.1 - Build help center screen: COMPLETE
+Task 7.2 - Build report issue screen: COMPLETE
 Last Updated: 2026-01-18
 
 ---
@@ -2781,4 +2781,80 @@ Instructions for AI Agents:
 
 ### Test results:
 - All 130 new tests pass
+- Linting passes with warnings only (no errors in new files)
+
+---
+
+### Session 50
+- Date: 2026-01-18
+- Tasks Completed:
+  - [x] 7.2 Build report issue screen
+- Summary:
+  - Created `/src/app/support/issue/[orderId].tsx` - Report issue screen:
+    - ReportIssueScreen default export
+    - Pre-selects order from navigation param using useLocalSearchParams
+    - Fetches order data with getOrderById from mock data
+    - OrderSummaryCard component displays:
+      - Restaurant image and name
+      - Order ID and item count
+      - Order date (formatted with useMemo)
+      - Total amount
+    - 6 issue categories matching IssueCategory type:
+      - Missing Items (bag-remove-outline icon)
+      - Wrong Items (swap-horizontal-outline icon)
+      - Food Quality (thumbs-down-outline icon)
+      - Late Delivery (time-outline icon)
+      - Order Never Arrived (close-circle-outline icon)
+      - Other (help-circle-outline icon)
+    - IssueCategoryCard component with:
+      - Category icon, title, and description
+      - Radio button selection indicator
+      - Scale press animation (withSpring)
+      - Selected state styling (primary color highlight)
+    - Loading state with spinner
+    - Error state when order not found
+    - Help note informing users about next steps
+    - Bottom action button (Continue) with disabled state
+    - Navigation to issue details form (prepared for task 7.3)
+  - Updated `/src/app/support/_layout.tsx`:
+    - Added issue/details screen route
+    - Added issue/status/[issueId] screen route (for task 7.5)
+    - All routes use card presentation
+
+### Files modified:
+- `/src/app/support/issue/[orderId].tsx` (new file)
+- `/src/app/support/_layout.tsx` (updated)
+- `/src/__tests__/report-issue.test.ts` (new test file)
+- `/PRD.md` (marked task 7.2 complete)
+- `/progress.txt` (this file)
+
+### Tests created:
+- `/src/__tests__/report-issue.test.ts` with 124 tests covering:
+  - File structure (support/issue directory, [orderId].tsx)
+  - Exports (ReportIssueScreen, ISSUE_CATEGORIES, IssueCategoryOption type)
+  - Type definitions (IssueCategoryOption interface with id, title, description, icon)
+  - All 6 issue categories with correct IDs, titles, and descriptions
+  - Issue category icons (bag-remove, swap-horizontal, thumbs-down, time, close-circle, help-circle)
+  - Navigation (useRouter, useLocalSearchParams, back handler, continue handler)
+  - Order Summary (OrderSummaryCard, restaurant name/image, order total, date, item count)
+  - Category Selection (IssueCategoryCard, selectedCategory state, handleSelectCategory)
+  - States (isLoading, order, loading container, error container, "Order Not Found")
+  - Bottom action button (continue button, disabled state, canContinue validation)
+  - Data fetching (useEffect, getOrderById, network delay simulation)
+  - Animations (reanimated, FadeIn, FadeInDown, FadeOut, withSpring, useSharedValue, scale)
+  - Styling (Colors, Spacing, BorderRadius, Typography, FontWeights, Shadows, AnimationDurations)
+  - UI Components (Card, Ionicons, safe area insets, color scheme, Image)
+  - Accessibility (button roles, radio roles, labels, selected state, disabled state)
+  - Section headers (REPORTING ISSUE FOR, What went wrong?, category selection subtitle)
+  - Help note (section, informational text, information-circle-outline icon)
+  - Support Layout routes (issue/[orderId], issue/details, issue/status/[issueId])
+  - Component structure (IssueCategoryCardProps, OrderSummaryCardProps, press animations)
+  - Data structure (ISSUE_CATEGORIES array, 6 categories, IssueCategory type import)
+  - Performance (useCallback for handlers, useMemo for computed values)
+  - Scroll and layout (ScrollView, scroll indicator, keyboard handling, safe area insets, bottom container)
+  - Type integration (IssueCategory type in types/index.ts, all category values)
+  - Mock data integration (getOrderById import, orderId usage)
+
+### Test results:
+- All 124 new tests pass
 - Linting passes with warnings only (no errors in new files)

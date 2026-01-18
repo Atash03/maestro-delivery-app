@@ -27,6 +27,18 @@ export default function SupportLayout() {
           presentation: 'card',
         }}
       />
+      <Stack.Screen
+        name="issue/details"
+        options={{
+          presentation: 'card',
+        }}
+      />
+      <Stack.Screen
+        name="issue/status/[issueId]"
+        options={{
+          presentation: 'card',
+        }}
+      />
     </Stack>
   );
 }
