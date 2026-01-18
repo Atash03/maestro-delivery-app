@@ -2629,3 +2629,82 @@ Instructions for AI Agents:
 ### Test results:
 - All 107 new tests pass
 - Linting passes with warnings only (no errors)
+
+---
+
+### Session 48
+- Date: 2026-01-18
+- Tasks Completed:
+  - [x] 6.6 Implement reorder functionality
+- Summary:
+  - Created `/src/hooks/use-reorder.ts` - useReorder hook for reorder functionality:
+    - AvailabilityCheckResult interface (availableItems, unavailableItems, allAvailable, noneAvailable)
+    - ReorderResult interface (success, itemsAdded, unavailableCount, error)
+    - UseReorderOptions interface (onSuccess, onUnavailableItems, onError callbacks)
+    - checkAvailability function that checks current menu item availability via getMenuItemById
+    - executeReorder function that adds available items to cart
+    - isItemAvailable function for individual item availability check
+    - Uses simulateNetworkDelay for realistic UX testing
+    - Handles cart restaurant validation (canAddFromRestaurant, clearCart, setRestaurant)
+    - Supports updated menu item data (prices, availability) from mock data
+  - Created `/src/components/reorder-modal.tsx` - ReorderModal component:
+    - Warning icon with WarningColors
+    - "Some Items Unavailable" title
+    - Dynamic message for singular/plural unavailable items
+    - ScrollView list of unavailable items with close-circle icons
+    - Available items count display with checkmark icon
+    - Cancel and "Add X Items" action buttons
+    - Animated modal with SlideInDown/SlideOutDown
+    - FadeIn backdrop animation
+    - Spring-based button press animations
+    - Loading state on proceed button ("Adding...")
+    - Full theme support (light/dark mode)
+    - Accessibility labels and roles
+  - Updated `/src/app/order/details/[id].tsx`:
+    - Added ReorderModal import and component
+    - Added useReorder hook integration
+    - Added showReorderModal and availabilityResult state
+    - Updated handleReorder to check availability first
+    - Added handleReorderProceed for modal proceed action
+    - Added handleReorderCancel for modal cancel action
+    - Shows unavailable items modal when some items unavailable
+    - Shows error alert when no items available
+    - Navigates to cart on success with success message for partial orders
+    - Cart restaurant validation with "Replace Cart?" alert
+
+### Files modified:
+- `/src/hooks/use-reorder.ts` (new file)
+- `/src/components/reorder-modal.tsx` (new file)
+- `/src/app/order/details/[id].tsx` (updated)
+- `/src/__tests__/reorder.test.ts` (new test file)
+
+### Tests created:
+- `/src/__tests__/reorder.test.ts` with 123 tests covering:
+  - useReorder hook file structure and exports
+  - AvailabilityCheckResult interface properties
+  - ReorderResult interface properties
+  - Hook options (onSuccess, onUnavailableItems, onError)
+  - Return interface (isLoading, checkAvailability, executeReorder, isItemAvailable)
+  - Availability checking logic (getMenuItemById, isAvailable field, network delay)
+  - Execute reorder logic (cart validation, clearCart, setRestaurant, addItem)
+  - Error handling (no items available, catch errors, onError callback)
+  - Cart store integration (useCartStore imports and functions)
+  - Type imports (CartItem, MenuItem, Order)
+  - ReorderModal component structure and props
+  - UI elements (Modal, warning icon, title, unavailable list, buttons)
+  - Animations (FadeIn, SlideInDown, withSpring)
+  - Styling and accessibility
+  - Order details screen integration
+  - Reorder state management
+  - Reorder handlers (handleReorder, handleReorderProceed, handleReorderCancel)
+  - Availability checking flow
+  - Cart restaurant validation
+  - Success and error handling
+  - ReorderModal props
+  - Cart store support (canAddFromRestaurant, clearCart, setRestaurant, addItem)
+  - Mock data support (isAvailable, getMenuItemById, simulateNetworkDelay)
+  - Complete reorder flow tests
+
+### Test results:
+- All 123 new tests pass
+- Linting passes with warnings only (no errors)

@@ -43,6 +43,7 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { getStatusBadgeVariant, getStatusText } from '@/components/cards';
 import { OrderStatusTracker } from '@/components/order-status-tracker';
 import { RatingModal, type RatingSubmission } from '@/components/rating-modal';
+import { ReorderModal } from '@/components/reorder-modal';
 import { Badge } from '@/components/ui/badge';
 import {
   AnimationDurations,
@@ -58,6 +59,7 @@ import {
 } from '@/constants/theme';
 import { useColorScheme } from '@/hooks/use-color-scheme';
 import { useRatingPrompt } from '@/hooks/use-rating-prompt';
+import { type AvailabilityCheckResult, useReorder } from '@/hooks/use-reorder';
 import { useCartStore, useOrderStore } from '@/stores';
 import type { CardBrand, CartItem, Order, OrderStatus, PaymentMethod } from '@/types';
 
@@ -581,10 +583,16 @@ export default function OrderDetailsScreen() {
   const order = useMemo(() => (id ? getOrderById(id) : undefined), [id, getOrderById]);
 
   // Cart store for reorder
-  const { addItem, clearCart, setRestaurant, canAddFromRestaurant } = useCartStore();
+  const { canAddFromRestaurant, clearCart } = useCartStore();
 
   // Refresh state
   const [isRefreshing, setIsRefreshing] = useState(false);
+
+  // Reorder modal state
+  const [showReorderModal, setShowReorderModal] = useState(false);
+  const [availabilityResult, setAvailabilityResult] = useState<AvailabilityCheckResult | null>(
+    null
+  );
 
   // Rating prompt hook
   const {
@@ -633,8 +641,38 @@ export default function OrderDetailsScreen() {
     setIsRefreshing(false);
   }, []);
 
-  // Handle reorder
-  const handleReorder = useCallback(() => {
+  // Reorder hook with callbacks
+  const {
+    isLoading: isReorderLoading,
+    checkAvailability,
+    executeReorder,
+  } = useReorder({
+    onSuccess: (result) => {
+      // Close modal if open
+      setShowReorderModal(false);
+      setAvailabilityResult(null);
+
+      // Show success message if there were unavailable items
+      if (result.unavailableCount > 0) {
+        Alert.alert(
+          'Items Added',
+          `${result.itemsAdded} item${result.itemsAdded === 1 ? '' : 's'} added to your cart. ${result.unavailableCount} item${result.unavailableCount === 1 ? ' was' : 's were'} unavailable.`,
+          [{ text: 'View Cart', onPress: () => router.push('/(modals)/cart') }]
+        );
+      } else {
+        // Navigate directly to cart
+        router.push('/(modals)/cart');
+      }
+    },
+    onError: (error) => {
+      setShowReorderModal(false);
+      setAvailabilityResult(null);
+      Alert.alert('Unable to Reorder', error);
+    },
+  });
+
+  // Handle reorder button press
+  const handleReorder = useCallback(async () => {
     if (!order) return;
 
     // Check if cart has items from a different restaurant
@@ -647,38 +685,52 @@ export default function OrderDetailsScreen() {
           {
             text: 'Replace',
             style: 'destructive',
-            onPress: () => {
+            onPress: async () => {
               clearCart();
-              setRestaurant(order.restaurant);
-              addOrderItemsToCart();
+              await processReorder();
             },
           },
         ]
       );
     } else {
-      if (!useCartStore.getState().restaurant) {
-        setRestaurant(order.restaurant);
-      }
-      addOrderItemsToCart();
+      await processReorder();
     }
 
-    function addOrderItemsToCart() {
+    async function processReorder() {
       if (!order) return;
 
-      // Add each item to cart
-      order.items.forEach((item) => {
-        addItem(
-          item.menuItem,
-          item.quantity,
-          item.selectedCustomizations,
-          item.specialInstructions
-        );
-      });
+      // Check availability first
+      const availability = await checkAvailability(order);
 
-      // Navigate to cart
-      router.push('/(modals)/cart');
+      // If some items are unavailable, show the modal
+      if (!availability.allAvailable && !availability.noneAvailable) {
+        setAvailabilityResult(availability);
+        setShowReorderModal(true);
+      } else if (availability.noneAvailable) {
+        // All items unavailable - show error
+        Alert.alert(
+          'Items Unavailable',
+          'Unfortunately, none of the items from this order are currently available.',
+          [{ text: 'OK' }]
+        );
+      } else {
+        // All items available - execute reorder directly
+        await executeReorder(order);
+      }
     }
-  }, [order, canAddFromRestaurant, clearCart, setRestaurant, addItem, router]);
+  }, [order, canAddFromRestaurant, clearCart, checkAvailability, executeReorder]);
+
+  // Handle proceed from reorder modal
+  const handleReorderProceed = useCallback(async () => {
+    if (!order) return;
+    await executeReorder(order);
+  }, [order, executeReorder]);
+
+  // Handle cancel from reorder modal
+  const handleReorderCancel = useCallback(() => {
+    setShowReorderModal(false);
+    setAvailabilityResult(null);
+  }, []);
 
   // Handle get help
   const handleGetHelp = useCallback(() => {
@@ -853,6 +905,15 @@ export default function OrderDetailsScreen() {
           isSubmitting={isRatingSubmitting}
         />
       )}
+
+      {/* Reorder Modal */}
+      <ReorderModal
+        visible={showReorderModal}
+        availabilityResult={availabilityResult}
+        onProceed={handleReorderProceed}
+        onCancel={handleReorderCancel}
+        isLoading={isReorderLoading}
+      />
     </View>
   );
 }

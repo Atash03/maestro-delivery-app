@@ -676,7 +676,7 @@ src/
     - Date
   - Commit: `feat(reviews): display reviews on restaurant page`
 
-- [ ] **6.6 Implement reorder functionality**
+- [x] **6.6 Implement reorder functionality**
   - "Reorder" button on past orders
   - Check item availability (mock)
   - Show unavailable items warning
