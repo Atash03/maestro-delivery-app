@@ -6,6 +6,7 @@
  * - Getting formatted totals
  * - Checking restaurant compatibility
  * - Managing cart state
+ * - Haptic feedback for cart actions
  */
 
 import { useCallback, useMemo } from 'react';
@@ -13,6 +14,7 @@ import { Alert } from 'react-native';
 
 import { useCartStore } from '@/stores';
 import type { CartItem, MenuItem, Restaurant, SelectedCustomization } from '@/types';
+import { haptics } from '@/utils/haptics';
 
 // ============================================================================
 // Types
@@ -161,6 +163,42 @@ export function useCart(): UseCartReturn {
     [items]
   );
 
+  // Wrapped add item with haptic feedback
+  const addItem = useCallback(
+    (
+      menuItem: MenuItem,
+      quantity: number,
+      selectedCustomizations: SelectedCustomization[],
+      specialInstructions?: string,
+      restaurantData?: Restaurant
+    ) => {
+      storeAddItem(menuItem, quantity, selectedCustomizations, specialInstructions, restaurantData);
+      // Trigger haptic feedback when adding to cart
+      haptics.addToCart();
+    },
+    [storeAddItem]
+  );
+
+  // Wrapped remove item with haptic feedback
+  const removeItem = useCallback(
+    (cartItemId: string) => {
+      storeRemoveItem(cartItemId);
+      // Light haptic for removal
+      haptics.buttonPress();
+    },
+    [storeRemoveItem]
+  );
+
+  // Wrapped update quantity with haptic feedback
+  const updateQuantity = useCallback(
+    (cartItemId: string, quantity: number) => {
+      storeUpdateQuantity(cartItemId, quantity);
+      // Selection haptic for quantity changes
+      haptics.select();
+    },
+    [storeUpdateQuantity]
+  );
+
   // Add item with restaurant validation (shows alert if needed)
   const addItemWithValidation = useCallback(
     (
@@ -174,6 +212,8 @@ export function useCart(): UseCartReturn {
 
       // Check if we can add from this restaurant
       if (!storeCanAddFromRestaurant(restaurantData.id)) {
+        // Warning haptic when showing restaurant conflict
+        haptics.warning();
         Alert.alert(
           'Clear Cart?',
           'You have items from another restaurant in your cart. Would you like to clear it and add this item?',
@@ -191,6 +231,8 @@ export function useCart(): UseCartReturn {
                   specialInstructions,
                   restaurantData
                 );
+                // Haptic feedback after clearing and adding
+                haptics.addToCart();
               },
             },
           ]
@@ -199,6 +241,8 @@ export function useCart(): UseCartReturn {
       }
 
       storeAddItem(menuItem, quantity, selectedCustomizations, specialInstructions, restaurantData);
+      // Trigger haptic feedback when adding to cart
+      haptics.addToCart();
       return true;
     },
     [storeCanAddFromRestaurant, storeClearCart, storeAddItem]
@@ -217,10 +261,10 @@ export function useCart(): UseCartReturn {
     formattedSubtotal,
     formattedItemCount,
 
-    // Actions
-    addItem: storeAddItem,
-    removeItem: storeRemoveItem,
-    updateQuantity: storeUpdateQuantity,
+    // Actions (with haptic feedback)
+    addItem,
+    removeItem,
+    updateQuantity,
     updateItem: storeUpdateItem,
     clearCart: storeClearCart,
 

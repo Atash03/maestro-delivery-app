@@ -1,6 +1,6 @@
 /**
  * Card component with optional pressable behavior
- * Features shadow and scale animation on press
+ * Features shadow and scale animation on press, plus haptic feedback
  */
 
 import {
@@ -20,6 +20,7 @@ import Animated, {
 
 import { AnimationDurations, BorderRadius, Colors, Shadows, Spacing } from '@/constants/theme';
 import { useColorScheme } from '@/hooks/use-color-scheme';
+import { haptics } from '@/utils/haptics';
 
 const AnimatedPressable = Animated.createAnimatedComponent(Pressable);
 
@@ -38,6 +39,8 @@ export interface CardProps extends Omit<PressableProps, 'style'> {
   pressable?: boolean;
   /** Custom style overrides */
   style?: StyleProp<ViewStyle>;
+  /** Enable haptic feedback on press (default: true when pressable) */
+  hapticFeedback?: boolean;
 }
 
 export function Card({
@@ -47,6 +50,7 @@ export function Card({
   radius = 'lg',
   pressable = false,
   style,
+  hapticFeedback = true,
   onPressIn,
   onPressOut,
   ...props
@@ -60,6 +64,10 @@ export function Card({
     if (pressable) {
       scale.value = withSpring(0.98, { damping: 15, stiffness: 400 });
       shadowOpacity.value = withTiming(0.5, { duration: AnimationDurations.instant });
+      // Trigger haptic feedback on press
+      if (hapticFeedback) {
+        haptics.buttonPress();
+      }
     }
     onPressIn?.(event);
   };

@@ -54,6 +54,7 @@ import {
 import { useColorScheme } from '@/hooks/use-color-scheme';
 import { useAuthStore } from '@/stores';
 import type { User } from '@/types';
+import { haptics } from '@/utils/haptics';
 
 // ============================================================================
 // Types
@@ -423,6 +424,9 @@ export default function SignInScreen() {
       signIn(user);
       setIsLoading(false);
 
+      // Success haptic for sign in
+      haptics.formSubmit();
+
       // Navigate to main app
       router.replace('/(tabs)');
     },
@@ -457,9 +461,15 @@ export default function SignInScreen() {
 
         signIn(user);
         setIsLoading(false);
+
+        // Success haptic for biometric sign in
+        haptics.formSubmit();
+
         router.replace('/(tabs)');
       }
     } catch {
+      // Error haptic for failed biometric
+      haptics.error();
       Alert.alert('Authentication Failed', 'Biometric authentication failed. Please try again.');
     }
   }, [signIn]);

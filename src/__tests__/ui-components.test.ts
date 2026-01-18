@@ -52,6 +52,43 @@ jest.mock('@expo/vector-icons', () => ({
   MaterialIcons: 'MaterialIcons',
 }));
 
+// Mock expo-haptics
+jest.mock('expo-haptics', () => ({
+  impactAsync: jest.fn(),
+  selectionAsync: jest.fn(),
+  notificationAsync: jest.fn(),
+  ImpactFeedbackStyle: {
+    Light: 'light',
+    Medium: 'medium',
+    Heavy: 'heavy',
+    Soft: 'soft',
+    Rigid: 'rigid',
+  },
+  NotificationFeedbackType: {
+    Success: 'success',
+    Error: 'error',
+    Warning: 'warning',
+  },
+}));
+
+// Mock haptics utility
+jest.mock('@/utils/haptics', () => ({
+  isHapticsSupported: () => true,
+  triggerHaptic: jest.fn().mockResolvedValue(undefined),
+  haptics: {
+    buttonPress: jest.fn().mockResolvedValue(undefined),
+    tabSwitch: jest.fn().mockResolvedValue(undefined),
+    addToCart: jest.fn().mockResolvedValue(undefined),
+    formSubmit: jest.fn().mockResolvedValue(undefined),
+    error: jest.fn().mockResolvedValue(undefined),
+    warning: jest.fn().mockResolvedValue(undefined),
+    importantAction: jest.fn().mockResolvedValue(undefined),
+    toggle: jest.fn().mockResolvedValue(undefined),
+    select: jest.fn().mockResolvedValue(undefined),
+    confirm: jest.fn().mockResolvedValue(undefined),
+  },
+}));
+
 // Mock hooks
 jest.mock('@/hooks/use-color-scheme', () => ({
   useColorScheme: () => 'light',

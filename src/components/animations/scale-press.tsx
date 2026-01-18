@@ -2,7 +2,8 @@
  * ScalePress animation component
  *
  * Wraps children with a pressable container that scales down on press
- * for tactile feedback. Uses react-native-reanimated for smooth animations.
+ * for tactile feedback. Uses react-native-reanimated for smooth animations
+ * and includes haptic feedback support.
  */
 
 import type { PropsWithChildren } from 'react';
@@ -21,6 +22,7 @@ import Animated, {
 } from 'react-native-reanimated';
 
 import { AnimationDurations } from '@/constants/theme';
+import { haptics } from '@/utils/haptics';
 
 const AnimatedPressable = Animated.createAnimatedComponent(Pressable);
 
@@ -33,6 +35,8 @@ export interface ScalePressProps extends PropsWithChildren, Omit<PressableProps,
   springy?: boolean;
   /** Custom style overrides */
   style?: StyleProp<ViewStyle>;
+  /** Enable haptic feedback on press (default: true) */
+  hapticFeedback?: boolean;
 }
 
 /**
@@ -62,6 +66,7 @@ export function ScalePress({
   pressedOpacity = 0.9,
   springy = true,
   style,
+  hapticFeedback = true,
   onPressIn,
   onPressOut,
   disabled,
@@ -77,6 +82,10 @@ export function ScalePress({
       scale.value = withTiming(pressedScale, { duration: AnimationDurations.instant });
     }
     opacity.value = withTiming(pressedOpacity, { duration: AnimationDurations.instant });
+    // Trigger haptic feedback on press
+    if (hapticFeedback && !disabled) {
+      haptics.buttonPress();
+    }
     onPressIn?.(event);
   };
 

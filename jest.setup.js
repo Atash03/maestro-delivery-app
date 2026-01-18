@@ -33,11 +33,40 @@ jest.mock('expo-haptics', () => ({
     Light: 'light',
     Medium: 'medium',
     Heavy: 'heavy',
+    Soft: 'soft',
+    Rigid: 'rigid',
   },
   NotificationFeedbackType: {
     Success: 'success',
     Warning: 'warning',
     Error: 'error',
+  },
+}));
+jest.mock('@/utils/haptics', () => ({
+  isHapticsSupported: () => true,
+  triggerHaptic: jest.fn().mockResolvedValue(undefined),
+  HapticFeedbackType: {
+    light: 'light',
+    medium: 'medium',
+    heavy: 'heavy',
+    soft: 'soft',
+    rigid: 'rigid',
+    selection: 'selection',
+    success: 'success',
+    error: 'error',
+    warning: 'warning',
+  },
+  haptics: {
+    buttonPress: jest.fn().mockResolvedValue(undefined),
+    tabSwitch: jest.fn().mockResolvedValue(undefined),
+    addToCart: jest.fn().mockResolvedValue(undefined),
+    formSubmit: jest.fn().mockResolvedValue(undefined),
+    error: jest.fn().mockResolvedValue(undefined),
+    warning: jest.fn().mockResolvedValue(undefined),
+    importantAction: jest.fn().mockResolvedValue(undefined),
+    toggle: jest.fn().mockResolvedValue(undefined),
+    select: jest.fn().mockResolvedValue(undefined),
+    confirm: jest.fn().mockResolvedValue(undefined),
   },
 }));
 jest.mock('expo-image', () => ({

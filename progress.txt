@@ -2,7 +2,7 @@
 
 ## Current Status
 Phase: Phase 8 - Polish & Final Touches (IN PROGRESS)
-Task 8.3 - Add pull-to-refresh: COMPLETE
+Task 8.5 - Add haptic feedback: COMPLETE
 Last Updated: 2026-01-18
 
 ---
@@ -3447,3 +3447,102 @@ Instructions for AI Agents:
 - All 10 context tests pass
 - Linting passes after fixing unused variables
 - Task 8.4 - Enhance screen transitions: COMPLETE
+
+---
+
+## Session: Add Haptic Feedback Throughout App
+
+- Date: 2026-01-18
+- Tasks Completed:
+  - [x] 8.5 Add haptic feedback
+- Summary:
+  - Created centralized haptic feedback utility:
+    - `/src/utils/haptics.ts`:
+      - HapticFeedbackType enum for all feedback types (light, medium, heavy, soft, rigid, selection, success, error, warning)
+      - isHapticsSupported() to check platform support (iOS and Android)
+      - triggerHaptic() for triggering specific haptic types
+      - haptics convenience object with semantic methods:
+        - buttonPress() - light impact for button presses
+        - tabSwitch() - selection for tab switches
+        - addToCart() - medium impact for cart additions
+        - formSubmit() - success notification for form submissions
+        - error() - error notification for failures
+        - warning() - warning notification for alerts
+        - importantAction() - heavy impact for checkout/orders
+        - toggle() - soft for toggles/switches
+        - select() - selection for item picking
+        - confirm() - rigid for confirmations
+
+  - Created useHaptics hook:
+    - `/src/hooks/use-haptics.ts`:
+      - Wraps haptics utility for use in components
+      - enabled option to disable haptics
+      - Returns all haptic methods with proper memoization
+      - Respects platform support check
+
+  - Integrated haptic feedback into UI components:
+    - `/src/components/ui/button.tsx`:
+      - Added hapticFeedback prop (default: true)
+      - Light impact on button press (when enabled and not disabled)
+    - `/src/components/ui/card.tsx`:
+      - Added hapticFeedback prop (default: true)
+      - Light impact on pressable card press
+    - `/src/components/animations/scale-press.tsx`:
+      - Added hapticFeedback prop (default: true)
+      - Light impact on press (when enabled and not disabled)
+
+  - Updated HapticTab component:
+    - `/src/components/haptic-tab.tsx`:
+      - Now uses centralized haptics.tabSwitch()
+      - Works on both iOS and Android
+
+  - Added haptic feedback to cart operations:
+    - `/src/hooks/use-cart.ts`:
+      - addItem: medium impact (addToCart)
+      - removeItem: light impact (buttonPress)
+      - updateQuantity: selection (select)
+      - addItemWithValidation: warning for restaurant conflict, addToCart for success
+
+  - Added haptic feedback to checkout flow:
+    - `/src/app/order/checkout.tsx`:
+      - handleApplyPromoCode: success for valid, error for invalid
+      - handlePlaceOrder: error for validation failures, importantAction when starting, success for completion
+
+  - Added haptic feedback to authentication:
+    - `/src/app/(auth)/sign-in.tsx`:
+      - handleSignIn: success after sign in
+      - handleBiometricAuth: success or error
+    - `/src/app/(auth)/sign-up.tsx`:
+      - handleSignUp: success after sign up
+    - `/src/app/(auth)/verify.tsx`:
+      - handleVerify: success for valid code, error for invalid
+
+### Tests created:
+- `/src/__tests__/haptics.test.ts` (21 tests):
+  - HapticFeedbackType enum definitions
+  - isHapticsSupported function behavior
+  - triggerHaptic function for all types
+  - haptics convenience methods existence and return types
+- `/src/__tests__/use-haptics.test.ts` (17 tests):
+  - Hook initialization and return values
+  - Methods when enabled vs disabled
+  - All haptic method calls
+
+### Configuration updates:
+- `/jest.config.js`: Added setupFilesAfterEnv for unit tests
+- `/jest.setup.js`:
+  - Extended expo-haptics mock with Soft and Rigid styles
+  - Added @/utils/haptics mock with all methods
+
+### Notable decisions:
+- Centralized all haptic feedback through utility for consistency
+- Default hapticFeedback=true for better UX out of the box
+- Light impact for general presses, medium for cart, heavy for important actions
+- Selection haptic for tab switches and quantity changes
+- Notification haptics (success/error/warning) for form outcomes
+- Silent fail if haptics unavailable (emulator compatibility)
+
+### Test results:
+- All 34 haptic tests pass (21 utility + 17 hook + some pre-existing)
+- Linting passes
+- Task 8.5 - Add haptic feedback: COMPLETE

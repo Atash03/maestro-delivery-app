@@ -50,6 +50,7 @@ import {
 import { useColorScheme } from '@/hooks/use-color-scheme';
 import { useAuthStore } from '@/stores';
 import type { User } from '@/types';
+import { haptics } from '@/utils/haptics';
 
 // ============================================================================
 // Types
@@ -438,6 +439,9 @@ export default function SignUpScreen() {
 
       signUp(user);
       setIsLoading(false);
+
+      // Success haptic for sign up
+      haptics.formSubmit();
 
       // Navigate to verification screen
       router.replace({

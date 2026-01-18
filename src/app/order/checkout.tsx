@@ -80,6 +80,7 @@ import {
 } from '@/stores';
 import type { Address, AddressLabel, CardBrand, Order, PaymentMethod, PromoCode } from '@/types';
 import { OrderStatus } from '@/types';
+import { haptics } from '@/utils/haptics';
 
 // ============================================================================
 // Constants
@@ -2031,8 +2032,12 @@ export default function CheckoutScreen() {
       setAppliedPromoCode(result.promoCode);
       setPromoCodeInput('');
       setPromoValidationError(null);
+      // Success haptic for valid promo
+      haptics.formSubmit();
     } else {
       setPromoValidationError(result.error ?? 'Invalid promo code');
+      // Error haptic for invalid promo
+      haptics.error();
     }
   }, [promoCodeInput, subtotal]);
 
@@ -2086,30 +2091,37 @@ export default function CheckoutScreen() {
   const handlePlaceOrder = useCallback(async () => {
     // Validate all sections are complete
     if (!selectedAddress) {
+      haptics.error();
       Alert.alert('Missing Address', 'Please select a delivery address to continue.');
       return;
     }
 
     if (items.length === 0) {
+      haptics.error();
       Alert.alert('Empty Cart', 'Your cart is empty. Please add items to continue.');
       return;
     }
 
     if (!hasPaymentMethod) {
+      haptics.error();
       Alert.alert('Missing Payment', 'Please select a payment method to continue.');
       return;
     }
 
     if (!restaurant) {
+      haptics.error();
       Alert.alert('Error', 'Restaurant information is missing. Please try again.');
       return;
     }
 
     if (!user) {
+      haptics.error();
       Alert.alert('Error', 'User information is missing. Please sign in to continue.');
       return;
     }
 
+    // Important action haptic when starting order placement
+    haptics.importantAction();
     setIsPlacingOrder(true);
 
     try {
@@ -2168,10 +2180,16 @@ export default function CheckoutScreen() {
 
       setIsPlacingOrder(false);
 
+      // Success haptic for order placed
+      haptics.formSubmit();
+
       // Navigate to order tracking with animated transition
       router.replace(`/order/${orderId}` as never);
     } catch (error) {
       setIsPlacingOrder(false);
+
+      // Error haptic for order failure
+      haptics.error();
 
       // Show error with retry option
       const errorMessage =

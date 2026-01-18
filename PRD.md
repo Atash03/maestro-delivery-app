@@ -796,7 +796,7 @@ src/
   - Tab switching animations
   - Commit: `feat(animations): add shared element and screen transitions`
 
-- [ ] **8.5 Add haptic feedback**
+- [x] **8.5 Add haptic feedback**
   - Button presses
   - Tab switches
   - Add to cart

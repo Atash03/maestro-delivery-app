@@ -1,6 +1,6 @@
 /**
  * Button component with primary, secondary, outline, and ghost variants
- * Includes press animations using react-native-reanimated
+ * Includes press animations using react-native-reanimated and haptic feedback
  */
 
 import { Ionicons } from '@expo/vector-icons';
@@ -30,6 +30,7 @@ import {
   Typography,
 } from '@/constants/theme';
 import { useColorScheme } from '@/hooks/use-color-scheme';
+import { haptics } from '@/utils/haptics';
 
 const AnimatedPressable = Animated.createAnimatedComponent(Pressable);
 
@@ -55,6 +56,8 @@ export interface ButtonProps extends Omit<PressableProps, 'style'> {
   style?: StyleProp<ViewStyle>;
   /** Custom text style overrides */
   textStyle?: StyleProp<TextStyle>;
+  /** Enable haptic feedback on press (default: true) */
+  hapticFeedback?: boolean;
 }
 
 export function Button({
@@ -68,6 +71,7 @@ export function Button({
   fullWidth = false,
   style,
   textStyle,
+  hapticFeedback = true,
   onPressIn,
   onPressOut,
   ...props
@@ -82,6 +86,10 @@ export function Button({
   const handlePressIn: PressableProps['onPressIn'] = (event) => {
     scale.value = withSpring(0.97, { damping: 15, stiffness: 400 });
     opacity.value = withTiming(0.9, { duration: AnimationDurations.instant });
+    // Trigger haptic feedback on press
+    if (hapticFeedback && !isDisabled) {
+      haptics.buttonPress();
+    }
     onPressIn?.(event);
   };
 

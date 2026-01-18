@@ -50,6 +50,7 @@ import {
 } from '@/constants/theme';
 import { useColorScheme } from '@/hooks/use-color-scheme';
 import { useAuthStore } from '@/stores';
+import { haptics } from '@/utils/haptics';
 
 // ============================================================================
 // Constants
@@ -377,8 +378,12 @@ export default function VerifyScreen() {
     // Mock verification - accept "123456" as valid code
     // In production, this would call an actual API
     if (code === '123456') {
+      // Success haptic for verification
+      haptics.formSubmit();
       setIsSuccess(true);
     } else {
+      // Error haptic for invalid code
+      haptics.error();
       setError('Invalid verification code. Please try again.');
       setOtpValue('');
       setIsVerifying(false);
