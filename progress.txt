@@ -2051,3 +2051,54 @@ Instructions for AI Agents:
     - All 51 new tests passing
     - Linting clean (fixed unused NeutralColors import)
   - Phase 5 Task 5.3 complete - Map view with driver location tracking created
+
+---
+
+### Session: 2026-01-18 (Phase 5 Task 5.4)
+
+- [x] **5.4 Build ETA display component**
+  - Summary:
+    - Created `/src/components/eta-display.tsx` - A prominent countdown timer for order delivery:
+      - Large countdown timer display with real-time updates
+      - "Arriving in X minutes" status text
+      - Status-based styling with 4 states: onTime, soon, arriving, overdue
+      - Update animation when ETA changes (scale + opacity)
+      - Pulsing dot indicator showing live status
+      - Expected arrival time display with flag icon
+      - Size variants: compact, normal, large (affects typography and padding)
+      - Option to show seconds in countdown (showSeconds prop)
+    - Status thresholds:
+      - arriving: <= 5 minutes (green, bicycle icon)
+      - soon: <= 15 minutes (primary color, timer icon)
+      - onTime: > 15 minutes (primary color, time icon)
+      - overdue: <= 0 minutes (warning color, "Any moment now!")
+    - Animation features:
+      - PulsingDot component with scale (1-1.3) and opacity (1-0.5) animation
+      - CountdownTimer with scale (1.1) and opacity flash on minute changes
+      - Spring-based animations with config: damping 15, stiffness 200, mass 0.5
+      - FadeIn entry animation on mount
+    - Helper functions:
+      - getETAStatus: Determines status based on minutes remaining
+      - getStatusText: Returns appropriate text for each status
+      - formatTimeRemaining: Calculates and formats countdown (MM:SS or minutes)
+      - formatArrivalTime: Formats arrival time using date-fns format
+    - Styling:
+      - Uses design system tokens: BorderRadius.xl, Typography (3xl-5xl, sm, xs, base)
+      - Theme-aware colors from Colors[colorScheme]
+      - Status colors: SuccessColors[500], WarningColors[500], PrimaryColors[500]
+      - Shadows.md for card elevation
+    - Created comprehensive test suite `/src/__tests__/eta-display.test.ts` (59 tests):
+      - Module structure and exports tests
+      - ETA status determination tests (thresholds, edge cases)
+      - Status text generation tests (singular/plural, overdue)
+      - Time formatting tests (with/without seconds, arrival time)
+      - Component props validation tests
+      - Status icon and color mapping tests
+      - Size variants tests (compact, normal, large)
+      - Countdown update behavior tests
+      - Animation configuration tests
+      - Accessibility tests (testIDs)
+      - Integration scenarios tests
+    - All 59 new tests passing
+    - Linting clean (removed unused NeutralColors import, fixed template literal)
+  - Phase 5 Task 5.4 complete - ETA countdown display component created

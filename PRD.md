@@ -577,7 +577,7 @@ src/
   - Re-center button
   - Commit: `feat(tracking): add map with driver location tracking`
 
-- [ ] **5.4 Build ETA display component**
+- [x] **5.4 Build ETA display component**
   - Create `/src/components/eta-display.tsx`
   - Large countdown timer
   - "Arriving in X minutes" text
