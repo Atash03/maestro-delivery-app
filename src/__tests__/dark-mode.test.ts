@@ -9,9 +9,9 @@
  * - All screens support dark mode (file-based checks)
  */
 
-import { describe, expect, it } from 'bun:test';
 import { existsSync, readFileSync } from 'node:fs';
 import { join } from 'node:path';
+import { describe, expect, it } from '@jest/globals';
 
 // ============================================================================
 // Test Helpers

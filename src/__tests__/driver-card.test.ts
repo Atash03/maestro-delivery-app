@@ -68,6 +68,12 @@ jest.mock('expo-image', () => ({
   Image: 'Image',
 }));
 
+// Mock react-native-safe-area-context
+jest.mock('react-native-safe-area-context', () => ({
+  useSafeAreaInsets: () => ({ top: 44, bottom: 34, left: 0, right: 0 }),
+  SafeAreaProvider: 'SafeAreaProvider',
+}));
+
 // Mock hooks
 jest.mock('@/hooks/use-color-scheme', () => ({
   useColorScheme: () => 'light',
@@ -105,7 +111,11 @@ describe('Driver Card Module Structure', () => {
     it('exports DriverCard component', () => {
       const driverCard = require('@/components/cards/driver-card');
       expect(driverCard.DriverCard).toBeDefined();
-      expect(typeof driverCard.DriverCard).toBe('function');
+      // memo() wraps components returning an object with $$typeof, so check for either function or memo object
+      const isValidComponent =
+        typeof driverCard.DriverCard === 'function' ||
+        (typeof driverCard.DriverCard === 'object' && driverCard.DriverCard !== null);
+      expect(isValidComponent).toBe(true);
     });
 
     it('exports formatVehicleDescription helper', () => {
@@ -131,7 +141,11 @@ describe('Driver Card Module Structure', () => {
     it('exports DriverCard from cards index', () => {
       const cards = require('@/components/cards');
       expect(cards.DriverCard).toBeDefined();
-      expect(typeof cards.DriverCard).toBe('function');
+      // memo() wraps components returning an object with $$typeof, so check for either function or memo object
+      const isValidComponent =
+        typeof cards.DriverCard === 'function' ||
+        (typeof cards.DriverCard === 'object' && cards.DriverCard !== null);
+      expect(isValidComponent).toBe(true);
     });
 
     it('exports formatVehicleDescription from cards index', () => {

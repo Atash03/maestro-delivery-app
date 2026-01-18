@@ -42,7 +42,10 @@ describe('MenuItemCard component', () => {
 
   describe('component exports', () => {
     it('should export MenuItemCard function', () => {
-      expect(componentSource).toContain('export function MenuItemCard');
+      // Component may be exported as memo-wrapped function or direct function
+      const hasDirectExport = componentSource.includes('export function MenuItemCard');
+      const hasMemoExport = componentSource.includes('export const MenuItemCard = memo');
+      expect(hasDirectExport || hasMemoExport).toBe(true);
     });
 
     it('should export MenuItemCardProps interface', () => {

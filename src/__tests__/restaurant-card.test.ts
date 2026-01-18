@@ -142,7 +142,11 @@ describe('RestaurantCard Component', () => {
     it('exports RestaurantCard component from cards module', () => {
       const cards = require('@/components/cards');
       expect(cards.RestaurantCard).toBeDefined();
-      expect(typeof cards.RestaurantCard).toBe('function');
+      // memo() wraps components returning an object with $$typeof, so check for either function or memo object
+      const isValidComponent =
+        typeof cards.RestaurantCard === 'function' ||
+        (typeof cards.RestaurantCard === 'object' && cards.RestaurantCard !== null);
+      expect(isValidComponent).toBe(true);
     });
 
     it('exports RestaurantCardProps type', () => {

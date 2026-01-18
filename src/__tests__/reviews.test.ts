@@ -200,7 +200,10 @@ describe('Reviews Feature', () => {
     });
 
     it('should export ReviewCard component', () => {
-      expect(reviewCardContent).toContain('export function ReviewCard');
+      // Component may be exported as memo-wrapped function or direct function
+      const hasDirectExport = reviewCardContent.includes('export function ReviewCard');
+      const hasMemoExport = reviewCardContent.includes('export const ReviewCard = memo');
+      expect(hasDirectExport || hasMemoExport).toBe(true);
     });
 
     it('should export ReviewCardProps interface', () => {

@@ -61,8 +61,10 @@ describe('RestaurantMenuItemCard file structure', () => {
     );
     const content = fs.readFileSync(componentPath, 'utf8');
 
-    // Check for exported function
-    expect(content).toContain('export function RestaurantMenuItemCard');
+    // Check for exported function or memo-wrapped component
+    const hasDirectExport = content.includes('export function RestaurantMenuItemCard');
+    const hasMemoExport = content.includes('export const RestaurantMenuItemCard = memo');
+    expect(hasDirectExport || hasMemoExport).toBe(true);
     // Check for exported interface
     expect(content).toContain('export interface RestaurantMenuItemCardProps');
     // Check for exported helper

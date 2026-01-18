@@ -67,7 +67,10 @@ describe('OrderCard Component', () => {
 
   describe('Exports', () => {
     test('exports OrderCard component', () => {
-      expect(content).toMatch(/export\s+function\s+OrderCard/);
+      // Component may be exported as memo-wrapped function or direct function
+      const hasDirectExport = /export\s+function\s+OrderCard/.test(content);
+      const hasMemoExport = /export\s+const\s+OrderCard\s*=\s*memo/.test(content);
+      expect(hasDirectExport || hasMemoExport).toBe(true);
     });
 
     test('exports OrderCardProps interface', () => {

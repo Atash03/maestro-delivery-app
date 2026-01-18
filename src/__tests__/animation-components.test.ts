@@ -57,6 +57,27 @@ jest.mock('react-native-reanimated', () => {
   };
 });
 
+// Mock react-native-safe-area-context
+jest.mock('react-native-safe-area-context', () => ({
+  useSafeAreaInsets: () => ({ top: 44, bottom: 34, left: 0, right: 0 }),
+  SafeAreaProvider: 'SafeAreaProvider',
+}));
+
+// Mock expo-symbols
+jest.mock('expo-symbols', () => ({
+  SymbolView: 'SymbolView',
+}));
+
+// Mock icon-symbol component
+jest.mock('@/components/ui/icon-symbol', () => ({
+  IconSymbol: 'IconSymbol',
+}));
+
+// Mock themed-text component
+jest.mock('@/components/themed-text', () => ({
+  ThemedText: 'ThemedText',
+}));
+
 // Mock hooks
 jest.mock('@/hooks/use-color-scheme', () => ({
   useColorScheme: () => 'light',

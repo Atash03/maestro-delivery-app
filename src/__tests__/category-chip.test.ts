@@ -182,7 +182,11 @@ describe('CategoryChip Component', () => {
     it('exports CategoryChip component from cards module', () => {
       const cards = require('@/components/cards');
       expect(cards.CategoryChip).toBeDefined();
-      expect(typeof cards.CategoryChip).toBe('function');
+      // memo() wraps components returning an object with $$typeof, so check for either function or memo object
+      const isValidComponent =
+        typeof cards.CategoryChip === 'function' ||
+        (typeof cards.CategoryChip === 'object' && cards.CategoryChip !== null);
+      expect(isValidComponent).toBe(true);
     });
 
     it('exports CategoryChipProps type', () => {
@@ -512,12 +516,13 @@ describe('Home Screen Category Integration', () => {
       expect(homeScreenContent).toContain("import { mockCategories } from '@/data/mock'");
     });
 
-    it('uses FlatList for horizontal scroll', () => {
+    it('uses FlashList for horizontal scroll', () => {
       const homeScreenContent = require('fs').readFileSync(
         require('path').join(__dirname, '../app/(tabs)/index.tsx'),
         'utf8'
       );
-      expect(homeScreenContent).toContain('FlatList');
+      // Home screen uses FlashList for better performance
+      expect(homeScreenContent).toContain('FlashList');
       expect(homeScreenContent).toContain('horizontal');
     });
 
@@ -526,7 +531,8 @@ describe('Home Screen Category Integration', () => {
         require('path').join(__dirname, '../app/(tabs)/index.tsx'),
         'utf8'
       );
-      expect(homeScreenContent).toContain('showsHorizontalScrollIndicator={false}');
+      // FlashList uses showsScrollIndicator instead of showsHorizontalScrollIndicator
+      expect(homeScreenContent).toContain('showsScrollIndicator={false}');
     });
 
     it('has testID for category list', () => {
