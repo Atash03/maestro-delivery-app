@@ -638,7 +638,7 @@ src/
   - Empty state for no orders
   - Commit: `feat(orders): build order history with active and past tabs`
 
-- [ ] **6.2 Build order details screen**
+- [x] **6.2 Build order details screen**
   - Create `/src/app/order/details/[id].tsx`
   - Order summary with all items
   - Order status and timeline

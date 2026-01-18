@@ -169,12 +169,18 @@ export default function OrdersScreen() {
   // Determine which orders to show based on active tab
   const displayedOrders = activeTab === 'active' ? activeOrders : pastOrders;
 
-  // Handle order press
+  // Handle order press - navigate to tracking for active, details for past
   const handleOrderPress = useCallback(
     (order: Order) => {
-      router.push(`/order/${order.id}`);
+      if (activeTab === 'active') {
+        // Active orders go to tracking screen
+        router.push(`/order/tracking/${order.id}`);
+      } else {
+        // Past orders go to details screen
+        router.push(`/order/details/${order.id}`);
+      }
     },
-    [router]
+    [router, activeTab]
   );
 
   // Handle refresh

@@ -2370,3 +2370,59 @@ Instructions for AI Agents:
   - All 143 tests passing
   - Linting clean (only pre-existing warnings in other files)
   - Phase 6 Task 6.1 complete - Order history screen built
+
+---
+
+## Task 6.2 - Build order details screen
+**Date**: 2026-01-18
+**Status**: COMPLETE
+
+### What was done:
+- Created `/src/app/order/details/[id].tsx` - comprehensive order details screen with:
+  - **OrderHeader**: Restaurant image, name, order date/time, order ID, and status badge
+  - **OrderStatusSection**: Visual timeline using OrderStatusTracker component with status timestamps
+  - **OrderItemsSection**: Itemized list with quantities, customizations, special instructions, and prices
+  - **ReceiptSection**: Complete cost breakdown showing subtotal, delivery fee, tax, tip, discount, promo codes, and total
+  - **DeliveryAddressSection**: Address label, street, city, zip code, and delivery instructions
+  - **PaymentMethodSection**: Card or cash payment display with card brand and last 4 digits
+  - **ActionButtons**: Reorder button (adds items to cart) and Get Help button (navigates to support)
+  - **Not Found State**: Graceful handling when order doesn't exist
+  - Pull-to-refresh for status updates
+  - Full dark mode support with theme colors
+  - Animations using react-native-reanimated (FadeIn, FadeInDown, spring animations)
+  - Accessibility labels and testIDs for testing
+
+- Updated `/src/app/(tabs)/orders.tsx` to navigate:
+  - Active orders → tracking screen (`/order/tracking/${id}`)
+  - Past orders → details screen (`/order/details/${id}`)
+
+- Helper functions exported:
+  - `formatPrice` - Formats prices with dollar sign and 2 decimals
+  - `formatFullDate` - Formats date as "Day, Month DD, YYYY"
+  - `formatTime` - Formats time as "H:MM AM/PM"
+  - `getCardBrandName` - Maps card brands to display names
+  - `getCardBrandIcon` - Returns appropriate icon for payment method
+  - `formatPaymentMethod` - Formats payment method for display
+
+- Created `/src/__tests__/order-details.test.ts` with 161 tests covering:
+  - File structure verification
+  - All component exports and functions
+  - Order header, items, receipt, address, payment, status sections
+  - Action buttons (Reorder and Get Help)
+  - Navigation and routing
+  - Animations and styling
+  - Accessibility and type safety
+  - Store integration (useOrderStore, useCartStore)
+  - Helper function logic
+
+### Technical decisions:
+- Used the existing OrderStatusTracker component for status timeline
+- Reorder functionality checks cart restaurant compatibility and shows Alert for conflicts
+- Status timestamps are calculated from order dates with 5-minute increments for past steps
+- Used ScrollView with RefreshControl instead of FlatList (not a long list)
+- Positioned action buttons at bottom with absolute positioning for better UX
+
+### Test results:
+- All 161 new tests pass
+- All 304 order-related tests pass (order-details + order-history)
+- Linting passes with no new warnings
