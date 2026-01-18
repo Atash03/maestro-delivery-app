@@ -1,8 +1,8 @@
 # Maestro Food Delivery App - Progress Tracking
 
 ## Current Status
-Phase: Phase 6 - Post-Delivery & Order History (NEXT)
-Phase 5 - Real-Time Order Tracking: COMPLETE
+Phase: Phase 6 - Post-Delivery & Order History (IN PROGRESS)
+Task 6.1 - Build order history screen: COMPLETE
 Last Updated: 2026-01-18
 
 ---
@@ -2320,3 +2320,53 @@ Instructions for AI Agents:
     - Linting clean
   - Phase 5 Task 5.7 complete - Push notification placeholders set up
   - Phase 5: Real-Time Order Tracking is now COMPLETE!
+
+---
+
+## Phase 6: Post-Delivery & Order History
+
+- [x] **6.1 Build order history screen**
+  - Updated `/src/app/(tabs)/orders.tsx` with full implementation:
+    - Active Orders | Past Orders tabs with count badges
+    - Tab buttons with animated selected state (uses PrimaryColors)
+    - Tab badges showing order counts
+  - Created `/src/components/cards/order-card.tsx`:
+    - Displays restaurant image, name, and status badge
+    - Shows order date (with "Today at", "Yesterday at" formatting using date-fns)
+    - Shows item count and total amount
+    - Status badges with appropriate colors (success for delivered, error for cancelled, warning for preparing, primary for on the way)
+    - Press animation using react-native-reanimated
+    - Chevron icon for navigation affordance
+  - Created `/src/components/cards/order-card-skeleton.tsx`:
+    - Skeleton loading state matching OrderCard layout
+    - OrderCardSkeletonList for rendering multiple skeletons
+    - Shimmer animation effect
+  - Created `/src/hooks/use-order-history.ts`:
+    - Manages order history state with active/past filtering
+    - Integrates with order store and auth store
+    - Loads mock orders data with simulated network delay
+    - Refresh functionality for pull-to-refresh
+    - Returns orders, activeOrders, pastOrders, isLoading, error, refresh, and boolean flags
+  - Updated `/src/components/cards/index.ts` to export new components
+  - Features implemented:
+    - Empty states for no active/past orders with appropriate icons and messaging
+    - "Start Ordering" button in active empty state navigates to home
+    - FlashList for efficient list rendering
+    - Pull-to-refresh with RefreshControl
+    - Skeleton loading state during initial load
+    - Guest mode shows GuestPromptBanner full screen
+    - Staggered list item animations (FadeInDown with delay)
+  - Created comprehensive test suite with 143 tests:
+    - File structure tests (6 tests)
+    - OrderCard component tests (exports, props, display, status variants, date formatting, animations, accessibility, styling)
+    - OrderCardSkeleton tests (exports, skeleton structure, list rendering)
+    - useOrderHistory hook tests (exports, return interface, order filtering, store integration, mock data, memoization, sorting)
+    - Orders screen tests (exports, tab navigation, empty states, order list, pull-to-refresh, loading state, guest mode, navigation, hooks integration, animations, styling, accessibility)
+    - Helper function tests (getItemCount, formatItemCount, getStatusText)
+    - Integration tests (imports, dependencies)
+    - Type safety tests
+    - Dependencies and performance tests
+    - Constants tests
+  - All 143 tests passing
+  - Linting clean (only pre-existing warnings in other files)
+  - Phase 6 Task 6.1 complete - Order history screen built

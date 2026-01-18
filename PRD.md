@@ -625,7 +625,7 @@ src/
 
 ### Tasks
 
-- [ ] **6.1 Build order history screen**
+- [x] **6.1 Build order history screen**
   - Update `/src/app/(tabs)/orders.tsx`
   - Tabs: Active Orders | Past Orders
   - Order cards showing:
