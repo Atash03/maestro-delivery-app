@@ -749,7 +749,7 @@ src/
   - Contact support option
   - Commit: `feat(support): build issue status tracking screen`
 
-- [ ] **7.6 Add help access throughout app**
+- [x] **7.6 Add help access throughout app**
   - Help button in order details
   - Help button in order tracking
   - Help icon in profile/settings

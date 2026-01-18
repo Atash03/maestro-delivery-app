@@ -26,6 +26,7 @@ import Animated, {
 } from 'react-native-reanimated';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
+import { HelpButton } from '@/components/help-button';
 import { OrderStatusTracker } from '@/components/order-status-tracker';
 import { OrderTrackingMap } from '@/components/order-tracking-map';
 import { RatingModal, type RatingSubmission } from '@/components/rating-modal';
@@ -316,46 +317,20 @@ function StatusTrackerSection({ status, colors }: StatusTrackerSectionProps) {
   );
 }
 
-interface HelpButtonProps {
-  onPress: () => void;
-  colors: (typeof Colors)['light'];
+interface HelpButtonSectionProps {
+  orderId?: string;
 }
 
 /**
- * Help button for contacting support
+ * Help button section wrapper with animation
  */
-function HelpButton({ onPress, colors }: HelpButtonProps) {
-  const scale = useSharedValue(1);
-
-  const handlePressIn = useCallback(() => {
-    scale.value = withSpring(0.97, SPRING_CONFIG);
-  }, [scale]);
-
-  const handlePressOut = useCallback(() => {
-    scale.value = withSpring(1, SPRING_CONFIG);
-  }, [scale]);
-
-  const buttonStyle = useAnimatedStyle(() => ({
-    transform: [{ scale: scale.value }],
-  }));
-
+function HelpButtonSection({ orderId }: HelpButtonSectionProps) {
   return (
     <Animated.View
       entering={FadeInDown.duration(AnimationDurations.normal).delay(400)}
       style={styles.helpButtonContainer}
     >
-      <AnimatedPressable
-        onPress={onPress}
-        onPressIn={handlePressIn}
-        onPressOut={handlePressOut}
-        style={[styles.helpButton, { backgroundColor: colors.backgroundSecondary }, buttonStyle]}
-        accessibilityLabel="Get help with your order"
-        accessibilityRole="button"
-        testID="help-button"
-      >
-        <Ionicons name="help-circle-outline" size={20} color={colors.text} />
-        <Text style={[styles.helpButtonText, { color: colors.text }]}>Need help?</Text>
-      </AnimatedPressable>
+      <HelpButton orderId={orderId} variant="full" size="md" testID="help-button" />
     </Animated.View>
   );
 }
@@ -437,11 +412,6 @@ export default function OrderTrackingDetailScreen() {
   const handleBack = useCallback(() => {
     router.back();
   }, [router]);
-
-  const handleHelp = useCallback(() => {
-    // Navigate to help/support screen (placeholder for future implementation)
-    // router.push('/support');
-  }, []);
 
   const handleToggleMap = useCallback(() => {
     setIsMapExpanded((prev) => !prev);
@@ -534,7 +504,7 @@ export default function OrderTrackingDetailScreen() {
         <StatusTrackerSection status={order.status} colors={colors} />
 
         {/* Help Button */}
-        <HelpButton onPress={handleHelp} colors={colors} />
+        <HelpButtonSection orderId={order?.id} />
       </ScrollView>
 
       {/* Rating Modal - appears when order is delivered */}
@@ -677,19 +647,6 @@ const styles = StyleSheet.create({
   },
   helpButtonContainer: {
     alignItems: 'center',
-  },
-  helpButton: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: Spacing[2],
-    paddingVertical: Spacing[3],
-    paddingHorizontal: Spacing[6],
-    borderRadius: BorderRadius.full,
-  },
-  helpButtonText: {
-    fontSize: Typography.base.fontSize,
-    lineHeight: Typography.base.lineHeight,
-    fontWeight: FontWeights.medium as TextStyle['fontWeight'],
   },
   errorContainer: {
     flex: 1,
