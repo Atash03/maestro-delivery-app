@@ -2,7 +2,7 @@
 
 ## Current Status
 Phase: Phase 7 - Issue Resolution (IN PROGRESS)
-Task 7.2 - Build report issue screen: COMPLETE
+Task 7.3 - Build issue details form: COMPLETE
 Last Updated: 2026-01-18
 
 ---
@@ -2857,4 +2857,79 @@ Instructions for AI Agents:
 
 ### Test results:
 - All 124 new tests pass
+- Linting passes with warnings only (no errors in new files)
+
+---
+
+## Session: Task 7.3 - Build issue details form
+- Date: 2026-01-18
+- Tasks Completed:
+  - [x] 7.3 Build issue details form
+- Summary:
+  - Created `/src/app/support/issue/details.tsx` - Issue details form screen:
+    - IssueDetailsScreen default export
+    - Receives orderId and category from navigation params using useLocalSearchParams
+    - Fetches order data with getOrderById from mock data
+    - Category badge displays selected issue category with CATEGORY_TITLES and CATEGORY_DESCRIPTIONS
+    - Item selection (for missing_items and wrong_items categories):
+      - ItemCheckbox component with press animation (scale spring)
+      - Checkbox list of order items
+      - Displays item name, quantity, and price
+      - Multi-select support using selectedItems state
+    - Description text area:
+      - TextInput with multiline support
+      - MAX_DESCRIPTION_LENGTH (1000 characters) limit
+      - MIN_DESCRIPTION_LENGTH (10 characters) validation
+      - Character count display
+      - Error styling when invalid
+    - Photo upload section:
+      - PhotoPicker component
+      - expo-image-picker integration with permission handling
+      - Up to MAX_PHOTOS (3 photos) limit
+      - Photo preview with remove option
+      - Dashed border add photo button with camera icon
+    - Form validation:
+      - canSubmit computed based on isDescriptionValid and hasRequiredItems
+      - validationMessage useMemo for user feedback
+      - Submit button disabled when invalid
+    - Submission flow:
+      - handleSubmit with isSubmitting loading state
+      - Mock API call with 1500ms delay
+      - Generates mock issue ID
+      - router.replace to issue status screen on success
+    - Loading and error states with proper UI feedback
+    - Animations: FadeIn, FadeInDown, FadeOut, withSpring for item checkboxes
+    - KeyboardAvoidingView for proper keyboard handling
+    - Full accessibility support (roles, labels, hints, states)
+  - Updated `/src/app/support/_layout.tsx` already had issue/details route configured
+
+### Tests created:
+- `/src/__tests__/issue-details-form.test.ts` with 150 tests covering:
+  - File structure (details.tsx exists)
+  - Exports (IssueDetailsScreen, CATEGORY_TITLES, CATEGORY_DESCRIPTIONS, MAX_PHOTOS, MAX_DESCRIPTION_LENGTH, MIN_DESCRIPTION_LENGTH)
+  - Constants (MAX_PHOTOS=3, MAX_DESCRIPTION_LENGTH=1000, MIN_DESCRIPTION_LENGTH=10)
+  - Category titles and descriptions for all 6 issue types
+  - Navigation (useRouter, useLocalSearchParams for orderId/category, back handler, status screen navigation)
+  - Item Selection (ItemCheckbox component, selectedItems state, handleToggleItem, showItemSelection logic, checkbox accessibility)
+  - Description Text Area (description state, TextInput multiline, maxLength, placeholder, character count, validation, accessibility)
+  - Photo Upload (PhotoPicker component, photos state, handleAddPhoto/handleRemovePhoto, expo-image-picker, permissions, MAX_PHOTOS limit, add/remove buttons, accessibility)
+  - Form Validation (canSubmit, hasRequiredItems, validationMessage useMemo, validation messages for items/description)
+  - Issue Submission (isSubmitting state, handleSubmit, disabled button, loading spinner, submit text, mock delay, issue ID generation, router.replace)
+  - States (isLoading, order, loading/error containers, error messages)
+  - Animations (reanimated, FadeIn/FadeInDown/FadeOut, withSpring, useSharedValue, useAnimatedStyle, scale animation)
+  - Styling (Colors, Spacing, BorderRadius, Typography, FontWeights, AnimationDurations)
+  - UI Components (Card, Ionicons, safe area insets, color scheme, Image, KeyboardAvoidingView)
+  - Accessibility (button/checkbox roles, labels for back/submit/add/remove, disabled state, hints)
+  - Section headers (Issue Details, Select Affected Items, Describe Your Issue, Add Photos)
+  - Category badge (categoryBadgeContainer, CATEGORY_TITLES/DESCRIPTIONS usage, icon)
+  - Performance (useCallback for all handlers, useMemo for validation message)
+  - Scroll and layout (ScrollView, scroll indicator, keyboard handling, safe area insets, bottom container, KeyboardAvoidingView behavior)
+  - Type integration (IssueCategory, Order, CartItem imports)
+  - Mock data integration (getOrderById import, orderId usage)
+  - PhotoPicker component (interface, props, canAddMore, Image rendering, conditional add button)
+  - ItemCheckbox component (interface, checkmark icon, Animated.View, pressIn/pressOut)
+  - Error handling (missing order/category, Alert for permissions, result.canceled check)
+
+### Test results:
+- All 150 new tests pass
 - Linting passes with warnings only (no errors in new files)

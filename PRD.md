@@ -721,7 +721,7 @@ src/
     - Other
   - Commit: `feat(support): create issue reporting screen`
 
-- [ ] **7.3 Build issue details form**
+- [x] **7.3 Build issue details form**
   - Category selection (required)
   - If "Missing items" or "Wrong items":
     - Checkbox list of order items
