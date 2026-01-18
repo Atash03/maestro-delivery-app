@@ -2,7 +2,7 @@
 
 ## Current Status
 Phase: Phase 8 - Polish & Final Touches (IN PROGRESS)
-Task 8.5 - Add haptic feedback: COMPLETE
+Task 8.6 - Implement dark mode support: COMPLETE
 Last Updated: 2026-01-18
 
 ---
@@ -3546,3 +3546,82 @@ Instructions for AI Agents:
 - All 34 haptic tests pass (21 utility + 17 hook + some pre-existing)
 - Linting passes
 - Task 8.5 - Add haptic feedback: COMPLETE
+
+---
+
+## Task 8.6 - Implement dark mode support: COMPLETE
+
+### Date: 2026-01-18
+
+### Overview:
+Implemented comprehensive dark mode support with user preference control. Users can now choose between System (follows device settings), Light, or Dark mode from the Profile screen.
+
+### Files created:
+- `/src/stores/theme-store.ts`:
+  - ThemeMode type: 'system' | 'light' | 'dark'
+  - Zustand store with persist middleware for AsyncStorage
+  - Actions: setThemeMode, toggleTheme, resetToSystem
+  - getEffectiveTheme helper function for resolving final theme
+
+- `/src/context/theme-context.tsx`:
+  - ThemeProvider component wrapping the app
+  - useTheme hook for accessing theme values
+  - Provides: colorScheme, themeMode, colors, isDark, setThemeMode, toggleTheme, resetToSystem
+
+- `/src/__tests__/dark-mode.test.ts`:
+  - 58 comprehensive tests for dark mode functionality
+  - Tests theme store, context, colors, exports, and screen support
+
+### Files modified:
+- `/src/stores/index.ts`: Export theme store and related types
+- `/src/context/index.ts`: Export theme context and hooks
+- `/src/app/_layout.tsx`:
+  - Wrapped app with ThemeProvider
+  - StatusBar style adjusts based on isDark
+  - Split into RootLayoutContent for hook usage
+- `/src/app/(tabs)/profile.tsx`:
+  - Added ThemeSelectorModal with System/Light/Dark options
+  - Appearance menu item shows current theme and opens modal
+  - Beautiful UI with icons and descriptions
+- `/src/hooks/use-theme-color.ts`:
+  - Updated to use theme store for user preference
+  - Added useEffectiveColorScheme hook
+
+### Key features:
+1. **User Theme Preference**:
+   - System mode (follows device settings)
+   - Light mode (always light)
+   - Dark mode (always dark)
+   - Persisted to AsyncStorage
+
+2. **Theme Selector Modal**:
+   - Accessible from Profile > Preferences > Appearance
+   - Shows current selection with checkmark
+   - Icons for each option (device, sun, moon)
+   - Preview cards for light/dark
+
+3. **StatusBar Integration**:
+   - Automatically adjusts to light/dark based on theme
+   - Dark theme shows light status bar, vice versa
+
+4. **Existing Infrastructure Leveraged**:
+   - All screens already use useColorScheme hook
+   - Colors object has light/dark variants defined
+   - Navigation themes (MaestroLightTheme, MaestroDarkTheme) in place
+
+### Dependencies added:
+- `@react-native-async-storage/async-storage@2.2.0`: For persisting theme preference
+
+### Test results:
+- 58 dark mode tests pass
+- All existing tests continue to pass
+- Linting passes with no new issues
+
+### Notable decisions:
+- Created ThemeProvider at app root for global access
+- Theme store separated from context for flexibility
+- useEffectiveColorScheme hook for components needing just the scheme
+- Maintained backward compatibility with existing useColorScheme usage
+- Modal-based selector for clean UX vs inline toggle
+
+### Task 8.6 - Implement dark mode support: COMPLETE

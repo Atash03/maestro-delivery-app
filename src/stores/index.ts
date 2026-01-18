@@ -28,3 +28,10 @@ export {
   usePaymentStore,
 } from './payment-store';
 export { type StoredRating, useRatingStore } from './rating-store';
+export {
+  getEffectiveTheme,
+  type ThemeActions,
+  type ThemeMode,
+  type ThemeState,
+  useThemeStore,
+} from './theme-store';

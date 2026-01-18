@@ -12,3 +12,12 @@ export {
   useSharedTransition,
   useSharedTransitionOptional,
 } from './shared-transition-context';
+
+export {
+  type ThemeContextValue,
+  ThemeProvider,
+  type ThemeProviderProps,
+  useTheme,
+  useThemeColor,
+  useThemeOptional,
+} from './theme-context';

@@ -45,12 +45,13 @@ import {
   BorderRadius,
   Colors,
   FontWeights,
+  NeutralColors,
   Shadows,
   Spacing,
   Typography,
 } from '@/constants/theme';
 import { useColorScheme } from '@/hooks/use-color-scheme';
-import { useAuthStore } from '@/stores';
+import { type ThemeMode, useAuthStore, useThemeStore } from '@/stores';
 import type { Address, AddressLabel } from '@/types';
 
 // ============================================================================
@@ -58,6 +59,143 @@ import type { Address, AddressLabel } from '@/types';
 // ============================================================================
 
 type ProfileMode = 'view' | 'edit';
+
+// ============================================================================
+// Theme Selector Modal
+// ============================================================================
+
+interface ThemeSelectorModalProps {
+  visible: boolean;
+  onClose: () => void;
+}
+
+function ThemeSelectorModal({ visible, onClose }: ThemeSelectorModalProps) {
+  const colorScheme = useColorScheme() ?? 'light';
+  const colors = Colors[colorScheme];
+  const insets = useSafeAreaInsets();
+  const { themeMode, setThemeMode } = useThemeStore();
+
+  const themeOptions: {
+    mode: ThemeMode;
+    label: string;
+    icon: keyof typeof Ionicons.glyphMap;
+    description: string;
+  }[] = [
+    {
+      mode: 'system',
+      label: 'System',
+      icon: 'phone-portrait-outline',
+      description: 'Match your device settings',
+    },
+    {
+      mode: 'light',
+      label: 'Light',
+      icon: 'sunny-outline',
+      description: 'Always use light mode',
+    },
+    {
+      mode: 'dark',
+      label: 'Dark',
+      icon: 'moon-outline',
+      description: 'Always use dark mode',
+    },
+  ];
+
+  const handleSelect = useCallback(
+    (mode: ThemeMode) => {
+      setThemeMode(mode);
+      onClose();
+    },
+    [setThemeMode, onClose]
+  );
+
+  return (
+    <Modal
+      visible={visible}
+      animationType="slide"
+      presentationStyle="pageSheet"
+      onRequestClose={onClose}
+    >
+      <View style={[styles.themeModalContainer, { backgroundColor: colors.background }]}>
+        <View style={[styles.themeModalContent, { paddingTop: insets.top || Spacing[4] }]}>
+          {/* Header */}
+          <View style={styles.themeModalHeader}>
+            <Pressable onPress={onClose} hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}>
+              <Ionicons name="close" size={24} color={colors.text} />
+            </Pressable>
+            <Text style={[styles.themeModalTitle, { color: colors.text }]}>Appearance</Text>
+            <View style={{ width: 24 }} />
+          </View>
+
+          {/* Theme Options */}
+          <View style={styles.themeOptions}>
+            {themeOptions.map((option) => {
+              const isSelected = themeMode === option.mode;
+              return (
+                <Pressable
+                  key={option.mode}
+                  onPress={() => handleSelect(option.mode)}
+                  style={[
+                    styles.themeOption,
+                    {
+                      backgroundColor: isSelected
+                        ? colors.primaryLight
+                        : colors.backgroundSecondary,
+                      borderColor: isSelected ? colors.primary : colors.border,
+                    },
+                  ]}
+                >
+                  <View
+                    style={[
+                      styles.themeOptionIcon,
+                      { backgroundColor: isSelected ? colors.primary : colors.backgroundTertiary },
+                    ]}
+                  >
+                    <Ionicons
+                      name={option.icon}
+                      size={24}
+                      color={isSelected ? NeutralColors[0] : colors.textSecondary}
+                    />
+                  </View>
+                  <View style={styles.themeOptionTextContainer}>
+                    <Text style={[styles.themeOptionLabel, { color: colors.text }]}>
+                      {option.label}
+                    </Text>
+                    <Text style={[styles.themeOptionDescription, { color: colors.textSecondary }]}>
+                      {option.description}
+                    </Text>
+                  </View>
+                  {isSelected && (
+                    <Ionicons name="checkmark-circle" size={24} color={colors.primary} />
+                  )}
+                </Pressable>
+              );
+            })}
+          </View>
+
+          {/* Current Preview */}
+          <View
+            style={[styles.themePreviewContainer, { backgroundColor: colors.backgroundSecondary }]}
+          >
+            <Text style={[styles.themePreviewTitle, { color: colors.textSecondary }]}>Preview</Text>
+            <View style={styles.themePreviewCards}>
+              <View style={[styles.themePreviewCard, { backgroundColor: NeutralColors[0] }]}>
+                <Ionicons name="sunny" size={20} color={NeutralColors[900]} />
+                <Text style={[styles.themePreviewCardText, { color: NeutralColors[900] }]}>
+                  Light
+                </Text>
+              </View>
+              <View style={[styles.themePreviewCard, { backgroundColor: NeutralColors[900] }]}>
+                <Ionicons name="moon" size={20} color={NeutralColors[0]} />
+                <Text style={[styles.themePreviewCardText, { color: NeutralColors[0] }]}>Dark</Text>
+              </View>
+            </View>
+          </View>
+        </View>
+      </View>
+    </Modal>
+  );
+}
 
 // ============================================================================
 // Validation Schemas
@@ -825,7 +963,23 @@ export default function ProfileScreen() {
   const insets = useSafeAreaInsets();
   const router = useRouter();
   const { user, isGuest, signOut } = useAuthStore();
+  const { themeMode } = useThemeStore();
   const [mode, setMode] = useState<ProfileMode>('view');
+  const [themeModalVisible, setThemeModalVisible] = useState(false);
+
+  // Get current theme label for display
+  const getThemeLabel = () => {
+    switch (themeMode) {
+      case 'system':
+        return 'System';
+      case 'light':
+        return 'Light';
+      case 'dark':
+        return 'Dark';
+      default:
+        return 'System';
+    }
+  };
 
   // Animation for avatar press
   const avatarScale = useSharedValue(1);
@@ -945,7 +1099,19 @@ export default function ProfileScreen() {
         <Card variant="elevated" padding="none" radius="lg">
           <MenuItem icon="notifications-outline" label="Notifications" onPress={() => {}} />
           <View style={[styles.divider, { backgroundColor: colors.border }]} />
-          <MenuItem icon="moon-outline" label="Appearance" onPress={() => {}} />
+          <MenuItem
+            icon="moon-outline"
+            label="Appearance"
+            onPress={() => setThemeModalVisible(true)}
+            rightContent={
+              <View style={styles.addressCountContainer}>
+                <Text style={[styles.addressCount, { color: colors.textSecondary }]}>
+                  {getThemeLabel()}
+                </Text>
+                <Ionicons name="chevron-forward" size={20} color={colors.textTertiary} />
+              </View>
+            }
+          />
           <View style={[styles.divider, { backgroundColor: colors.border }]} />
           <MenuItem icon="language-outline" label="Language" onPress={() => {}} />
         </Card>
@@ -985,6 +1151,9 @@ export default function ProfileScreen() {
           Maestro v1.0.0
         </ThemedText>
       </Animated.View>
+
+      {/* Theme Selector Modal */}
+      <ThemeSelectorModal visible={themeModalVisible} onClose={() => setThemeModalVisible(false)} />
     </ScrollView>
   );
 }
@@ -1331,6 +1500,83 @@ const styles = StyleSheet.create({
   },
   defaultToggleDescription: {
     ...Typography.sm,
+  },
+
+  // Theme Modal Styles
+  themeModalContainer: {
+    flex: 1,
+  },
+  themeModalContent: {
+    flex: 1,
+    paddingHorizontal: Spacing[4],
+  },
+  themeModalHeader: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    paddingVertical: Spacing[3],
+  },
+  themeModalTitle: {
+    ...Typography.lg,
+    fontWeight: FontWeights.semibold as '600',
+  },
+  themeOptions: {
+    gap: Spacing[3],
+    marginTop: Spacing[4],
+  },
+  themeOption: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    padding: Spacing[4],
+    borderRadius: BorderRadius.lg,
+    borderWidth: 2,
+  },
+  themeOptionIcon: {
+    width: 48,
+    height: 48,
+    borderRadius: BorderRadius.lg,
+    justifyContent: 'center',
+    alignItems: 'center',
+    marginRight: Spacing[3],
+  },
+  themeOptionTextContainer: {
+    flex: 1,
+  },
+  themeOptionLabel: {
+    ...Typography.base,
+    fontWeight: FontWeights.semibold as '600',
+    marginBottom: Spacing[0.5],
+  },
+  themeOptionDescription: {
+    ...Typography.sm,
+  },
+  themePreviewContainer: {
+    marginTop: Spacing[6],
+    padding: Spacing[4],
+    borderRadius: BorderRadius.lg,
+  },
+  themePreviewTitle: {
+    ...Typography.sm,
+    fontWeight: FontWeights.medium as '500',
+    textAlign: 'center',
+    marginBottom: Spacing[3],
+  },
+  themePreviewCards: {
+    flexDirection: 'row',
+    gap: Spacing[3],
+  },
+  themePreviewCard: {
+    flex: 1,
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: Spacing[2],
+    padding: Spacing[4],
+    borderRadius: BorderRadius.md,
+  },
+  themePreviewCardText: {
+    ...Typography.sm,
+    fontWeight: FontWeights.medium as '500',
   },
 });
 

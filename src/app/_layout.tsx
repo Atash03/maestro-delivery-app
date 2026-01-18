@@ -1,4 +1,8 @@
-import { DarkTheme, DefaultTheme, ThemeProvider } from '@react-navigation/native';
+import {
+  DarkTheme,
+  DefaultTheme,
+  ThemeProvider as NavigationThemeProvider,
+} from '@react-navigation/native';
 import { Stack } from 'expo-router';
 import * as SplashScreen from 'expo-splash-screen';
 import { StatusBar } from 'expo-status-bar';
@@ -17,7 +21,7 @@ import Animated, {
 } from 'react-native-reanimated';
 
 import { AnimationDurations, Colors, PrimaryColors, Typography } from '@/constants/theme';
-import { SharedTransitionProvider } from '@/context';
+import { SharedTransitionProvider, ThemeProvider, useTheme } from '@/context';
 import { useColorScheme } from '@/hooks/use-color-scheme';
 
 // Prevent the splash screen from auto-hiding until we're ready
@@ -124,20 +128,12 @@ function AnimatedLogo({ onAnimationComplete }: { onAnimationComplete: () => void
 }
 
 /**
- * Root layout - Handles navigation between auth and main app flows
- *
- * Navigation structure:
- * - (auth): Unauthenticated screens (onboarding, sign-in, sign-up, verify)
- * - (tabs): Main app with bottom tab navigation
- * - (modals): Modal screens that overlay the main app
- * - restaurant/[id]: Restaurant detail screen
- * - order/*: Order-related screens
- * - support/*: Help and support screens
+ * Inner layout component that uses the theme context
+ * Separated to allow ThemeProvider to be at the root level
  */
-export default function RootLayout() {
-  const colorScheme = useColorScheme();
+function RootLayoutContent() {
+  const { colorScheme, colors, isDark } = useTheme();
   const theme = colorScheme === 'dark' ? MaestroDarkTheme : MaestroLightTheme;
-  const colors = Colors[colorScheme ?? 'light'];
 
   const [appIsReady, setAppIsReady] = useState(false);
   const [showAnimatedLogo, setShowAnimatedLogo] = useState(true);
@@ -174,7 +170,7 @@ export default function RootLayout() {
   }
 
   return (
-    <ThemeProvider value={theme}>
+    <NavigationThemeProvider value={theme}>
       <SharedTransitionProvider>
         <View style={styles.container} onLayout={onLayoutRootView}>
           {showAnimatedLogo ? (
@@ -293,9 +289,28 @@ export default function RootLayout() {
               </Stack>
             </Animated.View>
           )}
-          <StatusBar style="auto" />
+          <StatusBar style={isDark ? 'light' : 'dark'} />
         </View>
       </SharedTransitionProvider>
+    </NavigationThemeProvider>
+  );
+}
+
+/**
+ * Root layout - Handles navigation between auth and main app flows
+ *
+ * Navigation structure:
+ * - (auth): Unauthenticated screens (onboarding, sign-in, sign-up, verify)
+ * - (tabs): Main app with bottom tab navigation
+ * - (modals): Modal screens that overlay the main app
+ * - restaurant/[id]: Restaurant detail screen
+ * - order/*: Order-related screens
+ * - support/*: Help and support screens
+ */
+export default function RootLayout() {
+  return (
+    <ThemeProvider>
+      <RootLayoutContent />
     </ThemeProvider>
   );
 }

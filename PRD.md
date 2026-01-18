@@ -804,7 +804,7 @@ src/
   - Error feedback
   - Commit: `feat(ux): add haptic feedback throughout app`
 
-- [ ] **8.6 Implement dark mode support**
+- [x] **8.6 Implement dark mode support**
   - Verify all screens support dark mode
   - Test color contrast
   - Image overlays for dark mode
