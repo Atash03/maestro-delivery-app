@@ -2,7 +2,7 @@
 
 ## Current Status
 Phase: Phase 8 - Polish & Final Touches (IN PROGRESS)
-Task 8.1 - Add loading skeletons everywhere: COMPLETE
+Task 8.2 - Add error states: COMPLETE
 Last Updated: 2026-01-18
 
 ---
@@ -3179,3 +3179,100 @@ Instructions for AI Agents:
 - All 17 tests pass
 - Linting passes with warnings only (array index keys in skeletons - expected for static lists)
 - Task 8.1 - Add loading skeletons everywhere: COMPLETE
+
+---
+
+## Session: Add Error States and Empty States
+
+- Date: 2026-01-18
+- Tasks Completed:
+  - [x] 8.2 Add error states
+- Summary:
+  - Created `/src/components/ui/network-error.tsx` - Network error screen component:
+    - Full-screen error display for network failures
+    - Animated wifi-off icon with pulse and shake effects
+    - Customizable title and message
+    - Retry button with loading state
+    - Shows/hides retry button based on `showRetry` prop
+    - Uses react-native-reanimated for smooth animations
+    - Theme support (light/dark mode)
+
+  - Created `/src/components/ui/empty-state.tsx` - Flexible empty state component:
+    - 9 predefined variants: no-restaurants, no-search-results, no-orders, empty-cart, no-favorites, no-addresses, no-reviews, no-issues, custom
+    - Each variant has default icon, title, and message
+    - Customizable via props (icon, title, message override variants)
+    - Size variants: sm, md, lg for different contexts
+    - Optional action button with callback
+    - Custom children support
+    - Staggered fade-in animation using react-native-reanimated
+    - Animation can be disabled via `animated` prop
+    - Theme support (light/dark mode)
+
+  - Created `/src/components/ui/toast.tsx` - Toast notification component:
+    - 4 toast types: success, error, warning, info
+    - Each type has unique icon and colors
+    - Optional title and required message
+    - Configurable auto-dismiss duration (default: 4000ms)
+    - Spring animation for enter, timing animation for exit
+    - Dismissible via tap (can be disabled)
+    - Optional action button
+    - Light and dark mode support
+    - Proper accessibility with alert role
+
+  - Created `/src/components/ui/toast-provider.tsx` - Global toast management:
+    - Context provider for app-wide toast access
+    - `useToast` hook with convenience methods:
+      - showToast(message, options)
+      - showSuccess(message, options)
+      - showError(message, options)
+      - showWarning(message, options)
+      - showInfo(message, options)
+      - dismissToast(id)
+      - dismissAllToasts()
+    - Toast queue with configurable max toasts (default: 3)
+    - Unique ID generation for each toast
+    - Stacked toast display with offset
+
+  - Updated `/src/components/ui/index.ts`:
+    - Exported NetworkError and NetworkErrorProps
+    - Exported EmptyState, EmptyStateProps, EmptyStateVariant
+    - Exported Toast, ToastProps, ToastType
+    - Exported ToastProvider, useToast, ToastOptions
+
+### Tests created:
+- `/src/__tests__/error-states.test.ts` with 40 tests covering:
+  - Component Exports (4 tests):
+    - NetworkError, EmptyState, Toast, ToastProvider/useToast exports
+  - NetworkError Type Definitions (4 tests):
+    - Props support and default values
+    - Retry behavior (button disabled state, text)
+  - EmptyState (7 tests):
+    - Variant types (9 variants)
+    - Size types (sm, md, lg)
+    - Props support
+    - Variant configuration (unique configs, icons, titles/messages)
+    - Size configuration (progressive sizing)
+  - Toast Component (8 tests):
+    - Toast types (success, error, warning, info)
+    - Props support
+    - Icon mapping
+    - Color mapping (semantic colors)
+    - Duration defaults and clamping
+  - ToastProvider (6 tests):
+    - ID generation (uniqueness, format)
+    - Queue management (limits, ordering)
+    - Dismissal (single, all)
+  - Animation Configuration (5 tests):
+    - NetworkError pulse and shake animations
+    - Toast spring/timing animations
+    - EmptyState staggered animation
+  - Accessibility (3 tests):
+    - Alert role, accessibility labels
+    - Button accessibility
+  - Dark Mode Support (2 tests):
+    - Light/dark mode color verification
+
+### Test results:
+- All 40 tests pass
+- Linting passes
+- Task 8.2 - Add error states: COMPLETE

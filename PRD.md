@@ -772,7 +772,7 @@ src/
   - Shimmer animation on all skeletons
   - Commit: `feat(ui): add skeleton loading states with shimmer animation`
 
-- [ ] **8.2 Add error states**
+- [x] **8.2 Add error states**
   - Network error screen with retry
   - Empty states for:
     - No restaurants found
