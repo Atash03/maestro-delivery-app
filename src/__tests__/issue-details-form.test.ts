@@ -400,8 +400,8 @@ describe('Issue Submission', () => {
     content = fs.readFileSync(screenPath, 'utf-8');
   });
 
-  test('has isSubmitting state', () => {
-    expect(content).toMatch(/isSubmitting.*=.*useState/);
+  test('uses isSubmitting from store', () => {
+    expect(content).toMatch(/isSubmitting.*:.*storeIsSubmitting/);
   });
 
   test('has handleSubmit handler', () => {
@@ -413,7 +413,7 @@ describe('Issue Submission', () => {
   });
 
   test('shows loading spinner when submitting', () => {
-    expect(content).toMatch(/isSubmitting\s*\?/);
+    expect(content).toMatch(/storeIsSubmitting\s*\?/);
     expect(content).toMatch(/submitSpinner/);
   });
 
@@ -425,16 +425,18 @@ describe('Issue Submission', () => {
     expect(content).toMatch(/name="send"/);
   });
 
-  test('simulates API call with delay', () => {
-    expect(content).toMatch(/setTimeout/);
-  });
-
-  test('generates mock issue ID', () => {
-    expect(content).toMatch(/issueId.*=.*`issue_\$\{Date\.now\(\)\}`/);
+  test('uses issue store for submission', () => {
+    expect(content).toMatch(/useIssueStore/);
+    expect(content).toMatch(/submitIssue/);
   });
 
   test('uses router.replace to navigate on success', () => {
     expect(content).toMatch(/router\.replace/);
+  });
+
+  test('shows success modal after submission', () => {
+    expect(content).toMatch(/showSuccessModal/);
+    expect(content).toMatch(/SuccessModal/);
   });
 });
 

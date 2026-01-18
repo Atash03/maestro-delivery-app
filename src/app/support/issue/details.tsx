@@ -7,6 +7,7 @@
  * - Description text area
  * - Photo upload (up to 3 photos)
  * - Submit button with loading state
+ * - Success confirmation modal before navigation
  */
 
 import { Ionicons } from '@expo/vector-icons';
@@ -17,6 +18,7 @@ import {
   Alert,
   Image,
   KeyboardAvoidingView,
+  Modal,
   Platform,
   Pressable,
   ScrollView,
@@ -29,10 +31,13 @@ import {
 import Animated, {
   FadeIn,
   FadeInDown,
+  FadeInUp,
   FadeOut,
   useAnimatedStyle,
   useSharedValue,
+  withSequence,
   withSpring,
+  withTiming,
 } from 'react-native-reanimated';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
@@ -42,12 +47,14 @@ import {
   BorderRadius,
   Colors,
   FontWeights,
+  Shadows,
   Spacing,
   Typography,
 } from '@/constants/theme';
 import { getOrderById } from '@/data/mock/orders';
 import { useColorScheme } from '@/hooks/use-color-scheme';
-import type { CartItem, IssueCategory, Order } from '@/types';
+import { useAuthStore, useIssueStore } from '@/stores';
+import type { CartItem, Issue, IssueCategory, Order } from '@/types';
 
 // ============================================================================
 // Constants
@@ -217,6 +224,110 @@ function PhotoPicker({ photos, onAddPhoto, onRemovePhoto }: PhotoPickerProps) {
 }
 
 // ============================================================================
+// Success Confirmation Modal Component
+// ============================================================================
+
+interface SuccessModalProps {
+  visible: boolean;
+  issue: Issue | null;
+  onViewStatus: () => void;
+}
+
+function SuccessModal({ visible, issue, onViewStatus }: SuccessModalProps) {
+  const colorScheme = useColorScheme() ?? 'light';
+  const colors = Colors[colorScheme];
+  const insets = useSafeAreaInsets();
+  const checkmarkScale = useSharedValue(0);
+
+  useEffect(() => {
+    if (visible) {
+      checkmarkScale.value = withSequence(
+        withTiming(0, { duration: 0 }),
+        withSpring(1.2, { damping: 10, stiffness: 200 }),
+        withSpring(1, { damping: 15, stiffness: 300 })
+      );
+    }
+  }, [visible, checkmarkScale]);
+
+  const checkmarkAnimatedStyle = useAnimatedStyle(() => ({
+    transform: [{ scale: checkmarkScale.value }],
+  }));
+
+  if (!issue) return null;
+
+  return (
+    <Modal
+      visible={visible}
+      transparent
+      animationType="fade"
+      statusBarTranslucent
+      accessibilityViewIsModal
+    >
+      <View style={styles.modalOverlay}>
+        <Animated.View
+          entering={FadeInUp.duration(AnimationDurations.normal).springify()}
+          style={[
+            styles.modalContent,
+            {
+              backgroundColor: colors.card,
+              paddingBottom: insets.bottom + Spacing[6],
+            },
+            Shadows.lg,
+          ]}
+        >
+          {/* Success Checkmark */}
+          <Animated.View
+            style={[
+              styles.successCheckContainer,
+              { backgroundColor: colors.successLight },
+              checkmarkAnimatedStyle,
+            ]}
+          >
+            <Ionicons name="checkmark" size={48} color={colors.success} />
+          </Animated.View>
+
+          {/* Title */}
+          <Text style={[styles.modalTitle, { color: colors.text }]}>Report Submitted!</Text>
+
+          {/* Description */}
+          <Text style={[styles.modalDescription, { color: colors.textSecondary }]}>
+            Thank you for reporting this issue. We'll review your report and get back to you as soon
+            as possible.
+          </Text>
+
+          {/* Issue ID Card */}
+          <View style={[styles.issueIdCard, { backgroundColor: colors.backgroundSecondary }]}>
+            <Text style={[styles.issueIdLabel, { color: colors.textSecondary }]}>
+              Reference Number
+            </Text>
+            <Text style={[styles.issueIdValue, { color: colors.text }]}>{issue.id}</Text>
+          </View>
+
+          {/* Info Note */}
+          <View style={[styles.infoNote, { backgroundColor: colors.primaryLight }]}>
+            <Ionicons name="information-circle" size={20} color={colors.primary} />
+            <Text style={[styles.infoNoteText, { color: colors.primary }]}>
+              You can track the status of your report in the Support section.
+            </Text>
+          </View>
+
+          {/* View Status Button */}
+          <Pressable
+            onPress={onViewStatus}
+            style={[styles.viewStatusButton, { backgroundColor: colors.primary }]}
+            accessibilityRole="button"
+            accessibilityLabel="View issue status"
+          >
+            <Text style={styles.viewStatusButtonText}>View Status</Text>
+            <Ionicons name="arrow-forward" size={18} color="#FFFFFF" />
+          </Pressable>
+        </Animated.View>
+      </View>
+    </Modal>
+  );
+}
+
+// ============================================================================
 // Main Issue Details Form Screen
 // ============================================================================
 
@@ -230,13 +341,19 @@ export default function IssueDetailsScreen() {
     category: IssueCategory;
   }>();
 
+  // Stores
+  const { user } = useAuthStore();
+  const { submitIssue, isSubmitting: storeIsSubmitting } = useIssueStore();
+
   // State
   const [order, setOrder] = useState<Order | null>(null);
   const [isLoading, setIsLoading] = useState(true);
-  const [isSubmitting, setIsSubmitting] = useState(false);
   const [selectedItems, setSelectedItems] = useState<string[]>([]);
   const [description, setDescription] = useState('');
   const [photos, setPhotos] = useState<string[]>([]);
+  const [showSuccessModal, setShowSuccessModal] = useState(false);
+  const [submittedIssue, setSubmittedIssue] = useState<Issue | null>(null);
+  const [_submissionError, setSubmissionError] = useState<string | null>(null);
 
   // Determine if item selection is needed
   const showItemSelection = category === 'missing_items' || category === 'wrong_items';
@@ -257,7 +374,7 @@ export default function IssueDetailsScreen() {
   // Validation
   const isDescriptionValid = description.trim().length >= MIN_DESCRIPTION_LENGTH;
   const hasRequiredItems = !showItemSelection || selectedItems.length > 0;
-  const canSubmit = isDescriptionValid && hasRequiredItems && !isSubmitting;
+  const canSubmit = isDescriptionValid && hasRequiredItems && !storeIsSubmitting;
 
   const validationMessage = useMemo(() => {
     if (showItemSelection && selectedItems.length === 0) {
@@ -315,22 +432,41 @@ export default function IssueDetailsScreen() {
   const handleSubmit = useCallback(async () => {
     if (!canSubmit || !order || !category) return;
 
-    setIsSubmitting(true);
+    setSubmissionError(null);
 
-    // Simulate API call
-    await new Promise((resolve) => setTimeout(resolve, 1500));
+    try {
+      // Submit issue through the store
+      const issue = await submitIssue({
+        orderId: order.id,
+        userId: user?.id || 'guest',
+        category,
+        description: description.trim(),
+        photos: photos.length > 0 ? photos : undefined,
+        affectedItems: selectedItems.length > 0 ? selectedItems : undefined,
+      });
 
-    // Generate mock issue ID
-    const issueId = `issue_${Date.now()}`;
+      // Show success modal
+      setSubmittedIssue(issue);
+      setShowSuccessModal(true);
+    } catch (error) {
+      const errorMessage =
+        error instanceof Error ? error.message : 'Failed to submit issue. Please try again.';
+      setSubmissionError(errorMessage);
+      Alert.alert('Submission Failed', errorMessage, [{ text: 'OK' }]);
+    }
+  }, [canSubmit, order, category, submitIssue, user?.id, description, photos, selectedItems]);
 
-    setIsSubmitting(false);
+  const handleViewStatus = useCallback(() => {
+    setShowSuccessModal(false);
 
-    // Navigate to issue status screen
-    router.replace({
-      pathname: '/support/issue/status/[issueId]',
-      params: { issueId },
-    } as never);
-  }, [canSubmit, order, category, router]);
+    if (submittedIssue) {
+      // Navigate to issue status screen
+      router.replace({
+        pathname: '/support/issue/status/[issueId]',
+        params: { issueId: submittedIssue.id },
+      } as never);
+    }
+  }, [submittedIssue, router]);
 
   // Loading state
   if (isLoading) {
@@ -574,7 +710,7 @@ export default function IssueDetailsScreen() {
             accessibilityLabel="Submit issue report"
             accessibilityState={{ disabled: !canSubmit }}
           >
-            {isSubmitting ? (
+            {storeIsSubmitting ? (
               <Animated.View
                 entering={FadeIn.duration(AnimationDurations.fast)}
                 style={[styles.submitSpinner, { borderColor: '#FFFFFF' }]}
@@ -588,6 +724,13 @@ export default function IssueDetailsScreen() {
           </Pressable>
         </View>
       </KeyboardAvoidingView>
+
+      {/* Success Modal */}
+      <SuccessModal
+        visible={showSuccessModal}
+        issue={submittedIssue}
+        onViewStatus={handleViewStatus}
+      />
     </View>
   );
 }
@@ -855,6 +998,83 @@ const styles = StyleSheet.create({
     marginTop: Spacing[2],
   },
   errorButtonText: {
+    ...Typography.base,
+    fontWeight: FontWeights.semibold as TextStyle['fontWeight'],
+    color: '#FFFFFF',
+  },
+
+  // Success Modal styles
+  modalOverlay: {
+    flex: 1,
+    backgroundColor: 'rgba(0, 0, 0, 0.5)',
+    justifyContent: 'flex-end',
+  },
+  modalContent: {
+    borderTopLeftRadius: BorderRadius.xl,
+    borderTopRightRadius: BorderRadius.xl,
+    paddingHorizontal: Spacing[6],
+    paddingTop: Spacing[8],
+    alignItems: 'center',
+  },
+  successCheckContainer: {
+    width: 88,
+    height: 88,
+    borderRadius: BorderRadius.full,
+    justifyContent: 'center',
+    alignItems: 'center',
+    marginBottom: Spacing[6],
+  },
+  modalTitle: {
+    ...Typography['2xl'],
+    fontWeight: FontWeights.bold as TextStyle['fontWeight'],
+    textAlign: 'center',
+    marginBottom: Spacing[2],
+  },
+  modalDescription: {
+    ...Typography.base,
+    textAlign: 'center',
+    marginBottom: Spacing[6],
+    lineHeight: 22,
+  },
+  issueIdCard: {
+    width: '100%',
+    padding: Spacing[4],
+    borderRadius: BorderRadius.lg,
+    alignItems: 'center',
+    marginBottom: Spacing[4],
+  },
+  issueIdLabel: {
+    ...Typography.sm,
+    marginBottom: Spacing[1],
+  },
+  issueIdValue: {
+    ...Typography.lg,
+    fontWeight: FontWeights.bold as TextStyle['fontWeight'],
+    letterSpacing: 1,
+  },
+  infoNote: {
+    flexDirection: 'row',
+    alignItems: 'flex-start',
+    width: '100%',
+    padding: Spacing[3],
+    borderRadius: BorderRadius.lg,
+    gap: Spacing[2],
+    marginBottom: Spacing[6],
+  },
+  infoNoteText: {
+    ...Typography.sm,
+    flex: 1,
+  },
+  viewStatusButton: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    width: '100%',
+    paddingVertical: Spacing[3.5] || Spacing[4],
+    borderRadius: BorderRadius.lg,
+    gap: Spacing[2],
+  },
+  viewStatusButtonText: {
     ...Typography.base,
     fontWeight: FontWeights.semibold as TextStyle['fontWeight'],
     color: '#FFFFFF',

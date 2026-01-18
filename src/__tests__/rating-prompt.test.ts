@@ -40,7 +40,7 @@ describe('Rating Store', () => {
 
     it('should be exported from stores index', () => {
       const indexContent = readFileSync(storesIndexPath, 'utf-8');
-      expect(indexContent).toContain('export { useRatingStore');
+      expect(indexContent).toContain('useRatingStore');
       expect(indexContent).toContain("from './rating-store'");
     });
   });
