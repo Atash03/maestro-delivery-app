@@ -73,6 +73,13 @@ function AnimatedLogo({ onAnimationComplete }: { onAnimationComplete: () => void
   const opacity = useSharedValue(0);
   const textOpacity = useSharedValue(0);
 
+  // Helper to safely schedule completion callback from UI thread
+  const scheduleCompletion = () => {
+    setTimeout(() => {
+      onAnimationComplete();
+    }, AnimationDurations.slow);
+  };
+
   useEffect(() => {
     // Start the animation sequence
     opacity.value = withTiming(1, { duration: AnimationDurations.fast });
@@ -87,10 +94,8 @@ function AnimatedLogo({ onAnimationComplete }: { onAnimationComplete: () => void
       AnimationDurations.normal,
       withTiming(1, { duration: AnimationDurations.normal }, (finished) => {
         if (finished) {
-          // After animation completes, wait a moment then trigger completion
-          runOnJS(setTimeout)(() => {
-            runOnJS(onAnimationComplete)();
-          }, AnimationDurations.slow);
+          // Bridge from UI thread to JS thread using runOnJS
+          runOnJS(scheduleCompletion)();
         }
       })
     );
@@ -261,29 +266,11 @@ function RootLayoutContent() {
                   }}
                 />
 
-                {/* Support screens */}
+                {/* Support screens - nested navigator in support/_layout.tsx */}
                 <Stack.Screen
-                  name="support/index"
+                  name="support"
                   options={{
                     headerShown: false,
-                    animation: 'slide_from_right',
-                    animationDuration: 280,
-                  }}
-                />
-                <Stack.Screen
-                  name="support/issue/[orderId]"
-                  options={{
-                    headerShown: false,
-                    animation: 'slide_from_right',
-                    animationDuration: 280,
-                  }}
-                />
-                <Stack.Screen
-                  name="support/issue/status/[issueId]"
-                  options={{
-                    headerShown: false,
-                    animation: 'slide_from_right',
-                    animationDuration: 280,
                   }}
                 />
               </Stack>

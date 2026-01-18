@@ -150,12 +150,11 @@ export default function HomeScreen() {
     selectedCategory: selectedCategoryName,
   });
 
-  // Get active filter count from store
-  const activeFilterCount = useFilterStore((state) => state.getActiveFilterCount());
+  // Get clearFilters action from store
   const clearFilters = useFilterStore((state) => state.clearFilters);
 
-  // Apply filters to all restaurants
-  const { filteredRestaurants, hasActiveFilters } = useFilteredRestaurants({
+  // Apply filters to all restaurants - get activeFilterCount from hook to avoid duplicate selector
+  const { filteredRestaurants, hasActiveFilters, activeFilterCount } = useFilteredRestaurants({
     restaurants: allRestaurants,
     categoryFilter: selectedCategoryName,
   });

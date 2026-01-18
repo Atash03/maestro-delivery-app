@@ -53,6 +53,7 @@ import {
 } from '@/constants/theme';
 import { useColorScheme } from '@/hooks/use-color-scheme';
 import { DEFAULT_FILTER_STATE, type FilterState, useFilterStore } from '@/stores';
+import { useShallow } from 'zustand/react/shallow';
 import type { DietaryOption, PriceLevel, SortOption as SortOptionType } from '@/types';
 
 // Re-export FilterState for backwards compatibility
@@ -203,14 +204,16 @@ export default function FiltersScreen() {
   const colors = Colors[colorScheme ?? 'light'];
   const insets = useSafeAreaInsets();
 
-  // Get initial state from store
-  const storeFilters = useFilterStore((state) => ({
-    sortBy: state.sortBy,
-    priceRange: state.priceRange,
-    minRating: state.minRating,
-    maxDeliveryTime: state.maxDeliveryTime,
-    dietary: state.dietary,
-  }));
+  // Get initial state from store (useShallow prevents infinite re-renders)
+  const storeFilters = useFilterStore(
+    useShallow((state) => ({
+      sortBy: state.sortBy,
+      priceRange: state.priceRange,
+      minRating: state.minRating,
+      maxDeliveryTime: state.maxDeliveryTime,
+      dietary: state.dietary,
+    }))
+  );
   const applyFiltersToStore = useFilterStore((state) => state.applyFilters);
 
   // Local filter state (initialized from store)

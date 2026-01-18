@@ -13,6 +13,7 @@
  */
 
 import { useMemo } from 'react';
+import { useShallow } from 'zustand/react/shallow';
 
 import { type FilterState, useFilterStore } from '@/stores';
 import type { DietaryOption, Restaurant, SortOption } from '@/types';
@@ -200,13 +201,16 @@ export function useFilteredRestaurants(
   const { restaurants, categoryFilter = null, localFilters } = options;
 
   // Get filters from store or use local filters
-  const storeFilters = useFilterStore((state) => ({
-    sortBy: state.sortBy,
-    priceRange: state.priceRange,
-    minRating: state.minRating,
-    maxDeliveryTime: state.maxDeliveryTime,
-    dietary: state.dietary,
-  }));
+  // useShallow performs shallow equality comparison to prevent infinite re-renders
+  const storeFilters = useFilterStore(
+    useShallow((state) => ({
+      sortBy: state.sortBy,
+      priceRange: state.priceRange,
+      minRating: state.minRating,
+      maxDeliveryTime: state.maxDeliveryTime,
+      dietary: state.dietary,
+    }))
+  );
 
   const filters = localFilters ?? storeFilters;
 
