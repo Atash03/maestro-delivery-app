@@ -697,7 +697,7 @@ src/
 
 ### Tasks
 
-- [ ] **7.1 Build help center screen**
+- [x] **7.1 Build help center screen**
   - Create `/src/app/support/index.tsx`
   - FAQ accordion sections
   - Common topics:

@@ -960,7 +960,11 @@ export default function ProfileScreen() {
           Support
         </ThemedText>
         <Card variant="elevated" padding="none" radius="lg">
-          <MenuItem icon="help-circle-outline" label="Help Center" onPress={() => {}} />
+          <MenuItem
+            icon="help-circle-outline"
+            label="Help Center"
+            onPress={() => router.push('/support')}
+          />
           <View style={[styles.divider, { backgroundColor: colors.border }]} />
           <MenuItem icon="chatbubble-outline" label="Contact Us" onPress={() => {}} />
           <View style={[styles.divider, { backgroundColor: colors.border }]} />
