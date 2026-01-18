@@ -2,7 +2,7 @@
 
 ## Current Status
 Phase: Phase 6 - Post-Delivery & Order History (IN PROGRESS)
-Task 6.1 - Build order history screen: COMPLETE
+Task 6.3 - Build rating modal: COMPLETE
 Last Updated: 2026-01-18
 
 ---
@@ -2426,3 +2426,82 @@ Instructions for AI Agents:
 - All 161 new tests pass
 - All 304 order-related tests pass (order-details + order-history)
 - Linting passes with no new warnings
+
+
+---
+
+## Task 6.3: Build Rating Modal
+**Date**: 2026-01-18
+**Status**: COMPLETE
+
+### What was done:
+- Created `/src/components/rating-modal.tsx` - A comprehensive modal for rating restaurant food and driver delivery experience
+
+### Features implemented:
+- **Star Rating Component (AnimatedStar)**:
+  - Individual animated stars with scale and color transitions
+  - Bounce animation on selection using withSequence
+  - Accessibility support with proper labels and roles
+  - Uses react-native-reanimated for smooth 60fps animations
+
+- **StarRating Component**:
+  - 5-star rating with tap and swipe gesture support
+  - Pan gesture using react-native-gesture-handler for swiping across stars
+  - Rating label display ("Poor", "Fair", "Good", "Very Good", "Excellent")
+  - Calculates rating from x position for gesture-based selection
+
+- **RatingSection Component**:
+  - Reusable section with title, subtitle, and StarRating
+  - Staggered FadeInDown animations with configurable delay
+
+- **PhotoPicker Component**:
+  - Upload up to 3 photos using expo-image-picker
+  - Image preview with remove button
+  - Dashed border add button with camera icon
+  - Permission handling with user-friendly alerts
+
+- **RatingModal (Main Component)**:
+  - Modal with slide animation and pageSheet presentation
+  - "How was your food?" - Restaurant rating (required)
+  - "How was your delivery?" - Driver rating (optional, only shown if driver assigned)
+  - Optional text review with 500 character limit and counter
+  - Optional photo upload (up to 3)
+  - Form validation (restaurant rating required)
+  - Unsaved changes confirmation on close
+  - Submit button with loading state
+  - State reset when modal opens with new order
+
+### Exported interfaces:
+- `RatingModalProps` - Modal props including visible, onClose, onSubmit, order, isSubmitting
+- `RatingSubmission` - Submission data with orderId, restaurantRating, driverRating, review, photos
+- `StarRatingProps`, `RatingSectionProps`, `PhotoPickerProps` - Sub-component props
+
+### Created `/src/__tests__/rating-modal.test.ts` with 187 tests covering:
+- File structure and exports
+- Constants (STAR_SIZE, STAR_GAP, MAX_PHOTOS, MAX_REVIEW_LENGTH, STAR_LABELS)
+- RatingModalProps and RatingSubmission interfaces
+- AnimatedStar component (animation, accessibility)
+- StarRating component (gesture, rating calculation)
+- RatingSection and PhotoPicker components
+- Modal structure and header
+- Order info display
+- Rating questions and input
+- Review input with character limit
+- Photo upload with ImagePicker
+- Form state and validation
+- Submit and close handlers
+- Animations (reanimated, gestures)
+- Styling and theme integration
+- Accessibility (labels, roles, states)
+- Test IDs for E2E testing
+
+### Technical decisions:
+- Used GestureHandlerRootView inside Modal for gesture support
+- Star colors interpolate between NeutralColors[300] and WarningColors[400]
+- Driver rating defaults to restaurant rating if not explicitly set
+- Used biome-ignore for order.id dependency (intentional for reset on order change)
+- Aspect ratio 4:3 for photo uploads with 0.8 quality
+
+### Test results:
+- All 187 tests pass
+- Linting passes with no errors

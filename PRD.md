@@ -649,7 +649,7 @@ src/
   - "Get Help" button
   - Commit: `feat(orders): build order details with full summary`
 
-- [ ] **6.3 Build rating modal**
+- [x] **6.3 Build rating modal**
   - Create `/src/components/rating-modal.tsx`
   - Star rating (1-5) with tap and swipe
   - "How was your food?" - Restaurant rating
