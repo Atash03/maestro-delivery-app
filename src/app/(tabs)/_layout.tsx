@@ -1,6 +1,7 @@
 import { Tabs } from 'expo-router';
 import { Platform, StyleSheet } from 'react-native';
 
+import { AnimatedTabBar } from '@/components/animations';
 import { HapticTab } from '@/components/haptic-tab';
 import { IconSymbol } from '@/components/ui/icon-symbol';
 import { Colors, Shadows, Spacing, Typography } from '@/constants/theme';
@@ -12,6 +13,12 @@ import { useColorScheme } from '@/hooks/use-color-scheme';
  * - Search: Search restaurants and dishes
  * - Orders: Order history and tracking
  * - Profile: User profile and settings
+ *
+ * Features animated tab bar with:
+ * - Scale animation on tab press
+ * - Animated indicator sliding between tabs
+ * - Icon scale animation for active state
+ * - Haptic feedback on tab switch
  */
 export default function TabLayout() {
   const colorScheme = useColorScheme();
@@ -19,11 +26,14 @@ export default function TabLayout() {
 
   return (
     <Tabs
+      tabBar={(props) => <AnimatedTabBar {...props} />}
       screenOptions={{
         tabBarActiveTintColor: colors.tint,
         tabBarInactiveTintColor: colors.tabIconDefault,
         headerShown: false,
         tabBarButton: HapticTab,
+        // Enhanced tab switching animation
+        animation: 'shift',
         tabBarStyle: [
           styles.tabBar,
           {

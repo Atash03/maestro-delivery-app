@@ -8,8 +8,14 @@
  * for smooth, native-driven animations.
  */
 
+export { AnimatedTabBar } from './animated-tab-bar';
 export { FadeIn, type FadeInProps } from './fade-in';
+export { ModalTransition, type ModalTransitionProps } from './modal-transition';
 export { ScalePress, type ScalePressProps } from './scale-press';
+
+// Screen transition components
+export { ScreenTransition, type ScreenTransitionProps } from './screen-transition';
+export { SharedElementImage, type SharedElementImageProps } from './shared-element-image';
 export { type SlideDirection, SlideUp, type SlideUpProps } from './slide-up';
 export {
   type StaggerAnimationType,

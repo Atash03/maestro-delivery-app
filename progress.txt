@@ -3352,3 +3352,98 @@ Instructions for AI Agents:
 - All 67 tests pass
 - Linting passes
 - Task 8.3 - Add pull-to-refresh: COMPLETE
+
+---
+
+## Session: Add Shared Element and Screen Transitions
+
+- Date: 2026-01-18
+- Tasks Completed:
+  - [x] 8.4 Enhance screen transitions
+- Summary:
+  - Created SharedTransitionContext for coordinating animations between screens:
+    - `/src/context/shared-transition-context.tsx`:
+      - SharedTransitionProvider component
+      - useSharedTransition and useSharedTransitionOptional hooks
+      - Tracks source element layout (position, size, imageUri)
+      - Manages transition state (isTransitioning, direction, targetRoute)
+      - registerSourceElement, clearTransition, getSourceElement actions
+    - `/src/context/index.ts`: exports for all context types and hooks
+
+  - Created ScreenTransition component:
+    - `/src/components/animations/screen-transition.tsx`:
+      - Fade, slide, scale, and fadeSlide animation types
+      - Configurable direction (left, right, up, down)
+      - Spring and timing animation options
+      - Entry/exit animation callbacks
+      - Integration with SharedTransitionContext
+
+  - Created ModalTransition component:
+    - `/src/components/animations/modal-transition.tsx`:
+      - Spring-based slide-up modal animation
+      - Backdrop fade with configurable opacity and color
+      - closeOnBackdropPress support
+      - Entry/exit callbacks
+
+  - Created SharedElementImage component:
+    - `/src/components/animations/shared-element-image.tsx`:
+      - Captures layout and registers with SharedTransitionContext
+      - isSource prop for origin elements
+      - animateEntry prop for destination elements
+      - Works with expo-image
+
+  - Created AnimatedTabBar component:
+    - `/src/components/animations/animated-tab-bar.tsx`:
+      - Custom tab bar replacement for @react-navigation/bottom-tabs
+      - Scale animation on tab press with spring physics
+      - Animated indicator sliding between tabs
+      - Icon scale animation for active state
+      - Label opacity animation
+      - Haptic feedback on tab switch
+      - Full accessibility support (role, state, labels)
+
+  - Updated root layout (`/src/app/_layout.tsx`):
+    - Wrapped app in SharedTransitionProvider
+    - Enhanced Stack.Screen animations:
+      - Default: fade_from_bottom with 250ms duration
+      - (tabs): fade animation
+      - (modals): slide_from_bottom on iOS, fade_from_bottom on Android
+      - restaurant/[id]: slide_from_right with gesture support
+      - order screens: appropriate transitions per type
+      - support screens: slide_from_right
+    - Added gestures for horizontal navigation
+
+  - Updated tabs layout (`/src/app/(tabs)/_layout.tsx`):
+    - Replaced default tab bar with AnimatedTabBar
+    - Added animation: 'shift' for tab switching
+
+  - Updated `/src/components/animations/index.ts` with new exports
+  - Added expo-haptics and expo-image mocks to jest.setup.js
+
+### Tests created:
+- `/src/__tests__/context/shared-transition-context.test.tsx` (10 tests):
+  - SharedTransitionProvider:
+    - Provides context to children
+    - Initializes with correct default state
+    - Registers source element correctly
+    - Clears transition state
+    - Sets transition direction
+    - Starts and ends transition
+    - Retrieves registered source element by id
+  - useSharedTransitionOptional:
+    - Returns null when used outside provider
+    - Returns context when used inside provider
+  - useSharedTransition:
+    - Throws error when used outside provider
+
+### Notable decisions:
+- Since expo-router v6.0.21 doesn't natively support shared element transitions,
+  implemented a context-based solution using react-native-reanimated
+- AnimatedTabBar uses SF Symbols icons via IconSymbol component
+- Modal transitions use spring physics for premium feel
+- Screen transitions default to fadeSlide for smooth navigation
+
+### Test results:
+- All 10 context tests pass
+- Linting passes after fixing unused variables
+- Task 8.4 - Enhance screen transitions: COMPLETE

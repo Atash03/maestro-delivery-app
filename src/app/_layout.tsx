@@ -3,7 +3,7 @@ import { Stack } from 'expo-router';
 import * as SplashScreen from 'expo-splash-screen';
 import { StatusBar } from 'expo-status-bar';
 import { useCallback, useEffect, useState } from 'react';
-import { StyleSheet, View } from 'react-native';
+import { Platform, StyleSheet, View } from 'react-native';
 import Animated, {
   FadeIn,
   FadeOut,
@@ -17,6 +17,7 @@ import Animated, {
 } from 'react-native-reanimated';
 
 import { AnimationDurations, Colors, PrimaryColors, Typography } from '@/constants/theme';
+import { SharedTransitionProvider } from '@/context';
 import { useColorScheme } from '@/hooks/use-color-scheme';
 
 // Prevent the splash screen from auto-hiding until we're ready
@@ -174,72 +175,127 @@ export default function RootLayout() {
 
   return (
     <ThemeProvider value={theme}>
-      <View style={styles.container} onLayout={onLayoutRootView}>
-        {showAnimatedLogo ? (
-          <Animated.View style={styles.animatedLogoWrapper} exiting={FadeOut.duration(300)}>
-            <AnimatedLogo onAnimationComplete={handleAnimationComplete} />
-          </Animated.View>
-        ) : (
-          <Animated.View style={styles.container} entering={FadeIn.duration(300)}>
-            <Stack
-              screenOptions={{
-                headerShown: false,
-                contentStyle: {
-                  backgroundColor: colors.background,
-                },
-              }}
-            >
-              {/* Auth flow - Stack navigation for unauthenticated users */}
-              <Stack.Screen name="(auth)" options={{ headerShown: false }} />
+      <SharedTransitionProvider>
+        <View style={styles.container} onLayout={onLayoutRootView}>
+          {showAnimatedLogo ? (
+            <Animated.View style={styles.animatedLogoWrapper} exiting={FadeOut.duration(300)}>
+              <AnimatedLogo onAnimationComplete={handleAnimationComplete} />
+            </Animated.View>
+          ) : (
+            <Animated.View style={styles.container} entering={FadeIn.duration(300)}>
+              <Stack
+                screenOptions={{
+                  headerShown: false,
+                  contentStyle: {
+                    backgroundColor: colors.background,
+                  },
+                  // Enhanced screen transition animations
+                  animation: 'fade_from_bottom',
+                  animationDuration: 250,
+                }}
+              >
+                {/* Auth flow - Stack navigation for unauthenticated users */}
+                <Stack.Screen name="(auth)" options={{ headerShown: false }} />
 
-              {/* Main app - Tab navigation for authenticated users */}
-              <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
+                {/* Main app - Tab navigation for authenticated users */}
+                <Stack.Screen name="(tabs)" options={{ headerShown: false, animation: 'fade' }} />
 
-              {/* Modal screens - Presented modally over other content */}
-              <Stack.Screen
-                name="(modals)"
-                options={{
-                  presentation: 'modal',
-                  headerShown: false,
-                }}
-              />
+                {/* Modal screens - Presented modally with spring animation */}
+                <Stack.Screen
+                  name="(modals)"
+                  options={{
+                    presentation: 'modal',
+                    headerShown: false,
+                    animation: Platform.OS === 'ios' ? 'slide_from_bottom' : 'fade_from_bottom',
+                    animationDuration: 300,
+                  }}
+                />
 
-              {/* Restaurant detail screen */}
-              <Stack.Screen
-                name="restaurant/[id]"
-                options={{
-                  headerShown: false,
-                  animation: 'slide_from_right',
-                }}
-              />
+                {/* Restaurant detail screen - Enhanced slide transition */}
+                <Stack.Screen
+                  name="restaurant/[id]"
+                  options={{
+                    headerShown: false,
+                    animation: 'slide_from_right',
+                    animationDuration: 280,
+                    gestureEnabled: true,
+                    gestureDirection: 'horizontal',
+                  }}
+                />
 
-              {/* Order screens */}
-              <Stack.Screen
-                name="order/checkout"
-                options={{
-                  headerShown: false,
-                  animation: 'slide_from_right',
-                }}
-              />
-              <Stack.Screen
-                name="order/[id]"
-                options={{
-                  headerShown: false,
-                  animation: 'slide_from_right',
-                }}
-              />
-              <Stack.Screen
-                name="order/add-card"
-                options={{
-                  headerShown: false,
-                  animation: 'slide_from_right',
-                }}
-              />
-            </Stack>
-          </Animated.View>
-        )}
-        <StatusBar style="auto" />
-      </View>
+                {/* Order screens */}
+                <Stack.Screen
+                  name="order/checkout"
+                  options={{
+                    headerShown: false,
+                    animation: 'slide_from_right',
+                    animationDuration: 280,
+                    gestureEnabled: true,
+                    gestureDirection: 'horizontal',
+                  }}
+                />
+                <Stack.Screen
+                  name="order/[id]"
+                  options={{
+                    headerShown: false,
+                    animation: 'fade_from_bottom',
+                    animationDuration: 300,
+                  }}
+                />
+                <Stack.Screen
+                  name="order/add-card"
+                  options={{
+                    headerShown: false,
+                    animation: 'slide_from_right',
+                    animationDuration: 280,
+                    gestureEnabled: true,
+                    gestureDirection: 'horizontal',
+                  }}
+                />
+
+                {/* Order details screen */}
+                <Stack.Screen
+                  name="order/details/[id]"
+                  options={{
+                    headerShown: false,
+                    animation: 'slide_from_right',
+                    animationDuration: 280,
+                    gestureEnabled: true,
+                    gestureDirection: 'horizontal',
+                  }}
+                />
+
+                {/* Support screens */}
+                <Stack.Screen
+                  name="support/index"
+                  options={{
+                    headerShown: false,
+                    animation: 'slide_from_right',
+                    animationDuration: 280,
+                  }}
+                />
+                <Stack.Screen
+                  name="support/issue/[orderId]"
+                  options={{
+                    headerShown: false,
+                    animation: 'slide_from_right',
+                    animationDuration: 280,
+                  }}
+                />
+                <Stack.Screen
+                  name="support/issue/status/[issueId]"
+                  options={{
+                    headerShown: false,
+                    animation: 'slide_from_right',
+                    animationDuration: 280,
+                  }}
+                />
+              </Stack>
+            </Animated.View>
+          )}
+          <StatusBar style="auto" />
+        </View>
+      </SharedTransitionProvider>
     </ThemeProvider>
   );
 }

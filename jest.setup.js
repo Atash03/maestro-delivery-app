@@ -25,6 +25,24 @@ jest.mock('react-native/Libraries/Utilities/Platform', () => ({
 // Mock expo modules that cause issues
 jest.mock('expo-font', () => ({}));
 jest.mock('expo-asset', () => ({}));
+jest.mock('expo-haptics', () => ({
+  impactAsync: jest.fn(),
+  notificationAsync: jest.fn(),
+  selectionAsync: jest.fn(),
+  ImpactFeedbackStyle: {
+    Light: 'light',
+    Medium: 'medium',
+    Heavy: 'heavy',
+  },
+  NotificationFeedbackType: {
+    Success: 'success',
+    Warning: 'warning',
+    Error: 'error',
+  },
+}));
+jest.mock('expo-image', () => ({
+  Image: 'Image',
+}));
 
 // Mock @expo/vector-icons
 jest.mock('@expo/vector-icons', () => {

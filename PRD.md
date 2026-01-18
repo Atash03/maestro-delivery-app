@@ -788,7 +788,7 @@ src/
   - Custom refresh indicator with animation
   - Commit: `feat(ui): add pull-to-refresh with custom animation`
 
-- [ ] **8.4 Enhance screen transitions**
+- [x] **8.4 Enhance screen transitions**
   - Shared element transitions for:
     - Restaurant card to restaurant detail
     - Menu item to customization modal

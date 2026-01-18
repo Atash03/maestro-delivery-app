@@ -36,7 +36,7 @@ import {
   Typography,
 } from '@/constants/theme';
 import { useColorScheme } from '@/hooks/use-color-scheme';
-import type { MenuItem } from '@/types';
+import type { MenuItem, Restaurant } from '@/types';
 
 // ============================================================================
 // Types
