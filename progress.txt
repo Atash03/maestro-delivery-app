@@ -2167,3 +2167,79 @@ Instructions for AI Agents:
     - All 99 new tests passing
     - Linting clean
   - Phase 5 Task 5.5 complete - Driver info card with contact options created
+
+- [x] **5.6 Implement mock real-time updates**
+  - Summary:
+    - Created `/src/hooks/use-order-tracking.ts` - A custom hook for managing mock real-time order tracking:
+      - Automatic order status progression with configurable intervals (default: 5 seconds)
+      - Driver location updates along simulated route (default: every 3 seconds)
+      - ETA calculation and updates as driver moves toward destination
+      - Driver assignment when order reaches READY status
+    - Hook configuration options:
+      - statusUpdateInterval: Delay between status updates (default: 5000ms)
+      - locationUpdateInterval: Delay between driver location updates (default: 3000ms)
+      - autoProgress: Enable/disable automatic status progression (default: true)
+      - simulateDriverMovement: Enable/disable driver movement simulation (default: true)
+    - Hook return values:
+      - order: Current order being tracked
+      - status: Current order status
+      - driver: Assigned driver (when applicable)
+      - driverLocation: Current driver coordinates
+      - etaMinutes: Estimated time of arrival in minutes
+      - etaFormatted: Formatted ETA string (e.g., "15 min", "1 hr 30 min", "Arriving now")
+      - isPickedUp: Whether order has been picked up by driver
+      - isTracking: Whether tracking is currently active
+      - isComplete: Whether order is in terminal state (DELIVERED or CANCELLED)
+      - startTracking(): Begin tracking the order
+      - stopTracking(): Stop tracking the order
+      - advanceStatus(): Manually advance to next status (for testing)
+      - statusTimestamps: Record of timestamps for each status transition
+    - Helper functions exported:
+      - getNextStatus: Get next status in the order progression sequence
+      - shouldHaveDriver: Check if a status should have a driver assigned
+      - getRandomDriverStartPosition: Generate random driver position near restaurant
+      - interpolateCoordinates: Interpolate between two coordinates based on progress
+      - calculateDistance: Calculate distance between two coordinates (Haversine formula)
+      - calculateETAMinutes: Calculate ETA based on distance and speed
+      - formatETA: Format minutes to human-readable string
+      - getRandomDriver: Get a random driver from mock data
+    - Order status sequence (7 statuses):
+      - PENDING → CONFIRMED → PREPARING → READY → PICKED_UP → ON_THE_WAY → DELIVERED
+      - CANCELLED is terminal but separate from main sequence
+    - Route phase tracking:
+      - "to_restaurant" phase: Driver heads toward restaurant
+      - "to_delivery" phase: Driver heads toward delivery address (after PICKED_UP)
+    - Driver movement simulation:
+      - Generates random starting position near restaurant (within ~1km)
+      - Moves driver along interpolated path at 15% progress per update
+      - Calculates real-time ETA based on remaining distance at 30km/h average speed
+    - Integration with stores:
+      - Uses useOrderStore for getting/updating order data
+      - Calls updateOrderStatus, assignDriver, updateDriverLocation, updateEstimatedDelivery
+    - Created `/src/__mocks__/async-storage.js` for test mocking
+    - Updated `jest.config.js` to include moduleNameMapper for AsyncStorage mock
+    - Created comprehensive test suite `/src/__tests__/use-order-tracking.test.ts` (88 tests):
+      - Helper function tests:
+        - getNextStatus: All 8 status transitions + terminal states (8 tests)
+        - shouldHaveDriver: All statuses checked (7 tests)
+        - getRandomDriverStartPosition: Near restaurant, randomized, valid values (3 tests)
+        - interpolateCoordinates: Progress 0, 0.5, 1, clamping, intermediate (6 tests)
+        - calculateDistance: Same coords, NYC distances, direction symmetry, equator (4 tests)
+        - calculateETAMinutes: Zero distance, default speed, custom speed, rounding (5 tests)
+        - formatETA: 0 min, negative, 1 min, under 60, 1 hr, hours+minutes (7 tests)
+      - Order status sequence tests (5 tests)
+      - Picked up status detection tests (8 tests)
+      - Complete status detection tests (3 tests)
+      - Configuration tests (5 tests)
+      - Driver assignment logic tests (3 tests)
+      - Route phase tracking tests (2 tests)
+      - ETA calculation integration tests (2 tests)
+      - Status timestamps tests (2 tests)
+      - Hook return type structure tests (9 tests)
+      - Edge cases tests:
+        - Coordinate edge cases: Poles, date line crossing, identical coords (3 tests)
+        - ETA edge cases: Large distances, small distances, high speeds (3 tests)
+      - Module export tests (3 tests)
+    - All 88 new tests passing
+    - Linting clean
+  - Phase 5 Task 5.6 complete - Mock real-time order updates implemented

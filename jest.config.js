@@ -6,6 +6,7 @@ module.exports = {
       testMatch: ['<rootDir>/src/__tests__/**/*.test.ts'],
       moduleNameMapper: {
         '^@/(.*)$': '<rootDir>/src/$1',
+        '^@react-native-async-storage/async-storage$': '<rootDir>/src/__mocks__/async-storage.js',
       },
       transform: {
         '^.+\\.(js|jsx|ts|tsx)$': [
@@ -25,6 +26,7 @@ module.exports = {
       testMatch: ['<rootDir>/src/__tests__/**/*.test.tsx'],
       moduleNameMapper: {
         '^@/(.*)$': '<rootDir>/src/$1',
+        '^@react-native-async-storage/async-storage$': '<rootDir>/src/__mocks__/async-storage.js',
       },
       transform: {
         '^.+\\.(js|jsx|ts|tsx)$': [

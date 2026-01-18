@@ -594,7 +594,7 @@ src/
   - Animated slide-up appearance when driver assigned
   - Commit: `feat(tracking): add driver info card with contact options`
 
-- [ ] **5.6 Implement mock real-time updates**
+- [x] **5.6 Implement mock real-time updates**
   - Create `/src/hooks/use-order-tracking.ts`
   - Simulate status changes with setTimeout
   - Update driver location periodically
