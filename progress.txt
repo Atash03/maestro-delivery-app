@@ -3625,3 +3625,118 @@ Implemented comprehensive dark mode support with user preference control. Users 
 - Modal-based selector for clean UX vs inline toggle
 
 ### Task 8.6 - Implement dark mode support: COMPLETE
+
+---
+
+## Task 8.7 - Add app icons and splash screen: COMPLETE
+
+### Date: 2026-01-18
+
+### Overview:
+Created custom app icons for Maestro food delivery app with a distinctive food dome/cloche design featuring steam lines. Generated all required icon assets for iOS, Android (including adaptive icons), and web.
+
+### Files created:
+- `/scripts/generate-icons.ts`:
+  - TypeScript script using sharp library to generate icons programmatically
+  - Generates SVG designs and converts to PNG
+  - Creates all required icon variants from a single source
+  - Uses Maestro brand colors from theme.ts
+
+- `/src/__tests__/app-icons.test.ts`:
+  - 32 comprehensive tests for app icon assets
+  - Tests file existence, file sizes, PNG validity
+  - Tests app.json configuration
+  - Tests brand color consistency
+  - Tests icon generation script
+
+### Icon assets generated:
+- `/src/assets/images/icon.png` (1024x1024):
+  - Main app icon for iOS and general use
+  - Orange gradient background with rounded corners
+  - White food dome/cloche with orange steam lines
+
+- `/src/assets/images/android-icon-foreground.png` (1024x1024):
+  - Android adaptive icon foreground layer
+  - White food dome with orange steam on transparent background
+  - Composites with background for final icon
+
+- `/src/assets/images/android-icon-background.png` (1024x1024):
+  - Android adaptive icon background layer
+  - Orange gradient (#FF6B35 to #C44A22)
+
+- `/src/assets/images/android-icon-monochrome.png` (1024x1024):
+  - Android 13+ themed icon support
+  - Black silhouette on transparent background
+  - Adapts to system accent colors
+
+- `/src/assets/images/splash-icon.png` (512x512):
+  - Splash screen icon
+  - Light pink background (#FFF5F0)
+  - Orange food dome with white steam
+  - Works with both light and dark splash backgrounds
+
+- `/src/assets/images/favicon.png` (64x64):
+  - Web favicon optimized for small sizes
+  - Simplified design that reads well at 16x16
+
+### Icon design:
+The icon features a minimalist food delivery concept:
+- A dome/cloche (food cover) representing restaurant quality
+- A plate base showing the food service aspect
+- Three steam/aroma lines rising from the dome, subtly forming an "M" shape for Maestro
+- Orange brand color conveys warmth and appetite appeal
+
+### App.json configuration verified:
+```json
+{
+  "icon": "./src/assets/images/icon.png",
+  "android": {
+    "adaptiveIcon": {
+      "foregroundImage": "./src/assets/images/android-icon-foreground.png",
+      "backgroundImage": "./src/assets/images/android-icon-background.png",
+      "monochromeImage": "./src/assets/images/android-icon-monochrome.png",
+      "backgroundColor": "#FF6B35"
+    }
+  },
+  "web": {
+    "favicon": "./src/assets/images/favicon.png"
+  },
+  "plugins": [
+    ["expo-splash-screen", {
+      "image": "./src/assets/images/splash-icon.png",
+      "backgroundColor": "#FFF5F0",
+      "dark": {
+        "image": "./src/assets/images/splash-icon.png",
+        "backgroundColor": "#0A0A0A"
+      }
+    }]
+  ]
+}
+```
+
+### Dependencies added:
+- `sharp@0.34.5`: Image processing library for icon generation
+- `@types/sharp@0.32.0`: TypeScript types for sharp
+
+### Test results:
+- 32 app icons tests pass
+- All PNG files validated as proper PNG format
+- Brand colors verified in configuration
+- Linting passes (only pre-existing warnings for array index keys)
+
+### Notable decisions:
+- Used programmatic SVG generation for reproducibility
+- Simplified icon design works well at all sizes (1024x1024 to 16x16)
+- Steam lines evoke hot food and subtly suggest "M" for Maestro
+- Food dome universally recognized as restaurant/food service symbol
+- Monochrome version supports Android 13+ Material You theming
+- Splash screen uses lighter background to complement the orange icon
+
+### Animated splash screen:
+The existing animated splash screen in _layout.tsx was already implemented:
+- Spring animation for logo scale (bouncy reveal)
+- Fade in for text and tagline
+- Smooth transition to app content
+- Works with both light and dark modes
+
+### Task 8.7 - Add app icons and splash screen: COMPLETE

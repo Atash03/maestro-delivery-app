@@ -811,7 +811,7 @@ src/
   - Fix any theme issues
   - Commit: `feat(theme): complete dark mode support`
 
-- [ ] **8.7 Add app icons and splash screen**
+- [x] **8.7 Add app icons and splash screen**
   - Create custom app icon
   - Configure adaptive icons for Android
   - Animated splash screen
