@@ -601,7 +601,7 @@ src/
   - Update ETA as driver moves
   - Commit: `feat(tracking): implement mock real-time order updates`
 
-- [ ] **5.7 Set up push notification placeholders**
+- [x] **5.7 Set up push notification placeholders**
   - Create `/src/utils/notifications.ts`
   - Request notification permissions
   - Mock notification triggers for:
