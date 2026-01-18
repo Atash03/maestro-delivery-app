@@ -665,7 +665,7 @@ src/
   - "Rate Order" button in order history
   - Commit: `feat(ratings): trigger rating prompt after delivery`
 
-- [ ] **6.5 Build review display on restaurant**
+- [x] **6.5 Build review display on restaurant**
   - Show ratings on restaurant detail page
   - Recent reviews section
   - Review cards with:

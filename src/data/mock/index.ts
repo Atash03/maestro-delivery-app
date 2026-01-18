@@ -55,7 +55,6 @@ export {
   orderStatusSequence,
   simulateOrderStatusUpdate,
 } from './orders';
-
 // ============================================================================
 // Promo Codes
 // ============================================================================
@@ -81,6 +80,21 @@ export {
   mockRestaurants,
   searchRestaurantsByName,
 } from './restaurants';
+// ============================================================================
+// Reviews
+// ============================================================================
+export {
+  fetchRecentReviews,
+  fetchReviewsByRestaurantId,
+  formatReviewDate,
+  getAverageRating,
+  getRatingDistribution,
+  getRecentReviews,
+  getReviewById,
+  getReviewsByRestaurantId,
+  getReviewsByUserId,
+  mockReviews,
+} from './reviews';
 // ============================================================================
 // Users, Drivers & Payment Methods
 // ============================================================================

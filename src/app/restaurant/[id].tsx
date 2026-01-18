@@ -39,6 +39,7 @@ import { RestaurantMenuItemCard } from '@/components/cards';
 import { CART_PREVIEW_HEIGHT, CartPreview } from '@/components/cart-preview';
 import { INDICATOR_HEIGHT, MenuCategoryTabs, TAB_HEIGHT } from '@/components/menu-category-tabs';
 import { EmptyMenu, MenuSectionHeader, MenuSkeleton } from '@/components/menu-section-list';
+import { ReviewsSection } from '@/components/reviews-section';
 import { ThemedText } from '@/components/themed-text';
 import { Badge } from '@/components/ui';
 import {
@@ -901,6 +902,21 @@ export default function RestaurantDetailScreen() {
 
             {/* Empty Menu State */}
             {!isMenuLoading && menuCategories.length === 0 && <EmptyMenu testID="empty-menu" />}
+          </Animated.View>
+
+          {/* Divider before Reviews */}
+          <View style={[styles.divider, { backgroundColor: colors.border }]} />
+
+          {/* Reviews Section */}
+          <Animated.View entering={FadeInUp.delay(450).duration(AnimationDurations.normal)}>
+            <ReviewsSection
+              restaurantId={restaurant.id}
+              rating={restaurant.rating}
+              reviewCount={restaurant.reviewCount}
+              showRatingDistribution={true}
+              maxReviews={3}
+              testID="reviews-section"
+            />
           </Animated.View>
         </View>
       </Animated.ScrollView>

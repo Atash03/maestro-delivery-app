@@ -2,7 +2,7 @@
 
 ## Current Status
 Phase: Phase 6 - Post-Delivery & Order History (IN PROGRESS)
-Task 6.4 - Trigger rating prompt: COMPLETE
+Task 6.5 - Build review display on restaurant: COMPLETE
 Last Updated: 2026-01-18
 
 ---
@@ -2562,3 +2562,70 @@ Instructions for AI Agents:
 ### Test results:
 - All 78 new tests pass
 - Linting passes with no errors
+
+---
+
+### Session 47
+- Date: 2026-01-18
+- Tasks Completed:
+  - [x] 6.5 Build review display on restaurant
+- Summary:
+  - Created `/src/data/mock/reviews.ts` - Comprehensive mock reviews data:
+    - 24 sample reviews across 10 restaurants
+    - Reviews with varying ratings (3-5 stars)
+    - Reviews with and without photos
+    - Reviews with and without user avatars
+    - Helper functions: getReviewsByRestaurantId, getReviewById, getReviewsByUserId
+    - Rating utilities: getAverageRating, getRatingDistribution, getRecentReviews
+    - Date formatting: formatReviewDate (handles today, yesterday, days/weeks/months ago)
+    - Async fetch functions with simulated network delays
+  - Created `/src/components/cards/review-card.tsx` - ReviewCard component:
+    - User avatar with fallback initials (using Avatar component)
+    - User name display
+    - StarRating sub-component with 5 star display
+    - Review date formatted with relative time
+    - Review text with truncation and "Read more" / "Show less" toggle
+    - PhotoGrid sub-component for review photos (max 3 displayed)
+    - More photos overlay when >3 photos exist
+    - FadeIn animation on mount
+    - Full theme support (light/dark mode)
+  - Created `/src/components/reviews-section.tsx` - ReviewsSection component:
+    - Section header with title, rating badge, and review count
+    - RatingDistribution sub-component showing 5 rating bars with visual percentages
+    - Recent reviews list (configurable limit, defaults to 3)
+    - ReviewsSkeleton loading state with skeleton cards
+    - EmptyReviews state when no reviews exist
+    - "See all reviews" button when more reviews are available
+    - onSeeAllPress and onPhotoPress callbacks
+    - FadeInUp animations with staggered delays
+  - Updated `/src/components/cards/index.ts` to export ReviewCard
+  - Updated `/src/data/mock/index.ts` to export all review-related functions
+  - Updated `/src/app/restaurant/[id].tsx`:
+    - Imported ReviewsSection component
+    - Added divider before reviews section
+    - Integrated ReviewsSection with restaurantId, rating, reviewCount props
+    - Shows rating distribution and 3 recent reviews
+    - FadeInUp animation with 450ms delay
+
+### Tests created:
+- `/src/__tests__/reviews.test.ts` with 107 tests covering:
+  - File structure (all files exist)
+  - Mock reviews data structure and content
+  - Helper functions (getReviewsByRestaurantId, getReviewById, etc.)
+  - formatReviewDate function formats
+  - ReviewCard component exports and props
+  - StarRating and PhotoGrid sub-components
+  - ReviewsSection component exports and props
+  - Rating distribution display
+  - Loading and empty states
+  - See all button functionality
+  - Animations (FadeIn, FadeInUp with delays)
+  - Restaurant detail integration
+  - Exports from cards/index.ts and mock/index.ts
+  - Accessibility (labels and roles)
+  - Styling (StyleSheet, theme colors)
+  - Type safety (Review type imports)
+
+### Test results:
+- All 107 new tests pass
+- Linting passes with warnings only (no errors)

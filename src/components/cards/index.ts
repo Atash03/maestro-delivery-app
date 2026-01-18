@@ -40,3 +40,4 @@ export {
   RestaurantMenuItemCard,
   type RestaurantMenuItemCardProps,
 } from './restaurant-menu-item-card';
+export { ReviewCard, type ReviewCardProps } from './review-card';
