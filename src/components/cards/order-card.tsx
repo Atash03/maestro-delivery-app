@@ -22,6 +22,7 @@ import { ThemedText } from '@/components/themed-text';
 import { Badge, type BadgeVariant } from '@/components/ui/badge';
 import { BorderRadius, Colors, Shadows, Spacing, Typography } from '@/constants/theme';
 import { useColorScheme } from '@/hooks/use-color-scheme';
+import { useRatingStore } from '@/stores';
 import type { Order, OrderStatus } from '@/types';
 
 // ============================================================================
@@ -33,6 +34,8 @@ export interface OrderCardProps {
   order: Order;
   /** Callback when card is pressed */
   onPress?: (order: Order) => void;
+  /** Callback when rate button is pressed */
+  onRatePress?: (order: Order) => void;
   /** Test ID for testing */
   testID?: string;
 }
@@ -125,9 +128,15 @@ export function formatItemCount(count: number): string {
 // Component
 // ============================================================================
 
-export function OrderCard({ order, onPress, testID }: OrderCardProps) {
+export function OrderCard({ order, onPress, onRatePress, testID }: OrderCardProps) {
   const colorScheme = useColorScheme();
   const colors = Colors[colorScheme ?? 'light'];
+
+  // Check if order can be rated
+  const hasRating = useRatingStore((state) => state.hasRating);
+  const isDelivered = order.status === 'DELIVERED';
+  const isRated = hasRating(order.id);
+  const showRateButton = isDelivered && !isRated && onRatePress;
 
   // Animation values
   const scale = useSharedValue(1);
@@ -146,6 +155,11 @@ export function OrderCard({ order, onPress, testID }: OrderCardProps) {
   const handlePress = useCallback(() => {
     onPress?.(order);
   }, [order, onPress]);
+
+  // Handle rate press
+  const handleRatePress = useCallback(() => {
+    onRatePress?.(order);
+  }, [order, onRatePress]);
 
   // Animated container style
   const animatedContainerStyle = useAnimatedStyle(() => {
@@ -230,6 +244,22 @@ export function OrderCard({ order, onPress, testID }: OrderCardProps) {
               ${order.total.toFixed(2)}
             </ThemedText>
           </View>
+
+          {/* Rate Button (for delivered, unrated orders) */}
+          {showRateButton && (
+            <Pressable
+              onPress={handleRatePress}
+              style={[styles.rateButton, { backgroundColor: colors.backgroundSecondary }]}
+              accessibilityLabel="Rate this order"
+              accessibilityRole="button"
+              testID={`${testID}-rate-button`}
+            >
+              <Ionicons name="star-outline" size={14} color={colors.primary} />
+              <ThemedText style={[styles.rateButtonText, { color: colors.primary }]}>
+                Rate Order
+              </ThemedText>
+            </Pressable>
+          )}
         </View>
 
         {/* Chevron Icon */}
@@ -315,6 +345,21 @@ const styles = StyleSheet.create({
   totalAmount: {
     fontSize: Typography.base.fontSize,
     lineHeight: Typography.base.lineHeight,
+    fontWeight: '600',
+  },
+  rateButton: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    alignSelf: 'flex-start',
+    paddingVertical: Spacing[1],
+    paddingHorizontal: Spacing[2],
+    borderRadius: BorderRadius.md,
+    marginTop: Spacing[2],
+    gap: Spacing[1],
+  },
+  rateButtonText: {
+    fontSize: Typography.xs.fontSize,
+    lineHeight: Typography.xs.lineHeight,
     fontWeight: '600',
   },
   chevronContainer: {

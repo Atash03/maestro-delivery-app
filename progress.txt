@@ -2,7 +2,7 @@
 
 ## Current Status
 Phase: Phase 6 - Post-Delivery & Order History (IN PROGRESS)
-Task 6.3 - Build rating modal: COMPLETE
+Task 6.4 - Trigger rating prompt: COMPLETE
 Last Updated: 2026-01-18
 
 ---
@@ -2504,4 +2504,61 @@ Instructions for AI Agents:
 
 ### Test results:
 - All 187 tests pass
+- Linting passes with no errors
+
+---
+
+### Session 46
+- Date: 2026-01-18
+- Tasks Completed:
+  - [x] 6.4 Trigger rating prompt after delivery
+- Summary:
+  - Created `/src/stores/rating-store.ts` - Zustand store for rating state management:
+    - Tracks submitted ratings by orderId (ratings: Record<string, StoredRating>)
+    - Manages pending rating prompts for delivered orders
+    - Tracks dismissed prompts for "rate later" functionality
+    - Actions: submitRating, hasRating, getRating, addPendingRatingPrompt, removePendingRatingPrompt, dismissRatingPrompt, hasPendingRatingPrompt, wasPromptDismissed, shouldShowRateButton, getPendingRatingPrompts, clearAllRatings
+    - Uses zustand persist with AsyncStorage for persistence
+  - Created `/src/hooks/use-rating-prompt.ts` - Custom hook for rating prompt management:
+    - useRatingPrompt hook with options: autoShowPrompt, orderId
+    - Returns: showRatingModal, orderToRate, isSubmitting, openRatingModal, closeRatingModal, submitRating, dismissPrompt, hasRating, shouldShowRateButton, pendingPrompts
+    - Watches for order delivery status to trigger prompts
+    - Auto-shows modal for pending prompts when autoShowPrompt is true
+    - useOrderRatingStatus helper hook for checking order rating state
+  - Updated `/src/app/order/tracking/[id].tsx`:
+    - Integrated RatingModal with autoShowPrompt: true
+    - Rating modal auto-appears when order is marked as delivered
+    - Handles rating submission and dismissal
+  - Updated `/src/app/order/details/[id].tsx`:
+    - Added "Rate Order" button for delivered, unrated orders
+    - Replaced Reorder as primary action when rating is available
+    - Integrated RatingModal for rating submission
+  - Updated `/src/app/(tabs)/orders.tsx`:
+    - Integrated rating modal for rating from order history
+    - Pass onRatePress handler to OrderCard components
+  - Updated `/src/components/cards/order-card.tsx`:
+    - Added onRatePress prop for rate button callback
+    - Shows "Rate Order" button for delivered, unrated orders
+    - Uses useRatingStore to check rating status
+    - Star icon button with small, subtle styling
+  - Updated `/src/stores/index.ts` to export useRatingStore and StoredRating
+
+### Tests created:
+- `/src/__tests__/rating-prompt.test.ts` with 78 tests covering:
+  - Rating store file structure and exports
+  - State structure (ratings, pendingRatingPrompts, dismissedPrompts)
+  - All store actions
+  - Persistence configuration
+  - Submit rating logic
+  - Pending prompts logic
+  - useRatingPrompt hook functionality
+  - useOrderRatingStatus hook
+  - Order details screen integration
+  - Order tracking screen integration
+  - Orders screen integration
+  - Order card integration
+  - Complete rating flow
+
+### Test results:
+- All 78 new tests pass
 - Linting passes with no errors

@@ -42,6 +42,7 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { getStatusBadgeVariant, getStatusText } from '@/components/cards';
 import { OrderStatusTracker } from '@/components/order-status-tracker';
+import { RatingModal, type RatingSubmission } from '@/components/rating-modal';
 import { Badge } from '@/components/ui/badge';
 import {
   AnimationDurations,
@@ -56,6 +57,7 @@ import {
   Typography,
 } from '@/constants/theme';
 import { useColorScheme } from '@/hooks/use-color-scheme';
+import { useRatingPrompt } from '@/hooks/use-rating-prompt';
 import { useCartStore, useOrderStore } from '@/stores';
 import type { CardBrand, CartItem, Order, OrderStatus, PaymentMethod } from '@/types';
 
@@ -584,6 +586,40 @@ export default function OrderDetailsScreen() {
   // Refresh state
   const [isRefreshing, setIsRefreshing] = useState(false);
 
+  // Rating prompt hook
+  const {
+    showRatingModal,
+    orderToRate,
+    isSubmitting: isRatingSubmitting,
+    openRatingModal,
+    submitRating,
+    dismissPrompt,
+    shouldShowRateButton,
+  } = useRatingPrompt({ orderId: id });
+
+  // Check if we should show the rate button
+  const showRateButton = id ? shouldShowRateButton(id) && order?.status === 'DELIVERED' : false;
+
+  // Handle rate order
+  const handleRateOrder = useCallback(() => {
+    if (id) {
+      openRatingModal(id);
+    }
+  }, [id, openRatingModal]);
+
+  // Handle rating submission
+  const handleRatingSubmit = useCallback(
+    async (rating: RatingSubmission) => {
+      await submitRating(rating);
+    },
+    [submitRating]
+  );
+
+  // Handle rating modal close
+  const handleRatingClose = useCallback(() => {
+    dismissPrompt();
+  }, [dismissPrompt]);
+
   // Handle back navigation
   const handleBack = useCallback(() => {
     router.back();
@@ -770,21 +806,53 @@ export default function OrderDetailsScreen() {
           },
         ]}
       >
-        <ActionButton
-          label="Reorder"
-          icon="refresh-outline"
-          onPress={handleReorder}
-          variant="primary"
-          colors={colors}
-        />
-        <ActionButton
-          label="Get Help"
-          icon="help-circle-outline"
-          onPress={handleGetHelp}
-          variant="secondary"
-          colors={colors}
-        />
+        {showRateButton ? (
+          <>
+            <ActionButton
+              label="Rate Order"
+              icon="star-outline"
+              onPress={handleRateOrder}
+              variant="primary"
+              colors={colors}
+            />
+            <ActionButton
+              label="Reorder"
+              icon="refresh-outline"
+              onPress={handleReorder}
+              variant="secondary"
+              colors={colors}
+            />
+          </>
+        ) : (
+          <>
+            <ActionButton
+              label="Reorder"
+              icon="refresh-outline"
+              onPress={handleReorder}
+              variant="primary"
+              colors={colors}
+            />
+            <ActionButton
+              label="Get Help"
+              icon="help-circle-outline"
+              onPress={handleGetHelp}
+              variant="secondary"
+              colors={colors}
+            />
+          </>
+        )}
       </View>
+
+      {/* Rating Modal */}
+      {orderToRate && (
+        <RatingModal
+          visible={showRatingModal}
+          onClose={handleRatingClose}
+          onSubmit={handleRatingSubmit}
+          order={orderToRate}
+          isSubmitting={isRatingSubmitting}
+        />
+      )}
     </View>
   );
 }

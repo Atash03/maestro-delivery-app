@@ -19,6 +19,7 @@ import Animated, { FadeIn, FadeInDown, Layout } from 'react-native-reanimated';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { OrderCard, OrderCardSkeletonList } from '@/components/cards';
 import { GuestPromptBanner } from '@/components/guest-prompt-banner';
+import { RatingModal, type RatingSubmission } from '@/components/rating-modal';
 import { ThemedText } from '@/components/themed-text';
 import {
   BorderRadius,
@@ -30,6 +31,7 @@ import {
 } from '@/constants/theme';
 import { useColorScheme } from '@/hooks/use-color-scheme';
 import { useOrderHistory } from '@/hooks/use-order-history';
+import { useRatingPrompt } from '@/hooks/use-rating-prompt';
 import { useAuthStore } from '@/stores';
 import type { Order } from '@/types';
 
@@ -166,6 +168,16 @@ export default function OrdersScreen() {
 
   const { activeOrders, pastOrders, isLoading, refresh } = useOrderHistory();
 
+  // Rating prompt hook
+  const {
+    showRatingModal,
+    orderToRate,
+    isSubmitting: isRatingSubmitting,
+    openRatingModal,
+    submitRating,
+    dismissPrompt,
+  } = useRatingPrompt();
+
   // Determine which orders to show based on active tab
   const displayedOrders = activeTab === 'active' ? activeOrders : pastOrders;
 
@@ -183,6 +195,27 @@ export default function OrdersScreen() {
     [router, activeTab]
   );
 
+  // Handle rate order press from order card
+  const handleRatePress = useCallback(
+    (order: Order) => {
+      openRatingModal(order.id);
+    },
+    [openRatingModal]
+  );
+
+  // Handle rating submission
+  const handleRatingSubmit = useCallback(
+    async (rating: RatingSubmission) => {
+      await submitRating(rating);
+    },
+    [submitRating]
+  );
+
+  // Handle rating modal close
+  const handleRatingClose = useCallback(() => {
+    dismissPrompt();
+  }, [dismissPrompt]);
+
   // Handle refresh
   const [isRefreshing, setIsRefreshing] = useState(false);
   const handleRefresh = useCallback(async () => {
@@ -199,10 +232,15 @@ export default function OrdersScreen() {
         layout={Layout.springify()}
         style={styles.orderCardContainer}
       >
-        <OrderCard order={item} onPress={handleOrderPress} testID={`order-card-${item.id}`} />
+        <OrderCard
+          order={item}
+          onPress={handleOrderPress}
+          onRatePress={handleRatePress}
+          testID={`order-card-${item.id}`}
+        />
       </Animated.View>
     ),
-    [handleOrderPress]
+    [handleOrderPress, handleRatePress]
   );
 
   // Guest mode: show full-screen prompt to sign up
@@ -274,6 +312,17 @@ export default function OrdersScreen() {
           />
         )}
       </View>
+
+      {/* Rating Modal */}
+      {orderToRate && (
+        <RatingModal
+          visible={showRatingModal}
+          onClose={handleRatingClose}
+          onSubmit={handleRatingSubmit}
+          order={orderToRate}
+          isSubmitting={isRatingSubmitting}
+        />
+      )}
     </View>
   );
 }

@@ -19,3 +19,4 @@ export {
   isCardExpired,
   usePaymentStore,
 } from './payment-store';
+export { type StoredRating, useRatingStore } from './rating-store';

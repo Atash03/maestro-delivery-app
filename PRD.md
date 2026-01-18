@@ -659,7 +659,7 @@ src/
   - Animated star selection
   - Commit: `feat(ratings): create rating modal for restaurant and driver`
 
-- [ ] **6.4 Trigger rating prompt**
+- [x] **6.4 Trigger rating prompt**
   - Show rating modal after order marked delivered
   - Can dismiss and rate later
   - "Rate Order" button in order history

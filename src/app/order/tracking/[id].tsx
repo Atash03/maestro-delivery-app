@@ -28,6 +28,7 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { OrderStatusTracker } from '@/components/order-status-tracker';
 import { OrderTrackingMap } from '@/components/order-tracking-map';
+import { RatingModal, type RatingSubmission } from '@/components/rating-modal';
 import {
   AnimationDurations,
   BorderRadius,
@@ -39,6 +40,7 @@ import {
   Typography,
 } from '@/constants/theme';
 import { useColorScheme } from '@/hooks/use-color-scheme';
+import { useRatingPrompt } from '@/hooks/use-rating-prompt';
 import { useOrderStore } from '@/stores';
 import { OrderStatus } from '@/types';
 
@@ -384,6 +386,28 @@ export default function OrderTrackingDetailScreen() {
     return currentOrder;
   }, [id, getOrderById, currentOrder]);
 
+  // Rating prompt - auto-show when order is delivered
+  const {
+    showRatingModal,
+    orderToRate,
+    isSubmitting: isRatingSubmitting,
+    submitRating,
+    dismissPrompt,
+  } = useRatingPrompt({ orderId: id, autoShowPrompt: true });
+
+  // Handle rating submission
+  const handleRatingSubmit = useCallback(
+    async (rating: RatingSubmission) => {
+      await submitRating(rating);
+    },
+    [submitRating]
+  );
+
+  // Handle rating modal close
+  const handleRatingClose = useCallback(() => {
+    dismissPrompt();
+  }, [dismissPrompt]);
+
   // Determine if order has been picked up
   const isPickedUp = useMemo(() => {
     if (!order) return false;
@@ -512,6 +536,17 @@ export default function OrderTrackingDetailScreen() {
         {/* Help Button */}
         <HelpButton onPress={handleHelp} colors={colors} />
       </ScrollView>
+
+      {/* Rating Modal - appears when order is delivered */}
+      {orderToRate && (
+        <RatingModal
+          visible={showRatingModal}
+          onClose={handleRatingClose}
+          onSubmit={handleRatingSubmit}
+          order={orderToRate}
+          isSubmitting={isRatingSubmitting}
+        />
+      )}
     </View>
   );
 }
