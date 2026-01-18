@@ -14,7 +14,7 @@
 import { Ionicons } from '@expo/vector-icons';
 import { format, isToday, isYesterday } from 'date-fns';
 import { Image } from 'expo-image';
-import { useCallback } from 'react';
+import { memo, useCallback } from 'react';
 import { Pressable, StyleSheet, View } from 'react-native';
 import Animated, { useAnimatedStyle, useSharedValue, withSpring } from 'react-native-reanimated';
 
@@ -128,7 +128,12 @@ export function formatItemCount(count: number): string {
 // Component
 // ============================================================================
 
-export function OrderCard({ order, onPress, onRatePress, testID }: OrderCardProps) {
+export const OrderCard = memo(function OrderCard({
+  order,
+  onPress,
+  onRatePress,
+  testID,
+}: OrderCardProps) {
   const colorScheme = useColorScheme();
   const colors = Colors[colorScheme ?? 'light'];
 
@@ -269,7 +274,7 @@ export function OrderCard({ order, onPress, onRatePress, testID }: OrderCardProp
       </Animated.View>
     </Pressable>
   );
-}
+});
 
 // ============================================================================
 // Styles

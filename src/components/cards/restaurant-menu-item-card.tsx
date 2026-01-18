@@ -14,7 +14,7 @@
 
 import { Ionicons } from '@expo/vector-icons';
 import { Image } from 'expo-image';
-import { useCallback, useEffect, useMemo } from 'react';
+import { memo, useCallback, useEffect, useMemo } from 'react';
 import { Pressable, StyleSheet, View } from 'react-native';
 import Animated, {
   FadeIn,
@@ -253,7 +253,7 @@ function QuantitySelector({
 // Main Component
 // ============================================================================
 
-export function RestaurantMenuItemCard({
+export const RestaurantMenuItemCard = memo(function RestaurantMenuItemCard({
   item,
   restaurant: _restaurant,
   quantity = 0,
@@ -465,7 +465,7 @@ export function RestaurantMenuItemCard({
       </Animated.View>
     </Pressable>
   );
-}
+});
 
 // ============================================================================
 // Styles

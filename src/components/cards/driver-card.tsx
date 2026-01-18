@@ -13,7 +13,7 @@
 
 import { Ionicons } from '@expo/vector-icons';
 import { Image } from 'expo-image';
-import { useCallback } from 'react';
+import { memo, useCallback } from 'react';
 import { Linking, Platform, Pressable, StyleSheet, Text, type TextStyle, View } from 'react-native';
 import Animated, {
   FadeIn,
@@ -219,7 +219,7 @@ function RatingDisplay({ rating, colors }: RatingDisplayProps) {
 // Component
 // ============================================================================
 
-export function DriverCard({
+export const DriverCard = memo(function DriverCard({
   driver,
   onCall,
   onMessage,
@@ -397,7 +397,7 @@ export function DriverCard({
   }
 
   return content;
-}
+});
 
 // ============================================================================
 // Styles

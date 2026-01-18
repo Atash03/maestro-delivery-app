@@ -10,7 +10,7 @@
  */
 
 import { Ionicons } from '@expo/vector-icons';
-import { useCallback } from 'react';
+import { memo, useCallback } from 'react';
 import { Pressable, StyleSheet, View } from 'react-native';
 import Animated, {
   interpolate,
@@ -55,7 +55,12 @@ const SPRING_CONFIG = {
 // Component
 // ============================================================================
 
-export function CategoryChip({ category, isSelected = false, onPress, testID }: CategoryChipProps) {
+export const CategoryChip = memo(function CategoryChip({
+  category,
+  isSelected = false,
+  onPress,
+  testID,
+}: CategoryChipProps) {
   const colorScheme = useColorScheme();
   const colors = Colors[colorScheme ?? 'light'];
 
@@ -164,7 +169,7 @@ export function CategoryChip({ category, isSelected = false, onPress, testID }: 
       </Animated.View>
     </Pressable>
   );
-}
+});
 
 // ============================================================================
 // Styles

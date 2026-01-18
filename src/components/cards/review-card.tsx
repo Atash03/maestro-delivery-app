@@ -13,7 +13,7 @@
 
 import { Ionicons } from '@expo/vector-icons';
 import { Image } from 'expo-image';
-import { useCallback, useState } from 'react';
+import { memo, useCallback, useState } from 'react';
 import { Pressable, StyleSheet, View } from 'react-native';
 import Animated, { FadeIn } from 'react-native-reanimated';
 
@@ -111,7 +111,11 @@ function PhotoGrid({ photos, onPhotoPress }: PhotoGridProps) {
 // Main Component
 // ============================================================================
 
-export function ReviewCard({ review, onPhotoPress, testID }: ReviewCardProps) {
+export const ReviewCard = memo(function ReviewCard({
+  review,
+  onPhotoPress,
+  testID,
+}: ReviewCardProps) {
   const colorScheme = useColorScheme();
   const colors = Colors[colorScheme ?? 'light'];
 
@@ -173,7 +177,7 @@ export function ReviewCard({ review, onPhotoPress, testID }: ReviewCardProps) {
       )}
     </Animated.View>
   );
-}
+});
 
 // ============================================================================
 // Styles

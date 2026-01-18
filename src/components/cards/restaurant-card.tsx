@@ -15,7 +15,7 @@
 import { Ionicons } from '@expo/vector-icons';
 import { Image } from 'expo-image';
 import { LinearGradient } from 'expo-linear-gradient';
-import { useCallback } from 'react';
+import { memo, useCallback } from 'react';
 import { Pressable, StyleSheet, View } from 'react-native';
 import Animated, { useAnimatedStyle, useSharedValue, withSpring } from 'react-native-reanimated';
 
@@ -95,7 +95,7 @@ export function formatDeliveryFee(fee: number): string {
 // Component
 // ============================================================================
 
-export function RestaurantCard({
+export const RestaurantCard = memo(function RestaurantCard({
   restaurant,
   onPress,
   promotionalBadge,
@@ -252,7 +252,7 @@ export function RestaurantCard({
       </Animated.View>
     </Pressable>
   );
-}
+});
 
 // ============================================================================
 // Styles

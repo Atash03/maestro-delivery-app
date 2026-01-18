@@ -817,7 +817,7 @@ src/
   - Animated splash screen
   - Commit: `feat(assets): add custom app icons and splash screen`
 
-- [ ] **8.8 Performance optimization**
+- [x] **8.8 Performance optimization**
   - Memoize expensive components
   - Optimize list renders with FlashList
   - Lazy load screens

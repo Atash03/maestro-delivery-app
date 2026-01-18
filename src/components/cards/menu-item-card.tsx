@@ -14,7 +14,7 @@
 
 import { Ionicons } from '@expo/vector-icons';
 import { Image } from 'expo-image';
-import { useCallback } from 'react';
+import { memo, useCallback } from 'react';
 import { Pressable, StyleSheet, View } from 'react-native';
 import Animated, { useAnimatedStyle, useSharedValue, withSpring } from 'react-native-reanimated';
 
@@ -75,7 +75,7 @@ export function formatMenuItemPrice(price: number, hasCustomizations: boolean): 
 // Component
 // ============================================================================
 
-export function MenuItemCard({
+export const MenuItemCard = memo(function MenuItemCard({
   item,
   restaurantName,
   onPress,
@@ -232,7 +232,7 @@ export function MenuItemCard({
       </Animated.View>
     </Pressable>
   );
-}
+});
 
 // ============================================================================
 // Styles

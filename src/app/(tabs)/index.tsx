@@ -17,9 +17,10 @@
  */
 
 import { Ionicons } from '@expo/vector-icons';
+import { FlashList } from '@shopify/flash-list';
 import { router } from 'expo-router';
 import { useCallback, useEffect, useState } from 'react';
-import { FlatList, Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
+import { Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
 import Animated, {
   FadeIn,
   FadeInRight,
@@ -307,16 +308,19 @@ export default function HomeScreen() {
 
       {/* Category Scroll */}
       <Animated.View entering={FadeIn.delay(200).duration(300)} style={styles.categorySection}>
-        <FlatList
-          data={mockCategories}
-          renderItem={renderCategoryItem}
-          keyExtractor={categoryKeyExtractor}
-          horizontal
-          showsHorizontalScrollIndicator={false}
-          contentContainerStyle={styles.categoryList}
-          ItemSeparatorComponent={() => <View style={{ width: CATEGORY_ITEM_GAP }} />}
-          testID="category-list"
-        />
+        <View style={styles.categoryListWrapper}>
+          <FlashList
+            data={mockCategories}
+            renderItem={renderCategoryItem}
+            keyExtractor={categoryKeyExtractor}
+            horizontal
+            showsScrollIndicator={false}
+            contentContainerStyle={styles.categoryList}
+            ItemSeparatorComponent={() => <View style={{ width: CATEGORY_ITEM_GAP }} />}
+            estimatedItemSize={120}
+            testID="category-list"
+          />
+        </View>
       </Animated.View>
 
       {/* Main Content - Scrollable Restaurant Sections */}
@@ -502,6 +506,9 @@ const styles = StyleSheet.create({
   },
   categorySection: {
     marginTop: Spacing[3],
+  },
+  categoryListWrapper: {
+    height: 48, // Fixed height for FlashList to work properly
   },
   categoryList: {
     paddingHorizontal: Spacing[4],

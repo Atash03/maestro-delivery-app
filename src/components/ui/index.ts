@@ -19,6 +19,7 @@ export { Divider, type DividerOrientation, type DividerProps } from './divider';
 export { EmptyState, type EmptyStateProps, type EmptyStateVariant } from './empty-state';
 export { Input, type InputProps } from './input';
 export { NetworkError, type NetworkErrorProps } from './network-error';
+export { OptimizedImage, type OptimizedImageProps } from './optimized-image';
 export {
   Skeleton,
   SkeletonCard,

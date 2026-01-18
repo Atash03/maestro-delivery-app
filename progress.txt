@@ -2,7 +2,7 @@
 
 ## Current Status
 Phase: Phase 8 - Polish & Final Touches (IN PROGRESS)
-Task 8.6 - Implement dark mode support: COMPLETE
+Task 8.8 - Performance optimization: COMPLETE
 Last Updated: 2026-01-18
 
 ---
@@ -3740,3 +3740,67 @@ The existing animated splash screen in _layout.tsx was already implemented:
 - Works with both light and dark modes
 
 ### Task 8.7 - Add app icons and splash screen: COMPLETE
+
+
+---
+
+## Task 8.8 - Performance optimization (2026-01-18)
+
+### Overview:
+Implemented comprehensive performance optimizations across the app including component memoization, FlashList upgrades, and image optimization utilities.
+
+### Changes made:
+
+#### 1. Component Memoization (7 components wrapped with React.memo):
+- `/src/components/cards/restaurant-card.tsx` - Memoized with React.memo
+- `/src/components/cards/menu-item-card.tsx` - Memoized with React.memo
+- `/src/components/cards/order-card.tsx` - Memoized with React.memo
+- `/src/components/cards/category-chip.tsx` - Memoized with React.memo
+- `/src/components/cards/restaurant-menu-item-card.tsx` - Memoized with React.memo
+- `/src/components/cards/review-card.tsx` - Memoized with React.memo
+- `/src/components/cards/driver-card.tsx` - Memoized with React.memo
+
+#### 2. List Optimization:
+- `/src/app/(tabs)/index.tsx`:
+  - Upgraded category chip FlatList to FlashList
+  - Added estimatedItemSize for better performance
+  - Added fixed height wrapper for proper FlashList layout
+
+#### 3. New Utilities Created:
+- `/src/utils/performance.ts`:
+  - FlashList configuration helpers (FLASH_LIST_CONFIG, getFlashListProps)
+  - Debounce and throttle functions
+  - Memoization helpers (shallowEqual, createPropsComparator)
+  - Key extractors (createIdKeyExtractor, createIndexKeyExtractor)
+  - Layout calculation helpers (createGetItemLayout)
+  - Image optimization utilities (getOptimizedImageUrl)
+
+- `/src/components/ui/optimized-image.tsx`:
+  - Performance-optimized image component built on expo-image
+  - Automatic caching with memory and disk cache policies
+  - Placeholder support with blurhash
+  - Priority loading support
+  - Recycling optimization for list views
+
+#### 4. Tests:
+- `/__tests__/performance.test.ts`: 24 tests for performance utilities
+  - FlashList configuration tests
+  - Debounce and throttle tests
+  - Shallow equality tests
+  - Props comparator tests
+  - Key extractor tests
+  - Layout calculation tests
+  - Image optimization tests
+
+### Benefits:
+- Reduced unnecessary re-renders in list components
+- Improved scroll performance with FlashList optimizations
+- Better image loading with caching and blurhash placeholders
+- Reusable utilities for consistent performance patterns
+
+### Notes:
+- Expo Router already handles lazy loading via file-based routing
+- expo-image handles most image optimizations out of the box
+- All memoized components maintain their existing API
+
+### Task 8.8 - Performance optimization: COMPLETE
