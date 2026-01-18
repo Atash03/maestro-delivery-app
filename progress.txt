@@ -2,7 +2,7 @@
 
 ## Current Status
 Phase: Phase 7 - Issue Resolution (IN PROGRESS)
-Task 7.4 - Implement issue submission flow: COMPLETE
+Task 7.5 - Build issue tracking screen: COMPLETE
 Last Updated: 2026-01-18
 
 ---
@@ -2998,3 +2998,69 @@ Instructions for AI Agents:
 ### Test results:
 - All 278 tests for issue-related files pass (35 new store tests, 185 form tests, 93 rating tests)
 - Linting passes with warnings only (no errors in new files)
+
+---
+
+## Session: Issue Status Tracking Screen
+
+- Date: 2026-01-18
+- Tasks Completed:
+  - [x] 7.5 Build issue tracking screen
+- Summary:
+  - Created `/src/app/support/issue/status/[issueId].tsx` - Issue status tracking screen:
+    - IssueStatusScreen main component with loading, error, and success states
+    - TimelineStep component with animated pulse effect for current step
+    - IssueSummaryCard component displaying issue details (category, description, photos, order info)
+    - ResolutionCard component for resolved/refunded issues with resolution details
+    - ContactSupportCard component with link to help center
+    - STATUS_CONFIG constant with label, description, icon for each status (reported, under_review, resolved, refunded)
+    - STATUS_ORDER array defining timeline progression
+    - CATEGORY_TITLES constant mapping issue categories to display names
+    - formatDate helper for consistent date formatting
+    - getStatusIndex helper for determining timeline position
+  - Features implemented:
+    - Status timeline with visual progress indicators
+    - Pulse animation on current status step using react-native-reanimated
+    - Staggered entrance animations using FadeInLeft and FadeInDown
+    - Issue summary card with category badge, restaurant info, description, photos
+    - Photo thumbnails in horizontal scroll
+    - Resolution card only displayed when issue is resolved/refunded
+    - Contact support card with navigation to help center
+    - Info note about 24-48 hour response time
+    - Loading state with spinner
+    - Error state for issue not found
+    - Integration with useIssueStore for fetching issue data
+    - Integration with mock orders for order details
+  - Support layout already configured at `/src/app/support/_layout.tsx`:
+    - Route `issue/status/[issueId]` with card presentation already present
+
+### Tests created:
+- `/src/__tests__/issue-status-tracking.test.ts` with 107 tests covering:
+  - File Structure (status file exists, directory exists)
+  - Exports (IssueStatusScreen, STATUS_CONFIG, STATUS_ORDER, CATEGORY_TITLES, formatDate, getStatusIndex)
+  - Constants (CATEGORY_TITLES for all 6 categories, STATUS_CONFIG for all 4 statuses with labels, icons)
+  - STATUS_ORDER content (reported, under_review, resolved)
+  - Components (TimelineStep, IssueSummaryCard, ResolutionCard, ContactSupportCard)
+  - TimelineStepProps interface (status, label, description, isCompleted, isCurrent, isLast, timestamp)
+  - TimelineStep features (pulse animation with withRepeat, Animated.View usage)
+  - IssueSummaryCardProps interface (issue, order)
+  - IssueSummaryCard features (category badge, issue ID, restaurant info, description, photos, reported date)
+  - ResolutionCardProps interface (issue)
+  - ResolutionCard features (resolved/refunded check, resolution date, resolution details, success colors)
+  - ContactSupportCardProps interface (onPress)
+  - ContactSupportCard features (scale animation, contact title, description, chatbubbles icon)
+  - Main Screen features (useLocalSearchParams, useIssueStore, getIssueById, getOrderById, status index, loading/error states, handlers)
+  - Navigation (expo-router imports, router.back, router.push to support)
+  - UI Elements (header, back button, title, ScrollView, timeline section, info note)
+  - Animations (react-native-reanimated imports, FadeInDown, FadeInLeft, withSpring, withRepeat, useAnimatedStyle, useSharedValue)
+  - Accessibility (roles and labels on buttons)
+  - Styling (StyleSheet.create, design system constants, useSafeAreaInsets, useColorScheme, timeline styles, loading/error styles)
+  - Card Component usage (outlined and filled variants)
+  - Helper Functions (formatDate with toLocaleDateString, getStatusIndex with refunded handling)
+  - Integration (type imports, store imports, mock data imports, Card component import)
+  - Navigation Layout (route configuration, card presentation)
+
+### Test results:
+- All 107 tests pass
+- Linting passes (unused withDelay import removed)
+- No errors in new files
