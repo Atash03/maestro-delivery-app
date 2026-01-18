@@ -47,7 +47,6 @@ export function getFlashListProps(type: 'cards' | 'chips' | 'items') {
         ...baseProps,
         estimatedItemSize: FLASH_LIST_CONFIG.estimatedItemSizeHorizontalChip,
       };
-    case 'items':
     default:
       return {
         ...baseProps,

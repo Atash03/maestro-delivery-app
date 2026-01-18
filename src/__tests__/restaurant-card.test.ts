@@ -12,6 +12,9 @@
  * - Promotional badge display
  */
 
+// Define global __DEV__ before any imports
+(global as Record<string, unknown>).__DEV__ = true;
+
 // Mock Platform before any imports
 jest.mock('react-native', () => ({
   Platform: {
@@ -30,6 +33,8 @@ jest.mock('react-native', () => ({
       right: 0,
       bottom: 0,
     },
+    hairlineWidth: 1,
+    flatten: (style: unknown) => style,
   },
   View: 'View',
   Text: 'Text',
@@ -42,43 +47,138 @@ jest.mock('react-native', () => ({
   TouchableWithoutFeedback: 'TouchableWithoutFeedback',
   KeyboardAvoidingView: 'KeyboardAvoidingView',
   Image: 'Image',
-}));
-
-// Mock react-native-reanimated
-jest.mock('react-native-reanimated', () => ({
-  default: {
-    createAnimatedComponent: (component: unknown) => component,
+  Linking: {
+    openURL: jest.fn(() => Promise.resolve()),
+    canOpenURL: jest.fn(() => Promise.resolve(true)),
+  },
+  Alert: {
+    alert: jest.fn(),
+  },
+  Dimensions: {
+    get: () => ({ width: 375, height: 812 }),
+    addEventListener: jest.fn(),
+    removeEventListener: jest.fn(),
+  },
+  Animated: {
     View: 'View',
     Text: 'Text',
+    Image: 'Image',
+    ScrollView: 'ScrollView',
+    FlatList: 'FlatList',
+    Value: jest.fn(() => ({ interpolate: jest.fn() })),
+    timing: jest.fn(() => ({ start: jest.fn() })),
+    spring: jest.fn(() => ({ start: jest.fn() })),
+    createAnimatedComponent: (comp: unknown) => comp,
   },
-  useSharedValue: (init: unknown) => ({ value: init }),
-  useAnimatedStyle: () => ({}),
-  withSpring: (toValue: unknown) => toValue,
-  withTiming: (toValue: unknown) => toValue,
-  withRepeat: (animation: unknown) => animation,
-  interpolateColor: () => '#000000',
-  interpolate: () => 0,
-  FadeIn: {
-    delay: () => ({
-      duration: () => ({}),
-    }),
-  },
-  FadeInRight: {
-    delay: () => ({
-      duration: () => ({}),
-    }),
-  },
-  FadeInDown: {
-    delay: () => ({
-      duration: () => ({}),
-    }),
-  },
-  FadeOut: 'FadeOut',
-  Easing: {
-    linear: (t: number) => t,
-  },
-  createAnimatedComponent: (component: unknown) => component,
+  useWindowDimensions: () => ({ width: 375, height: 812 }),
 }));
+
+// Mock react-native-reanimated - use inline mock function to avoid hoisting issues
+jest.mock('react-native-reanimated', () => {
+  const mockReanimatedAnimation = {
+    delay: () => mockReanimatedAnimation,
+    duration: () => mockReanimatedAnimation,
+    springify: () => mockReanimatedAnimation,
+    damping: () => mockReanimatedAnimation,
+    stiffness: () => mockReanimatedAnimation,
+    mass: () => mockReanimatedAnimation,
+    overshootClamping: () => mockReanimatedAnimation,
+    restDisplacementThreshold: () => mockReanimatedAnimation,
+    restSpeedThreshold: () => mockReanimatedAnimation,
+    withInitialValues: () => mockReanimatedAnimation,
+    withCallback: () => mockReanimatedAnimation,
+    build: () => mockReanimatedAnimation,
+  };
+  return {
+    default: {
+      createAnimatedComponent: (component: unknown) => component,
+      View: 'View',
+      Text: 'Text',
+      Image: 'Image',
+      ScrollView: 'ScrollView',
+      FlatList: 'FlatList',
+    },
+    useSharedValue: (init: unknown) => ({ value: init }),
+    useAnimatedStyle: () => ({}),
+    useAnimatedProps: () => ({}),
+    useDerivedValue: (fn: () => unknown) => ({ value: fn() }),
+    useAnimatedScrollHandler: () => jest.fn(),
+    useAnimatedGestureHandler: () => jest.fn(),
+    withSpring: (toValue: unknown) => toValue,
+    withTiming: (toValue: unknown) => toValue,
+    withRepeat: (animation: unknown) => animation,
+    withDelay: (_delay: number, animation: unknown) => animation,
+    withSequence: (...animations: unknown[]) => animations[0],
+    withDecay: (config: unknown) => config,
+    cancelAnimation: jest.fn(),
+    interpolateColor: () => '#000000',
+    interpolate: () => 0,
+    Extrapolation: { CLAMP: 'clamp', EXTEND: 'extend', IDENTITY: 'identity' },
+    runOnJS: (fn: unknown) => fn,
+    runOnUI: (fn: unknown) => fn,
+    FadeIn: mockReanimatedAnimation,
+    FadeInRight: mockReanimatedAnimation,
+    FadeInDown: mockReanimatedAnimation,
+    FadeInUp: mockReanimatedAnimation,
+    FadeInLeft: mockReanimatedAnimation,
+    FadeOut: mockReanimatedAnimation,
+    FadeOutDown: mockReanimatedAnimation,
+    FadeOutUp: mockReanimatedAnimation,
+    FadeOutLeft: mockReanimatedAnimation,
+    FadeOutRight: mockReanimatedAnimation,
+    SlideInDown: mockReanimatedAnimation,
+    SlideOutDown: mockReanimatedAnimation,
+    SlideInUp: mockReanimatedAnimation,
+    SlideOutUp: mockReanimatedAnimation,
+    SlideInLeft: mockReanimatedAnimation,
+    SlideOutLeft: mockReanimatedAnimation,
+    SlideInRight: mockReanimatedAnimation,
+    SlideOutRight: mockReanimatedAnimation,
+    ZoomIn: mockReanimatedAnimation,
+    ZoomOut: mockReanimatedAnimation,
+    ZoomInEasyDown: mockReanimatedAnimation,
+    ZoomOutEasyDown: mockReanimatedAnimation,
+    BounceIn: mockReanimatedAnimation,
+    BounceOut: mockReanimatedAnimation,
+    StretchInX: mockReanimatedAnimation,
+    StretchOutX: mockReanimatedAnimation,
+    Layout: mockReanimatedAnimation,
+    LinearTransition: mockReanimatedAnimation,
+    SequencedTransition: mockReanimatedAnimation,
+    FadingTransition: mockReanimatedAnimation,
+    JumpingTransition: mockReanimatedAnimation,
+    CurvedTransition: mockReanimatedAnimation,
+    EntryExitTransition: mockReanimatedAnimation,
+    Easing: {
+      linear: (t: number) => t,
+      ease: (t: number) => t,
+      quad: (t: number) => t,
+      cubic: (t: number) => t,
+      poly: () => (t: number) => t,
+      sin: (t: number) => t,
+      circle: (t: number) => t,
+      exp: (t: number) => t,
+      elastic: () => (t: number) => t,
+      back: () => (t: number) => t,
+      bounce: (t: number) => t,
+      bezier: () => (t: number) => t,
+      bezierFn: () => (t: number) => t,
+      in: (easing: unknown) => easing,
+      out: (easing: unknown) => easing,
+      inOut: (easing: unknown) => easing,
+    },
+    createAnimatedComponent: (component: unknown) => component,
+    Keyframe: jest.fn().mockImplementation(() => mockReanimatedAnimation),
+    SharedTransition: {
+      custom: () => mockReanimatedAnimation,
+      duration: () => mockReanimatedAnimation,
+      progressAnimation: () => mockReanimatedAnimation,
+    },
+    measure: jest.fn(),
+    scrollTo: jest.fn(),
+    setGestureState: jest.fn(),
+  };
+});
 
 // Mock @expo/vector-icons
 jest.mock('@expo/vector-icons', () => ({
@@ -118,10 +218,35 @@ jest.mock('expo-router', () => ({
 }));
 
 // Mock @react-native-async-storage/async-storage
+const mockAsyncStorageGetItem = jest.fn(() => Promise.resolve(null));
+const mockAsyncStorageSetItem = jest.fn(() => Promise.resolve());
+const mockAsyncStorageRemoveItem = jest.fn(() => Promise.resolve());
+const mockAsyncStorageClear = jest.fn(() => Promise.resolve());
+const mockAsyncStorageGetAllKeys = jest.fn(() => Promise.resolve([]));
+const mockAsyncStorageMultiGet = jest.fn(() => Promise.resolve([]));
+const mockAsyncStorageMultiSet = jest.fn(() => Promise.resolve());
+const mockAsyncStorageMultiRemove = jest.fn(() => Promise.resolve());
+
 jest.mock('@react-native-async-storage/async-storage', () => ({
-  getItem: jest.fn(() => Promise.resolve(null)),
-  setItem: jest.fn(() => Promise.resolve()),
-  removeItem: jest.fn(() => Promise.resolve()),
+  __esModule: true,
+  default: {
+    getItem: mockAsyncStorageGetItem,
+    setItem: mockAsyncStorageSetItem,
+    removeItem: mockAsyncStorageRemoveItem,
+    clear: mockAsyncStorageClear,
+    getAllKeys: mockAsyncStorageGetAllKeys,
+    multiGet: mockAsyncStorageMultiGet,
+    multiSet: mockAsyncStorageMultiSet,
+    multiRemove: mockAsyncStorageMultiRemove,
+  },
+  getItem: mockAsyncStorageGetItem,
+  setItem: mockAsyncStorageSetItem,
+  removeItem: mockAsyncStorageRemoveItem,
+  clear: mockAsyncStorageClear,
+  getAllKeys: mockAsyncStorageGetAllKeys,
+  multiGet: mockAsyncStorageMultiGet,
+  multiSet: mockAsyncStorageMultiSet,
+  multiRemove: mockAsyncStorageMultiRemove,
 }));
 
 // Mock hooks
