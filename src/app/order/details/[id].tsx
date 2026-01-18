@@ -20,7 +20,7 @@ import { Ionicons } from '@expo/vector-icons';
 import { format } from 'date-fns';
 import { Image } from 'expo-image';
 import { useLocalSearchParams, useRouter } from 'expo-router';
-import { useCallback, useMemo, useState } from 'react';
+import { useCallback, useEffect, useMemo, useState } from 'react';
 import {
   Alert,
   Pressable,
@@ -44,6 +44,7 @@ import { getStatusBadgeVariant, getStatusText } from '@/components/cards';
 import { OrderStatusTracker } from '@/components/order-status-tracker';
 import { RatingModal, type RatingSubmission } from '@/components/rating-modal';
 import { ReorderModal } from '@/components/reorder-modal';
+import { OrderDetailsSkeleton } from '@/components/skeletons';
 import { Badge } from '@/components/ui/badge';
 import {
   AnimationDurations,
@@ -580,7 +581,24 @@ export default function OrderDetailsScreen() {
 
   // Get order from store
   const getOrderById = useOrderStore((state) => state.getOrderById);
-  const order = useMemo(() => (id ? getOrderById(id) : undefined), [id, getOrderById]);
+
+  // Loading state for skeleton
+  const [isLoading, setIsLoading] = useState(true);
+  const [order, setOrder] = useState<Order | undefined>(undefined);
+
+  // Load order with simulated delay for skeleton display
+  useEffect(() => {
+    const loadOrder = async () => {
+      setIsLoading(true);
+      // Simulate network delay for realistic UX
+      await new Promise((resolve) => setTimeout(resolve, 300));
+      const fetchedOrder = id ? getOrderById(id) : undefined;
+      setOrder(fetchedOrder);
+      setIsLoading(false);
+    };
+
+    loadOrder();
+  }, [id, getOrderById]);
 
   // Cart store for reorder
   const { canAddFromRestaurant, clearCart } = useCartStore();
@@ -737,6 +755,11 @@ export default function OrderDetailsScreen() {
     if (!order) return;
     router.push(`/support/issue/${order.id}`);
   }, [order, router]);
+
+  // Show skeleton while loading
+  if (isLoading) {
+    return <OrderDetailsSkeleton testID="order-details-skeleton" />;
+  }
 
   // If no order found
   if (!order) {

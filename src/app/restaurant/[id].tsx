@@ -40,6 +40,7 @@ import { CART_PREVIEW_HEIGHT, CartPreview } from '@/components/cart-preview';
 import { INDICATOR_HEIGHT, MenuCategoryTabs, TAB_HEIGHT } from '@/components/menu-category-tabs';
 import { EmptyMenu, MenuSectionHeader, MenuSkeleton } from '@/components/menu-section-list';
 import { ReviewsSection } from '@/components/reviews-section';
+import { RestaurantDetailSkeleton } from '@/components/skeletons';
 import { ThemedText } from '@/components/themed-text';
 import { Badge } from '@/components/ui';
 import {
@@ -602,19 +603,9 @@ export default function RestaurantDetailScreen() {
     return formatPriceLevel(restaurant.priceLevel);
   }, [restaurant]);
 
-  // Loading state
+  // Loading state with skeleton
   if (isLoading || !restaurant) {
-    return (
-      <View style={[styles.container, { backgroundColor: colors.background }]}>
-        <View style={[styles.loadingContainer, { paddingTop: insets.top }]}>
-          <Animated.View entering={FadeIn.duration(AnimationDurations.normal)}>
-            <ThemedText style={[styles.loadingText, { color: colors.textSecondary }]}>
-              Loading...
-            </ThemedText>
-          </Animated.View>
-        </View>
-      </View>
-    );
+    return <RestaurantDetailSkeleton testID="restaurant-detail-skeleton" />;
   }
 
   return (
@@ -956,15 +947,6 @@ export default function RestaurantDetailScreen() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-  },
-  loadingContainer: {
-    flex: 1,
-    justifyContent: 'center',
-    alignItems: 'center',
-  },
-  loadingText: {
-    fontSize: Typography.lg.fontSize,
-    lineHeight: Typography.lg.lineHeight,
   },
   backButtonContainer: {
     position: 'absolute',

@@ -764,7 +764,7 @@ src/
 
 ### Tasks
 
-- [ ] **8.1 Add loading skeletons everywhere**
+- [x] **8.1 Add loading skeletons everywhere**
   - Home screen skeleton
   - Restaurant list skeleton
   - Menu skeleton
