@@ -2,7 +2,7 @@
 
 ## Current Status
 Phase: Phase 8 - Polish & Final Touches (IN PROGRESS)
-Task 8.2 - Add error states: COMPLETE
+Task 8.3 - Add pull-to-refresh: COMPLETE
 Last Updated: 2026-01-18
 
 ---
@@ -3276,3 +3276,79 @@ Instructions for AI Agents:
 - All 40 tests pass
 - Linting passes
 - Task 8.2 - Add error states: COMPLETE
+
+---
+
+## Session: Add Pull-to-Refresh with Custom Animation
+
+- Date: 2026-01-18
+- Tasks Completed:
+  - [x] 8.3 Add pull-to-refresh
+- Summary:
+  - Enhanced `/src/components/custom-refresh-control.tsx`:
+    - Added animation variants to RefreshIndicator: 'spin', 'bounce', 'pulse'
+    - Added new imports for advanced animations: withSequence, withSpring, withDelay, interpolate
+    - Enhanced RefreshIndicator with configurable variant prop
+    - Bounce variant: animated translateY with spring physics
+    - Pulse variant: animated scale with easing
+    - All animations properly cancel and reset when not refreshing
+
+  - Created FoodRefreshIndicator component:
+    - Food-themed refresh indicator with restaurant icon
+    - Bouncing animation with spring physics (translateY: -12px)
+    - Pulsating scale effect (1 to 1.15)
+    - Fade in/out opacity animation
+    - Shadow/reflection effect that responds to icon position
+    - Shadow squashes as icon bounces up (scaleY interpolation)
+    - Shadow expands as icon scales (scaleX interpolation)
+    - testID prop for testing
+    - Size prop (default: 32)
+    - Custom color support
+    - Theme-aware colors
+
+  - Added styles for FoodRefreshIndicator:
+    - foodIndicatorContainer: centered with 80px height for animation space
+    - foodIndicatorIcon: centered flex container
+    - foodIndicatorShadow: positioned at bottom with rounded corners
+
+  - Updated `/src/app/(tabs)/orders.tsx`:
+    - Replaced standard RefreshControl with CustomRefreshControl
+    - Added testID="orders-refresh-control" for testing
+    - Removed unused RefreshControl import
+
+  - Home screen already uses CustomRefreshControl (verified existing implementation)
+
+  - Search screen doesn't need pull-to-refresh (dynamic real-time search results)
+
+### Tests created:
+- Extended `/src/__tests__/custom-refresh-control.test.ts` with 67 tests (was fewer before):
+  - File Structure (6 tests):
+    - CustomRefreshControl, RefreshIndicator, FoodRefreshIndicator exports
+    - Interface exports for all components
+  - FoodRefreshIndicatorProps Interface (4 tests):
+    - isRefreshing, size, color, testID props
+  - Imports (6 tests):
+    - Animation utilities: withSequence, withSpring, withDelay, interpolate
+  - RefreshIndicator Animation Variants (5 tests):
+    - Default spin variant
+    - Bounce variant animation handling
+    - Pulse variant animation handling
+    - Shared values for bounce and scale
+    - Animation cancellation on stop
+  - FoodRefreshIndicator Component (8 tests):
+    - Restaurant icon rendering
+    - Bouncing animation effect (-12px spring)
+    - Pulsating scale animation (1.15)
+    - Shadow/reflection effect
+    - Interpolate for shadow animation
+    - Opacity fade in/out
+    - testID support
+    - Default size of 32
+  - FoodRefreshIndicator Styles (4 tests):
+    - Container, icon, shadow styles
+    - Container height of 80
+
+### Test results:
+- All 67 tests pass
+- Linting passes
+- Task 8.3 - Add pull-to-refresh: COMPLETE

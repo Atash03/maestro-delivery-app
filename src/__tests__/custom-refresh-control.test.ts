@@ -7,6 +7,8 @@
  * - Animation configuration
  * - Theme support
  * - RefreshIndicator component
+ * - FoodRefreshIndicator component
+ * - Animation variants (spin, bounce, pulse)
  */
 
 import { readFileSync } from 'node:fs';
@@ -32,6 +34,14 @@ describe('CustomRefreshControl Component', () => {
 
     it('should export RefreshIndicatorProps interface', () => {
       expect(componentSource).toContain('export interface RefreshIndicatorProps');
+    });
+
+    it('should export FoodRefreshIndicator component', () => {
+      expect(componentSource).toContain('export function FoodRefreshIndicator');
+    });
+
+    it('should export FoodRefreshIndicatorProps interface', () => {
+      expect(componentSource).toContain('export interface FoodRefreshIndicatorProps');
     });
   });
 
@@ -61,6 +71,30 @@ describe('CustomRefreshControl Component', () => {
     it('should have color prop', () => {
       expect(componentSource).toMatch(/color\?:\s*string/);
     });
+
+    it('should have variant prop with spin, bounce, pulse options', () => {
+      expect(componentSource).toMatch(
+        /variant\?:\s*['"]spin['"]\s*\|\s*['"]bounce['"]\s*\|\s*['"]pulse['"]/
+      );
+    });
+  });
+
+  describe('FoodRefreshIndicatorProps Interface', () => {
+    it('should have isRefreshing prop', () => {
+      expect(componentSource).toMatch(/isRefreshing:\s*boolean/);
+    });
+
+    it('should have size prop', () => {
+      expect(componentSource).toMatch(/size\?:\s*number/);
+    });
+
+    it('should have color prop', () => {
+      expect(componentSource).toMatch(/color\?:\s*string/);
+    });
+
+    it('should have testID prop', () => {
+      expect(componentSource).toMatch(/testID\?:\s*string/);
+    });
   });
 
   describe('Imports', () => {
@@ -84,6 +118,13 @@ describe('CustomRefreshControl Component', () => {
 
     it('should import PrimaryColors from theme', () => {
       expect(componentSource).toContain('PrimaryColors');
+    });
+
+    it('should import animation utilities from reanimated', () => {
+      expect(componentSource).toContain('withSequence');
+      expect(componentSource).toContain('withSpring');
+      expect(componentSource).toContain('withDelay');
+      expect(componentSource).toContain('interpolate');
     });
   });
 
@@ -206,6 +247,94 @@ describe('CustomRefreshControl Component', () => {
 
     it('should get colors from Colors constant', () => {
       expect(componentSource).toContain('Colors[colorScheme');
+    });
+  });
+
+  describe('RefreshIndicator Animation Variants', () => {
+    it('should support spin variant (default)', () => {
+      expect(componentSource).toContain("variant = 'spin'");
+    });
+
+    it('should handle bounce variant animation', () => {
+      expect(componentSource).toContain("if (variant === 'bounce')");
+      expect(componentSource).toContain('bounce.value = withRepeat');
+    });
+
+    it('should handle pulse variant animation', () => {
+      expect(componentSource).toContain("if (variant === 'pulse')");
+      expect(componentSource).toContain('scale.value = withRepeat');
+    });
+
+    it('should use shared values for bounce and scale', () => {
+      // Check that bounce and scale are initialized with useSharedValue
+      const bounceMatch = componentSource.match(/const\s+bounce\s*=\s*useSharedValue/);
+      const scaleMatch = componentSource.match(/const\s+scale\s*=\s*useSharedValue/);
+      expect(bounceMatch).toBeTruthy();
+      expect(scaleMatch).toBeTruthy();
+    });
+
+    it('should cancel all animations when not refreshing', () => {
+      expect(componentSource).toContain('cancelAnimation(bounce)');
+      expect(componentSource).toContain('cancelAnimation(scale)');
+    });
+  });
+
+  describe('FoodRefreshIndicator Component', () => {
+    it('should render with restaurant icon', () => {
+      expect(componentSource).toContain('name="restaurant"');
+    });
+
+    it('should have bouncing animation effect', () => {
+      expect(componentSource).toContain('Bouncing animation');
+      expect(componentSource).toContain('withSpring(-12');
+    });
+
+    it('should have pulsating scale animation', () => {
+      expect(componentSource).toContain('pulsating scale');
+      expect(componentSource).toContain('withTiming(1.15');
+    });
+
+    it('should have shadow/reflection effect', () => {
+      expect(componentSource).toContain('Shadow/reflection effect');
+      expect(componentSource).toContain('foodIndicatorShadow');
+    });
+
+    it('should use interpolate for shadow animation', () => {
+      expect(componentSource).toContain('shadowStyle = useAnimatedStyle');
+      expect(componentSource).toContain('interpolate(opacity.value');
+      expect(componentSource).toContain('interpolate(scale.value');
+      expect(componentSource).toContain('interpolate(bounce.value');
+    });
+
+    it('should have opacity animation for fade in/out', () => {
+      expect(componentSource).toContain('opacity.value = withTiming(1');
+      expect(componentSource).toContain('opacity.value = withTiming(0');
+    });
+
+    it('should have testID support', () => {
+      expect(componentSource).toContain('testID={testID}');
+    });
+
+    it('should default size to 32', () => {
+      expect(componentSource).toMatch(/size\s*=\s*32/);
+    });
+  });
+
+  describe('FoodRefreshIndicator Styles', () => {
+    it('should have foodIndicatorContainer styles', () => {
+      expect(componentSource).toMatch(/foodIndicatorContainer:\s*\{/);
+    });
+
+    it('should have foodIndicatorIcon styles', () => {
+      expect(componentSource).toMatch(/foodIndicatorIcon:\s*\{/);
+    });
+
+    it('should have foodIndicatorShadow styles', () => {
+      expect(componentSource).toMatch(/foodIndicatorShadow:\s*\{/);
+    });
+
+    it('should set container height for proper animation space', () => {
+      expect(componentSource).toContain('height: 80');
     });
   });
 });

@@ -14,10 +14,11 @@ import { Ionicons } from '@expo/vector-icons';
 import { FlashList } from '@shopify/flash-list';
 import { useRouter } from 'expo-router';
 import { useCallback, useState } from 'react';
-import { Pressable, RefreshControl, StyleSheet, View } from 'react-native';
+import { Pressable, StyleSheet, View } from 'react-native';
 import Animated, { FadeIn, FadeInDown, Layout } from 'react-native-reanimated';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { OrderCard, OrderCardSkeletonList } from '@/components/cards';
+import { CustomRefreshControl } from '@/components/custom-refresh-control';
 import { GuestPromptBanner } from '@/components/guest-prompt-banner';
 import { RatingModal, type RatingSubmission } from '@/components/rating-modal';
 import { ThemedText } from '@/components/themed-text';
@@ -301,11 +302,10 @@ export default function OrdersScreen() {
             contentContainerStyle={styles.listContentContainer}
             showsVerticalScrollIndicator={false}
             refreshControl={
-              <RefreshControl
+              <CustomRefreshControl
                 refreshing={isRefreshing}
                 onRefresh={handleRefresh}
-                tintColor={colors.primary}
-                colors={[colors.primary]}
+                testID="orders-refresh-control"
               />
             }
             testID="orders-list"

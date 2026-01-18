@@ -781,7 +781,7 @@ src/
   - Error toasts for failed actions
   - Commit: `feat(ui): add error states and empty states`
 
-- [ ] **8.3 Add pull-to-refresh**
+- [x] **8.3 Add pull-to-refresh**
   - Home screen refresh
   - Order history refresh
   - Restaurant list refresh
